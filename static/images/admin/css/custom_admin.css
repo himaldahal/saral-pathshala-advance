@@ -1,0 +1,41 @@
+/* Custom Admin Look for Saral Pathshala */
+:root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --success: #059669;
+    --danger: #dc2626;
+    --warning: #d97706;
+    --bg-gray: #f8fafc;
+}
+
+#header { background: #1e293b !important; color: white !important; }
+.module h2, .module caption, .inline-group h2 { background: var(--primary) !important; }
+div.breadcrumbs { background: #ffffff !important; color: #64748b !important; border-bottom: 1px solid #e2e8f0; }
+a:link, a:visited { color: var(--primary); }
+
+/* Status Badges */
+.badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.badge-sent { background: #d1fae5; color: #065f46; }
+.badge-pending { background: #fef3c7; color: #92400e; }
+.badge-failed { background: #fee2e2; color: #991b1b; }
+
+/* Dashboard Cards */
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-top: 4px solid var(--primary);
+}

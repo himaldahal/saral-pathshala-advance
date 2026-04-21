@@ -1,5 +1,5 @@
-{% extends 'auth/login_base.html' %}
-{% block title %}Verify Phone Integrity{% endblock %}
+{% extends 'login_base.html' %}
+{% block title %}OTP Verification{% endblock %}
 
 {% block content %}
 <div class="text-center">
@@ -8,8 +8,8 @@
         <i class="bi bi-chat-dots-fill" style="font-size: 2rem;"></i>
     </div>
     
-    <h2 class="h3 fw-bold mb-2">Device Handshake</h2>
-    <p class="text-muted mb-4 px-3" style="font-size:0.95rem; line-height: 1.6;">A precise security digit token has been routed sequentially via queue SMS endpoints mapped to <b>xxxxxx{{ masked_phone }}</b></p>
+    <h2 class="h3 fw-bold mb-2">OTP Verification</h2>
+    <p class="text-muted mb-4 px-3" style="font-size:0.95rem; line-height: 1.6;">An OTP has been sent to <b>xxxxxx{{ masked_phone }}.</b></p>
 
     <form method="POST" novalidate class="text-start mb-4">
         {% csrf_token %}
