@@ -1,0 +1,41 @@
+{% extends 'login_base.html' %}
+{% block title %}Log In{% endblock %}
+
+{% block content %}
+<div>
+    <h2 class="h3 fw-bold mb-2">Welcome Back.</h2>
+    <p class="text-muted mb-4">Please log in to continue accessing your material.</p>
+
+    <form method="POST" novalidate>
+        {% csrf_token %}
+        
+        <div class="form-floating mb-3 position-relative">
+            {{ form.email }}
+            <label for="{{ form.email.id_for_label }}"><i class="bi bi-envelope me-2"></i>Email Address</label>
+            {{ form.email.errors }}
+        </div>
+        
+        <div class="form-floating mb-4 position-relative">
+            {{ form.password }}
+            <label for="{{ form.password.id_for_label }}"><i class="bi bi-shield-lock me-2"></i>Password</label>
+            <i class="bi bi-eye password-toggle" data-target="{{ form.password.auto_id }}"></i>
+            {{ form.password.errors }}
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 text-sm">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="rememberMe">
+                <label class="form-check-label text-muted" for="rememberMe">Remember me</label>
+            </div>
+            <!-- Stub url mapping pending prompt's context on password resets -->
+            <a href="#" class="link-text" style="font-size:0.9rem;">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn btn-brand-primary w-100">Sign in securely <i class="bi bi-arrow-right ms-2"></i></button>
+    </form>
+
+    <div class="text-center mt-5 text-muted" style="font-size: 0.95rem;">
+        New to Saral Pathshala? <a href="{% url 'register' %}" class="link-text">Create an account</a>
+    </div>
+</div>
+{% endblock %}

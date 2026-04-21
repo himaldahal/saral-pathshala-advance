@@ -65,18 +65,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     full_name = models.CharField(max_length=60)
     email     = models.EmailField(unique=True, db_index=True)
-    phone     = models.CharField(
-        max_length=10, unique=True, null=True, blank=True,
-        validators=[nepal_phone_validator], db_index=True,
-    )
+    phone     = models.CharField(max_length=10, unique=True, null=True, blank=True,validators=[nepal_phone_validator], db_index=True,)
     previous_institute = models.CharField(max_length=200, blank=True)
-    current_level      = models.CharField(
-        max_length=20, choices=StudentLevel.choices, blank=True, null=True
-    )
-    interested_course  = models.ForeignKey(
-        Course, on_delete=models.SET_NULL, null=True, blank=True,
-        related_name='interested_students',
-    )
+    current_level      = models.CharField(max_length=20, choices=StudentLevel.choices, blank=True, null=True)
+    interested_course  = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True,related_name='interested_students',)
 
     is_phone_verified = models.BooleanField(default=False)
     is_email_verified = models.BooleanField(default=False)
@@ -167,7 +159,7 @@ class MailQueue(models.Model):
 
 # ── SMS Queue ─────────────────────────────────────────────────────────────────
 class SMSQueue(models.Model):
-    """Processed by: python manage.py process_sms_queue"""
+    """Processed by: python manage.py process_sms_queue, all the used, send or unsent otps are auto removed in every 24 hours """
 
     id       = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user     = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='sms_queue')
@@ -205,17 +197,15 @@ class SMSQueue(models.Model):
         self.save(update_fields=['status', 'retry_count', 'failure_reason'])
 
 
-# ═════════════════════════════════════════════════════════════════════════════
-# ── NEW: OTP & Token Models ───────────────────────────────────────────────────
-# ═════════════════════════════════════════════════════════════════════════════
-
+# NEW: OTP & Token Models 
 class PhoneOTP(models.Model):
     """
     One-time password for phone verification.
     Created during registration or when a verified user needs re-auth.
     Invalidated after use or expiry.
+    
+    all the OTPS older than 1 hour are automatically deleted every 24 hours.
     """
-
     id         = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user       = models.ForeignKey(User, on_delete=models.CASCADE, related_name='phone_otps')
     otp        = models.CharField(max_length=6)
@@ -268,7 +258,7 @@ class PhoneOTP(models.Model):
 
 
 class EmailToken(models.Model):
-    """Token sent via email to verify the user's email address (optional flow)."""
+    """Token sent via email to verify the user's email address (optional flow). used or unused all of them are flushed deleted every 24 hours too"""
 
     id       = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user     = models.ForeignKey(User, on_delete=models.CASCADE, related_name='email_tokens')
@@ -298,8 +288,10 @@ class EmailToken(models.Model):
 
 
 class PasswordResetToken(models.Model):
-    """Short-lived token for password reset (30 min window)."""
-
+    """Short-lived token for password reset (30 min window).
+    
+    and all of the unsued older tokens are deleted in every 24 hours automatically."""
+    
     id       = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user     = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_tokens')
     token    = models.UUIDField(default=uuid.uuid4, unique=True)
