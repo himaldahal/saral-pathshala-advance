@@ -8,6 +8,7 @@ from django.db import transaction
 from .models import User, PhoneOTP
 from .forms import RegistrationForm, LoginForm, OTPVerificationForm
 from .utils import get_client_ip, generate_and_dispatch_otp
+from django.contrib.auth.decorators import login_required
 
 def aesthetic_login(request):
     if request.user.is_authenticated:
@@ -106,3 +107,9 @@ def verify_otp(request):
                 messages.error(request, outcome_message)
 
     return render(request, 'otp_verify.html', {'form': form, 'masked_phone': user.phone[-4:]})
+
+@login_required
+def u_logout(request):
+    logout(request)
+    messages.info(request, "You have been logged out.")
+    return redirect('login')

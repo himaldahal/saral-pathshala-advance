@@ -1,0 +1,800 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lecture.title }} — {{ course.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root{
+    --sidebar-width: 320px;
+    --topbar-height: 58px;
+  }
+
+  *{
+    min-width: 0;
+  }
+
+  html,
+  body{
+    height:100%;
+    overflow:hidden;
+    background:#fff;
+  }
+
+  body{
+    overscroll-behavior:none;
+  }
+
+  /* ─────────────────────────
+     LAYOUT
+  ───────────────────────── */
+  .ld-wrap{
+    display:flex;
+    height:calc(100vh - 57px);
+    overflow:hidden;
+    position:relative;
+    background:#fff;
+  }
+
+  /* ─────────────────────────
+     SIDEBAR
+  ───────────────────────── */
+  .ld-sidebar{
+    width:var(--sidebar-width);
+    flex-shrink:0;
+    background:#f8f9fa;
+    border-right:1px solid #e9ecef;
+
+    display:flex;
+    flex-direction:column;
+
+    overflow:hidden;
+
+    transition:
+      width .25s ease,
+      transform .25s ease,
+      border .25s ease;
+
+    position:relative;
+    z-index:20;
+  }
+
+  .ld-sidebar-inner{
+    flex:1;
+    overflow-y:auto;
+    overflow-x:hidden;
+
+    scrollbar-width:thin;
+    scrollbar-color:#ced4da transparent;
+  }
+
+  .ld-sidebar-inner::-webkit-scrollbar{
+    width:7px;
+  }
+
+  .ld-sidebar-inner::-webkit-scrollbar-thumb{
+    background:#ced4da;
+    border-radius:20px;
+  }
+
+  .ld-wrap.sidebar-collapsed .ld-sidebar{
+    width:0;
+    border-right:none;
+  }
+
+  /* ─────────────────────────
+     TOGGLE BUTTON
+  ───────────────────────── */
+  .sidebar-toggle{
+    position:absolute;
+    top:14px;
+    right:-15px;
+
+    width:30px;
+    height:30px;
+
+    border-radius:50%;
+    border:1px solid #dee2e6;
+
+    background:#fff;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    z-index:50;
+    cursor:pointer;
+
+    box-shadow:0 4px 14px rgba(0,0,0,.08);
+
+    transition:all .2s ease;
+  }
+
+  .sidebar-toggle:hover{
+    background:#f1f3f5;
+    transform:scale(1.05);
+  }
+
+  .sidebar-toggle i{
+    font-size:.82rem;
+  }
+
+  /* ─────────────────────────
+     MAIN
+  ───────────────────────── */
+  .ld-main{
+    flex:1;
+    min-width:0;
+
+    display:flex;
+    flex-direction:column;
+
+    overflow:hidden;
+    background:#fff;
+  }
+
+  .main-scroll{
+    flex:1;
+    overflow-y:auto;
+    overflow-x:hidden;
+
+    scrollbar-width:thin;
+    scrollbar-color:#ced4da transparent;
+  }
+
+  .main-scroll::-webkit-scrollbar{
+    width:8px;
+  }
+
+  .main-scroll::-webkit-scrollbar-thumb{
+    background:#ced4da;
+    border-radius:20px;
+  }
+
+  /* ─────────────────────────
+     TOPBAR
+  ───────────────────────── */
+  .main-topbar{
+    position:sticky;
+    top:0;
+    z-index:30;
+
+    min-height:var(--topbar-height);
+
+    background:rgba(255,255,255,.92);
+    backdrop-filter:blur(12px);
+
+    border-bottom:1px solid #e9ecef;
+
+    display:flex;
+    align-items:center;
+    gap:12px;
+
+    padding:10px 18px;
+  }
+
+  .course-title-mini{
+    font-size:.84rem;
+    color:#6c757d;
+
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  /* ─────────────────────────
+     VIDEO
+  ───────────────────────── */
+  .video-wrap{
+    width:100%;
+    background:#000;
+    overflow:hidden;
+    flex-shrink:0;
+  }
+
+  .ratio iframe{
+    border:none;
+    width:100%;
+    height:100%;
+  }
+
+  /* ─────────────────────────
+     ACCORDION
+  ───────────────────────── */
+  .accordion-button{
+    overflow:hidden;
+  }
+
+  .accordion-button span{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  .accordion-button:not(.collapsed){
+    background:#fff;
+  }
+
+  /* ─────────────────────────
+     LECTURE LINKS
+  ───────────────────────── */
+  .lec-link{
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
+
+    padding:9px 14px;
+
+    font-size:.82rem;
+    color:#495057;
+
+    border-left:3px solid transparent;
+
+    transition:background .12s ease;
+
+    text-decoration:none;
+
+    overflow:hidden;
+  }
+
+  .lec-link:hover{
+    background:#e9ecef;
+    color:#212529;
+  }
+
+  .lec-link.active{
+    border-left-color:#fd7e14;
+    background:#fff3e0;
+    color:#e65100;
+  }
+
+  .lec-link.done .lec-icon{
+    color:#198754;
+  }
+
+  .lec-icon{
+    flex-shrink:0;
+  }
+
+  .lec-title{
+    flex:1;
+
+    overflow:hidden;
+    text-overflow:ellipsis;
+
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+
+    line-height:1.3;
+    word-break:break-word;
+  }
+
+  .lec-duration{
+    flex-shrink:0;
+    white-space:nowrap;
+  }
+
+  /* ─────────────────────────
+     CONTENT
+  ───────────────────────── */
+  .content-wrap{
+    padding:24px;
+    overflow-wrap:break-word;
+    word-wrap:break-word;
+  }
+
+  .content-wrap img,
+  .content-wrap iframe,
+  .content-wrap video,
+  .content-wrap table,
+  .content-wrap pre{
+    max-width:100%;
+  }
+
+  .content-wrap pre{
+    overflow:auto;
+    border-radius:10px;
+    padding:14px;
+  }
+
+  .content-wrap table{
+    display:block;
+    overflow:auto;
+  }
+
+  /* ─────────────────────────
+     BREADCRUMB
+  ───────────────────────── */
+  .breadcrumb{
+    flex-wrap:nowrap;
+    overflow:hidden;
+  }
+
+  .breadcrumb-item{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  /* ─────────────────────────
+     BUTTON OVERFLOW
+  ───────────────────────── */
+  .lecture-nav-btn{
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  /* ─────────────────────────
+     MOBILE
+  ───────────────────────── */
+  @media (max-width: 768px){
+
+    html,
+    body{
+      overflow:hidden;
+    }
+
+    .ld-wrap{
+      height:calc(100vh - 57px);
+    }
+
+    .ld-sidebar{
+      position:fixed;
+      top:57px;
+      left:0;
+
+      height:calc(100vh - 57px);
+      width:var(--sidebar-width);
+
+      box-shadow:0 0 40px rgba(0,0,0,.12);
+    }
+
+    .ld-wrap.sidebar-collapsed .ld-sidebar{
+      width:var(--sidebar-width);
+      transform:translateX(-100%);
+    }
+
+    .sidebar-toggle{
+      display:none;
+    }
+
+    .content-wrap{
+      padding:18px;
+    }
+
+    .main-topbar{
+      padding-inline:14px;
+    }
+  }
+
+  /* ─────────────────────────
+     SMALL MOBILE
+  ───────────────────────── */
+  @media (max-width:480px){
+
+    :root{
+      --sidebar-width: 88vw;
+    }
+
+    .content-wrap{
+      padding:16px;
+    }
+
+    .breadcrumb{
+      font-size:.68rem !important;
+    }
+
+    h1{
+      font-size:1.35rem !important;
+      line-height:1.35;
+      overflow-wrap:break-word;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ld-wrap sidebar-collapsed" id="ldWrap">
+
+  <!-- ─────────────────────────
+       SIDEBAR
+  ───────────────────────── -->
+  <aside class="ld-sidebar">
+
+    <button class="sidebar-toggle" id="sidebarToggle">
+      <i class="bi bi-chevron-right" id="sidebarToggleIcon"></i>
+    </button>
+
+    <div class="ld-sidebar-inner">
+
+      <!-- Course Header -->
+      <div class="p-3 bg-white border-bottom">
+
+        <p class="text-muted mb-1"
+           style="font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;">
+          Course
+        </p>
+
+        <p class="fw-medium mb-0 small text-dark text-break">
+          {{ course.name }}
+        </p>
+      </div>
+
+      <!-- Accordion -->
+      <div class="accordion accordion-flush" id="courseAccordion">
+
+        {% for subject in subjects %}
+
+        <div class="accordion-item border-bottom"
+             style="background:transparent;border-color:#e9ecef;">
+
+          <h2 class="accordion-header">
+
+            <button
+              class="accordion-button py-3 bg-transparent"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#subj-{{ subject.pk }}"
+              aria-expanded="true"
+              style="font-size:.85rem;font-weight:500;color:#212529;box-shadow:none;"
+            >
+
+              <span class="flex-grow-1">
+                {{ subject.name }}
+              </span>
+
+              <span class="text-muted ms-2"
+                    style="font-size:.72rem;font-weight:300;flex-shrink:0;">
+                {{ subject.lecture_count }} lec
+              </span>
+
+            </button>
+          </h2>
+
+          <div id="subj-{{ subject.pk }}"
+               class="accordion-collapse collapse show">
+
+            {% for section in subject.sections.all %}
+
+              {% if section.title %}
+              <div class="px-3 pt-2 pb-1 text-muted text-uppercase"
+                   style="font-size:.65rem;letter-spacing:.1em;background:#f1f3f5;">
+                {{ section.title }}
+              </div>
+              {% endif %}
+
+              {% for lec in section.lectures.all %}
+
+              <a href="{% url 'lecture_detail' lec.pk %}"
+                 class="lec-link {% if lec.pk == lecture.pk %}active{% elif lec.pk in completed_ids %}done{% endif %}">
+
+                <span class="lec-icon mt-1"
+                      style="font-size:.8rem;">
+
+                  {% if lec.pk == lecture.pk %}
+                    <i class="bi bi-play-fill text-warning"></i>
+
+                  {% elif lec.pk in completed_ids %}
+                    <i class="bi bi-check-circle-fill text-success"></i>
+
+                  {% else %}
+                    <i class="bi bi-circle text-muted"></i>
+                  {% endif %}
+                </span>
+
+                <span class="lec-title">
+                  {{ lec.title }}
+                </span>
+
+                {% if lec.duration %}
+                <span class="text-muted lec-duration mt-1"
+                      style="font-size:.7rem;">
+                  {{ lec.duration_display }}
+                </span>
+                {% endif %}
+
+              </a>
+
+              {% endfor %}
+
+            {% empty %}
+
+            <p class="text-muted px-3 py-2 small mb-0">
+              No sections yet.
+            </p>
+
+            {% endfor %}
+          </div>
+        </div>
+
+        {% endfor %}
+      </div>
+    </div>
+  </aside>
+
+  <!-- ─────────────────────────
+       MAIN
+  ───────────────────────── -->
+  <div class="ld-main">
+
+    <div class="main-scroll">
+
+      <!-- Topbar -->
+      <div class="main-topbar">
+
+        <button class="btn btn-sm btn-light border"
+                id="mobileSidebarBtn">
+
+          <i class="bi bi-list"></i>
+        </button>
+
+        <div class="course-title-mini flex-grow-1">
+          {{ course.name }}
+        </div>
+      </div>
+
+      <!-- Video -->
+      <div class="video-wrap">
+
+        <div class="ratio ratio-16x9">
+
+          {% if lecture.embed_url %}
+
+            {% include 'courses/lecture_video_component.html' with yt_video_id=lecture.youtube_video_id %}
+
+          {% else %}
+
+          <div class="d-flex align-items-center justify-content-center bg-dark text-light">
+            <div class="text-center p-4">
+              <i class="bi bi-play-circle fs-1 d-block mb-2"></i>
+              Video not available.
+            </div>
+          </div>
+
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <div class="content-wrap">
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-2">
+
+          <ol class="breadcrumb mb-0"
+              style="font-size:.75rem;">
+
+            <li class="breadcrumb-item">
+              <a href="{% url 'course_list' %}"
+                 class="text-muted text-decoration-none">
+                Courses
+              </a>
+            </li>
+
+            <li class="breadcrumb-item text-muted">
+              {{ lecture.section.subject.name }}
+            </li>
+
+            {% if lecture.section.title %}
+            <li class="breadcrumb-item text-muted">
+              {{ lecture.section.title }}
+            </li>
+            {% endif %}
+
+          </ol>
+        </nav>
+
+        <!-- Title -->
+        <h1 class="fs-4 fw-normal mb-3 text-break">
+          {{ lecture.title }}
+        </h1>
+
+        <!-- Badges -->
+        <div class="d-flex flex-wrap gap-2 mb-4">
+
+          {% if lecture.duration %}
+          <span class="badge bg-light text-dark border fw-normal">
+            <i class="bi bi-clock me-1"></i>
+            {{ lecture.duration_display }}
+          </span>
+          {% endif %}
+
+          {% if lecture.is_preview %}
+          <span class="badge bg-light text-dark border fw-normal">
+            <i class="bi bi-eye me-1"></i>
+            Free Preview
+          </span>
+          {% endif %}
+
+          {% if lecture.pk in completed_ids %}
+          <span class="badge bg-success fw-normal">
+            <i class="bi bi-check-circle me-1"></i>
+            Completed
+          </span>
+          {% endif %}
+        </div>
+
+        <!-- Description -->
+        {% if lecture.description %}
+        <div class="bg-light border rounded p-3 mb-4 overflow-hidden">
+
+          <p class="text-muted small text-uppercase mb-2"
+             style="letter-spacing:.08em;font-size:.68rem;">
+
+            About this lecture
+          </p>
+
+          <div class="text-secondary small lh-lg text-break">
+            {{ lecture.description|linebreaks }}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Prev / Next -->
+        <div class="d-flex gap-2 flex-wrap">
+
+          {% if prev_lecture %}
+          <a href="{% url 'lecture_detail' prev_lecture.pk %}"
+             class="btn btn-outline-secondary btn-sm lecture-nav-btn">
+
+            <i class="bi bi-arrow-left me-1"></i>
+            {{ prev_lecture.title|truncatechars:35 }}
+          </a>
+          {% endif %}
+
+          {% if next_lecture %}
+          <a href="{% url 'lecture_detail' next_lecture.pk %}"
+             class="btn btn-warning btn-sm lecture-nav-btn">
+
+            {{ next_lecture.title|truncatechars:35 }}
+            <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  const wrap = document.getElementById('ldWrap');
+
+  const toggleBtn = document.getElementById('sidebarToggle');
+
+  const mobileBtn = document.getElementById('mobileSidebarBtn');
+
+  const icon = document.getElementById('sidebarToggleIcon');
+
+  // =========================
+  // Active lecture auto-scroll
+  // =========================
+  const active = document.querySelector('.lec-link.active');
+
+  if (active) {
+
+    const panel = active.closest('.accordion-collapse');
+
+    if (panel && !panel.classList.contains('show')) {
+
+      const btn = document.querySelector(
+        '[data-bs-target="#' + panel.id + '"]'
+      );
+
+      if (btn) {
+        new bootstrap.Collapse(panel, {
+          toggle: true
+        });
+      }
+    }
+
+    setTimeout(function () {
+
+      active.scrollIntoView({
+        block: 'center',
+        behavior: 'smooth'
+      });
+
+    }, 250);
+  }
+
+  // =========================
+  // Update Icon
+  // =========================
+  function updateIcon() {
+
+    if (wrap.classList.contains('sidebar-collapsed')) {
+
+      icon.classList.remove('bi-chevron-left');
+      icon.classList.add('bi-chevron-right');
+
+    } else {
+
+      icon.classList.remove('bi-chevron-right');
+      icon.classList.add('bi-chevron-left');
+    }
+  }
+
+  // =========================
+  // Toggle Sidebar
+  // =========================
+  function toggleSidebar() {
+
+    wrap.classList.toggle('sidebar-collapsed');
+
+    updateIcon();
+
+    if (window.innerWidth > 768) {
+
+      localStorage.setItem(
+        'courseSidebarCollapsed',
+        wrap.classList.contains('sidebar-collapsed')
+      );
+    }
+  }
+
+  toggleBtn?.addEventListener('click', toggleSidebar);
+
+  mobileBtn?.addEventListener('click', toggleSidebar);
+
+  // =========================
+  // Restore Desktop State
+  // =========================
+  if (window.innerWidth > 768) {
+
+    const saved =
+      localStorage.getItem('courseSidebarCollapsed');
+
+    if (saved === 'false') {
+
+      wrap.classList.remove('sidebar-collapsed');
+
+    } else {
+
+      wrap.classList.add('sidebar-collapsed');
+    }
+
+    updateIcon();
+  }
+
+  // =========================
+  // Auto close on mobile nav
+  // =========================
+  document.querySelectorAll('.lec-link').forEach(link => {
+
+    link.addEventListener('click', function () {
+
+      if (window.innerWidth <= 768) {
+
+        wrap.classList.add('sidebar-collapsed');
+
+        updateIcon();
+      }
+    });
+  });
+
+  // =========================
+  // ESC closes sidebar mobile
+  // =========================
+  document.addEventListener('keydown', function (e) {
+
+    if (
+      e.key === 'Escape' &&
+      window.innerWidth <= 768
+    ) {
+
+      wrap.classList.add('sidebar-collapsed');
+
+      updateIcon();
+    }
+  });
+
+});
+</script>
+{% endblock %}

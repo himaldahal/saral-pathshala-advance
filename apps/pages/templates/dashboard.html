@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<section class="min-h-screen bg-gradient-to-b from-gray-50 to-white py-10">
+
+    <div class="max-w-7xl mx-auto px-4 lg:px-8">
+
+        <!-- TOP HEADER -->
+        <div class="bg-white border border-gray-100 shadow-sm rounded-3xl overflow-hidden mb-8">
+
+            <!-- Cover -->
+            <div class="h-40 bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 relative">
+
+                <div class="absolute -bottom-12 left-8">
+                    <div class="w-24 h-24 rounded-3xl bg-white shadow-lg p-1">
+                        <div class="w-full h-full rounded-3xl bg-indigo-100 flex items-center justify-center text-4xl font-bold text-indigo-700">
+                          {{ user.get_short_name }}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- User Info -->
+            <div class="pt-16 pb-8 px-8">
+
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+
+                    <div>
+
+                        <h1 class="text-3xl font-bold text-gray-900">
+                            Welcome back, {{ user_obj.get_short_name }}
+                        </h1>
+
+                        <p class="text-gray-500 mt-2">
+                            Manage your account, courses and learning progress.
+                        </p>
+
+                        <div class="flex flex-wrap gap-3 mt-5">
+
+                            {% if user_obj.is_phone_verified %}
+                            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-700 text-sm font-medium">
+                                <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                                Phone Verified
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-100 text-red-700 text-sm font-medium">
+                                <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                                Phone Not Verified
+                            </span>
+                            {% endif %}
+
+                            {% if user_obj.is_email_verified %}
+                            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-sm font-medium">
+                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                Email Verified
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-100 text-yellow-700 text-sm font-medium">
+                                <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+                                Email Not Verified
+                            </span>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                    <div class="flex flex-wrap gap-3">
+
+                        <a href="#"
+                           class="inline-flex items-center justify-center px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 transition text-white font-medium shadow-sm">
+                            Edit Profile
+                        </a>
+
+                        <a href="#"
+                           class="inline-flex items-center justify-center px-5 py-3 rounded-2xl border border-gray-200 hover:bg-gray-50 transition text-gray-700 font-medium">
+                            Change Password
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- GRID -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <!-- LEFT -->
+            <div class="lg:col-span-2 space-y-8">
+
+                <!-- PERSONAL INFO -->
+                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
+
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900">
+                                Personal Information
+                            </h2>
+
+                            <p class="text-gray-500 mt-1">
+                                Your basic account information.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        <div class="p-5 rounded-2xl bg-gray-50">
+                            <p class="text-sm text-gray-500 mb-2">
+                                Full Name
+                            </p>
+
+                            <h3 class="text-lg font-semibold text-gray-900">
+                                {{ user_obj.short_name|default:"N/A" }}
+                            </h3>
+                        </div>
+
+                        <div class="p-5 rounded-2xl bg-gray-50">
+                            <p class="text-sm text-gray-500 mb-2">
+                                Email Address
+                            </p>
+
+                            <h3 class="text-lg font-semibold text-gray-900 break-all">
+                                {{ user_obj.email|default:"N/A" }}
+                            </h3>
+                        </div>
+
+                        <div class="p-5 rounded-2xl bg-gray-50">
+                            <p class="text-sm text-gray-500 mb-2">
+                                Phone Number
+                            </p>
+
+                            <h3 class="text-lg font-semibold text-gray-900">
+                                {{ user_obj.phone|default:"N/A" }}
+                            </h3>
+                        </div>
+
+                        <div class="p-5 rounded-2xl bg-gray-50">
+                            <p class="text-sm text-gray-500 mb-2">
+                                Current Level
+                            </p>
+
+                            <h3 class="text-lg font-semibold text-gray-900">
+                                {{ user_obj.get_current_level_display|default:"N/A" }}
+                            </h3>
+                        </div>
+
+                        <div class="md:col-span-2 p-5 rounded-2xl bg-gray-50">
+                            <p class="text-sm text-gray-500 mb-2">
+                                Previous Institute
+                            </p>
+
+                            <h3 class="text-lg font-semibold text-gray-900">
+                                {{ user_obj.previous_institute|default:"Not Provided" }}
+                            </h3>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- ACCOUNT DETAILS -->
+                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
+
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-gray-900">
+                            Account Details
+                        </h2>
+
+                        <p class="text-gray-500 mt-1">
+                            Information related to your account.
+                        </p>
+                    </div>
+
+                    <div class="space-y-5">
+
+                        <div class="flex items-center justify-between p-5 rounded-2xl border border-gray-100">
+                            <div>
+                                <p class="text-sm text-gray-500">
+                                    Joined On
+                                </p>
+
+                                <h3 class="font-semibold text-gray-900 mt-1">
+                                    {{ user_obj.date_joined|date:"F d, Y" }}
+                                </h3>
+                            </div>
+
+                            <div class="text-right">
+                                <p class="text-sm text-gray-500">
+                                    Time
+                                </p>
+
+                                <h3 class="font-semibold text-gray-900 mt-1">
+                                    {{ user_obj.date_joined|date:"h:i A" }}
+                                </h3>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-5 rounded-2xl border border-gray-100">
+                            <div>
+                                <p class="text-sm text-gray-500">
+                                    Last Login
+                                </p>
+
+                                <h3 class="font-semibold text-gray-900 mt-1">
+                                    {% if user_obj.last_login %}
+                                        {{ user_obj.last_login|date:"F d, Y - h:i A" }}
+                                    {% else %}
+                                        Never Logged In
+                                    {% endif %}
+                                </h3>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-5 rounded-2xl border border-gray-100">
+                            <div>
+                                <p class="text-sm text-gray-500">
+                                    Login Permission
+                                </p>
+
+                                <h3 class="font-semibold text-gray-900 mt-1">
+                                    {% if user_obj.can_login %}
+                                        Allowed
+                                    {% else %}
+                                        Restricted
+                                    {% endif %}
+                                </h3>
+                            </div>
+
+                            <div>
+                                {% if user_obj.can_login %}
+                                <span class="px-4 py-2 rounded-full bg-green-100 text-green-700 text-sm font-medium">
+                                    Active
+                                </span>
+                                {% else %}
+                                <span class="px-4 py-2 rounded-full bg-red-100 text-red-700 text-sm font-medium">
+                                    Blocked
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- RIGHT -->
+            <div class="space-y-8">
+
+                <!-- INTERESTED COURSE -->
+                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+
+                    <div class="p-6 border-b border-gray-100">
+                        <h2 class="text-xl font-bold text-gray-900">
+                            Interested Course
+                        </h2>
+
+                        <p class="text-gray-500 text-sm mt-1">
+                            Your selected learning interest.
+                        </p>
+                    </div>
+
+                    {% if user_obj.interested_course %}
+
+                    <div class="p-6">
+
+                        <img src="{{ user_obj.interested_course.thumbnail.url }}"
+                             alt="{{ user_obj.interested_course.name }}"
+                             class="w-full h-52 object-cover rounded-2xl">
+
+                        <div class="mt-5">
+
+                            <h3 class="text-xl font-bold text-gray-900">
+                                {{ user_obj.interested_course.name }}
+                            </h3>
+
+                            <p class="text-sm text-gray-500 mt-2">
+                                {{ user_obj.interested_course.slug }}
+                            </p>
+
+                            <a href="#"
+                               class="mt-5 inline-flex items-center justify-center w-full px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 transition text-white font-medium">
+                                View Course
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                    {% else %}
+
+                    <div class="p-8 text-center">
+
+                        <div class="w-20 h-20 mx-auto rounded-3xl bg-gray-100 flex items-center justify-center text-3xl">
+                            📚
+                        </div>
+
+                        <h3 class="mt-5 text-lg font-bold text-gray-900">
+                            No Course Selected
+                        </h3>
+
+                        <p class="text-gray-500 text-sm mt-2">
+                            You have not selected any interested course yet.
+                        </p>
+
+                    </div>
+
+                    {% endif %}
+
+                </div>
+
+                <!-- QUICK STATS -->
+                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+
+                    <h2 class="text-xl font-bold text-gray-900 mb-6">
+                        Quick Stats
+                    </h2>
+
+                    <div class="space-y-4">
+
+                        <div class="flex items-center justify-between p-4 rounded-2xl bg-indigo-50">
+                            <div>
+                                <p class="text-sm text-indigo-500">
+                                    Account Status
+                                </p>
+
+                                <h3 class="font-bold text-indigo-900 mt-1">
+                                    {% if user_obj.is_active %}
+                                        Active
+                                    {% else %}
+                                        Disabled
+                                    {% endif %}
+                                </h3>
+                            </div>
+
+                            <div class="text-3xl">
+                                🔐
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 rounded-2xl bg-green-50">
+                            <div>
+                                <p class="text-sm text-green-500">
+                                    Phone Status
+                                </p>
+
+                                <h3 class="font-bold text-green-900 mt-1">
+                                    {% if user_obj.is_phone_verified %}
+                                        Verified
+                                    {% else %}
+                                        Pending
+                                    {% endif %}
+                                </h3>
+                            </div>
+
+                            <div class="text-3xl">
+                                📱
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 rounded-2xl bg-blue-50">
+                            <div>
+                                <p class="text-sm text-blue-500">
+                                    Email Status
+                                </p>
+
+                                <h3 class="font-bold text-blue-900 mt-1">
+                                    {% if user_obj.is_email_verified %}
+                                        Verified
+                                    {% else %}
+                                        Pending
+                                    {% endif %}
+                                </h3>
+                            </div>
+
+                            <div class="text-3xl">
+                                ✉️
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+{% endblock %}

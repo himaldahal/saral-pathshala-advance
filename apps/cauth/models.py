@@ -68,7 +68,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone     = models.CharField(max_length=10, unique=True, null=True, blank=True,validators=[nepal_phone_validator], db_index=True,)
     previous_institute = models.CharField(max_length=200, blank=True)
     current_level      = models.CharField(max_length=20, choices=StudentLevel.choices, blank=True, null=True)
-    interested_course  = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True,related_name='interested_students',)
+    interested_course  = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True,related_name='interested_students',to_field='slug')
 
     is_phone_verified = models.BooleanField(default=False)
     is_email_verified = models.BooleanField(default=False)

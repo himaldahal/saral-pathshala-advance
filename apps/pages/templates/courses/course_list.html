@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Courses — Learn{% endblock %}
+
+{% block extra_css %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg:        #0e0e0e;
+    --surface:   #161616;
+    --border:    #262626;
+    --accent:    #c8a96e;
+    --accent-dim:#c8a96e22;
+    --text:      #e8e2d9;
+    --muted:     #6b6560;
+    --green:     #4caf7d;
+    --radius:    12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  /* ── HERO ── */
+  .cl-hero {
+    padding: 72px 0 48px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .cl-hero__eyebrow {
+    font-size: 11px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .cl-hero__title {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    font-weight: 400;
+    line-height: 1.1;
+    color: var(--text);
+  }
+  .cl-hero__title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .cl-hero__sub {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: .95rem;
+  }
+
+  /* ── GRID ── */
+  .cl-container {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .cl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    padding: 56px 0 80px;
+  }
+
+  /* ── CARD ── */
+  .cl-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color .2s, transform .2s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .cl-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+  }
+
+  .cl-card__thumb {
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    position: relative;
+    background: #111;
+  }
+  .cl-card__thumb img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .4s ease;
+  }
+  .cl-card:hover .cl-card__thumb img {
+    transform: scale(1.04);
+  }
+  .cl-card__badge {
+    position: absolute;
+    top: 12px; right: 12px;
+    background: var(--accent);
+    color: #0e0e0e;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+  .cl-card__badge--enrolled {
+    background: var(--green);
+  }
+
+  .cl-card__body {
+    padding: 20px 22px 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .cl-card__name {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.2rem;
+    font-weight: 400;
+    line-height: 1.25;
+    color: var(--text);
+  }
+  .cl-card__desc {
+    font-size: .85rem;
+    color: var(--muted);
+    line-height: 1.6;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .cl-card__meta {
+    display: flex;
+    gap: 18px;
+    margin-top: 4px;
+  }
+  .cl-card__meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: .78rem;
+    color: var(--muted);
+  }
+  .cl-card__meta-item svg {
+    width: 13px; height: 13px;
+    opacity: .7;
+  }
+
+  .cl-card__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-size: .82rem;
+    font-weight: 500;
+    letter-spacing: .03em;
+    cursor: pointer;
+    border: none;
+    transition: background .15s;
+    text-decoration: none;
+    align-self: flex-start;
+  }
+  .cl-card__cta--enrolled {
+    background: var(--green);
+    color: #0e0e0e;
+  }
+  .cl-card__cta--enrolled:hover { background: #3d9e6a; color: #0e0e0e; }
+  .cl-card__cta--default {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+  .cl-card__cta--default:hover {
+    background: var(--accent);
+    color: #0e0e0e;
+  }
+
+  .cl-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0 22px;
+  }
+
+  .cl-empty {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--muted);
+  }
+  .cl-empty__icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .cl-empty__text { font-size: .95rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cl-hero">
+  <div class="cl-container">
+    <p class="cl-hero__eyebrow">Knowledge Library</p>
+    <h1 class="cl-hero__title">Explore <em>Courses</em></h1>
+    <p class="cl-hero__sub">Structured learning paths — pick a course and start today.</p>
+  </div>
+</div>
+
+<div class="cl-container">
+  {% if courses_with_meta %}
+  <div class="cl-grid">
+    {% for item in courses_with_meta %}
+    {% with c=item.course %}
+    <div class="cl-card">
+      <div class="cl-card__thumb">
+        {% if c.thumbnail %}
+          <img src="{{ c.thumbnail.url }}" alt="{{ c.name }}" loading="lazy">
+        {% else %}
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#1a1a1a,#2a2a2a);display:flex;align-items:center;justify-content:center;">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.5"><path d="M2 6a2 2 0 012-2h7l2 2h7a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>
+          </div>
+        {% endif %}
+        {% if item.is_enrolled %}
+          <span class="cl-card__badge cl-card__badge--enrolled">Enrolled</span>
+        {% endif %}
+      </div>
+
+      <div class="cl-card__body">
+        <h2 class="cl-card__name">{{ c.name }}</h2>
+        {% if c.seo_excerpt %}
+          <p class="cl-card__desc">{{ c.seo_excerpt }}</p>
+        {% endif %}
+
+        <div class="cl-card__meta">
+          <span class="cl-card__meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.55 2.62a1 1 0 010 1.76L15 17M5 4h8a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
+            {{ item.total_lectures }} lectures
+          </span>
+          <span class="cl-card__meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            {{ item.total_subjects }} subjects
+          </span>
+        </div>
+
+        {% if item.is_enrolled and item.first_lecture %}
+          <a href="{% url 'lecture_detail' item.first_lecture.pk %}" class="cl-card__cta cl-card__cta--enrolled">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+            Continue Learning
+          </a>
+        {% elif item.first_lecture %}
+          <a href="{% url 'lecture_detail' item.first_lecture.pk %}" class="cl-card__cta cl-card__cta--default">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            Preview Course
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="cl-empty">
+    <div class="cl-empty__icon">📚</div>
+    <p class="cl-empty__text">No courses available yet. Check back soon.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

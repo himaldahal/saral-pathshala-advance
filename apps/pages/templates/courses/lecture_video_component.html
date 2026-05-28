@@ -1,0 +1,471 @@
+<style>
+  #lms-{{ yt_video_id }} .lms-pbar:hover .lms-track { height: 6px !important; }
+  #lms-{{ yt_video_id }} .lms-pbar:hover .lms-thumb  { opacity: 1 !important; }
+  #lms-{{ yt_video_id }} .lms-ctrl-btn { opacity: .85; transition: opacity .15s, transform .1s; }
+  #lms-{{ yt_video_id }} .lms-ctrl-btn:hover { opacity: 1; transform: scale(1.12); }
+  #lms-{{ yt_video_id }} .lms-ctrl-btn:active { transform: scale(.95); }
+  #lms-{{ yt_video_id }} .lms-vol { cursor: pointer; vertical-align: middle; accent-color: #e63946; }
+  #lms-{{ yt_video_id }} .lms-vol::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: rgba(255,255,255,.3); }
+  #lms-{{ yt_video_id }} .lms-vol::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #fff; margin-top: -4px; cursor: pointer; }
+  #lms-{{ yt_video_id }} .lms-vol::-moz-range-thumb { width: 12px; height: 12px; border: none; border-radius: 50%; background: #fff; cursor: pointer; }
+  #lms-{{ yt_video_id }} .lms-sp:hover { background: rgba(255,255,255,.08) !important; color: #fff !important; }
+</style>
+
+<div id="lms-{{ yt_video_id }}" data-vid="{{ yt_video_id }}" tabindex="0"
+     style="background:#000;border-radius:12px;overflow:hidden;
+            outline:none;user-select:none;box-shadow:0 10px 40px rgba(0,0,0,.45);
+            -webkit-tap-highlight-color:transparent;">
+
+  <!-- ── 16:9 video host ─────────────────────────────────── -->
+  <div class="ratio ratio-16x9">
+    <div id="yt-{{ yt_video_id }}"></div>
+  </div>
+
+  <!-- ── Top gradient — kills YT watermark ──────────────── -->
+  <div style="position:absolute;top:0;left:0;right:0;height:80px;z-index:4;
+              background:linear-gradient(to bottom,rgba(0,0,0,.55) 0%,transparent 100%);
+              pointer-events:none;"></div>
+
+  <div style="position:absolute;bottom:0;left:0;width:100%;height:54px;
+              background:#000;z-index:6;pointer-events:none;"></div>
+
+  <div id="co-{{ yt_video_id }}"
+       style="position:absolute;inset:0;z-index:5;cursor:default;"></div>
+
+  <div id="cf-{{ yt_video_id }}"
+       style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+              z-index:9;width:70px;height:70px;border-radius:50%;
+              background:rgba(0,0,0,.58);backdrop-filter:blur(4px);
+              display:flex;align-items:center;justify-content:center;
+              opacity:0;pointer-events:none;transition:opacity .3s ease;">
+    <i id="cfi-{{ yt_video_id }}" class="bi bi-play-fill"
+       style="color:#fff;font-size:2.1rem;line-height:1;margin-left:4px;"></i>
+  </div>
+
+  <div id="bsp-{{ yt_video_id }}"
+       style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+              z-index:8;display:none;pointer-events:none;">
+    <div class="spinner-border"
+         style="color:rgba(255,255,255,.75);width:2.6rem;height:2.6rem;" role="status">
+      <span class="visually-hidden">Buffering…</span>
+    </div>
+  </div>
+
+  <div id="spm-{{ yt_video_id }}"
+       style="position:absolute;bottom:72px;right:14px;z-index:20;display:none;
+              background:rgba(16,16,16,.97);border:1px solid rgba(255,255,255,.12);
+              border-radius:10px;padding:5px 0;min-width:96px;
+              box-shadow:0 6px 24px rgba(0,0,0,.55);">
+    <div style="font-size:10.5px;color:rgba(255,255,255,.38);padding:4px 14px 6px;
+                letter-spacing:.6px;text-transform:uppercase;font-weight:600;">Speed</div>
+    <a class="lms-sp d-block px-3 py-1 text-decoration-none" href="#" data-speed="0.25"
+       style="font-size:13px;color:rgba(255,255,255,.78);">0.25×</a>
+    <a class="lms-sp d-block px-3 py-1 text-decoration-none" href="#" data-speed="0.5"
+       style="font-size:13px;color:rgba(255,255,255,.78);">0.5×</a>
+    <a class="lms-sp d-block px-3 py-1 text-decoration-none" href="#" data-speed="0.75"
+       style="font-size:13px;color:rgba(255,255,255,.78);">0.75×</a>
+    <a class="lms-sp d-block px-3 py-1 text-decoration-none lms-sp-cur" href="#" data-speed="1"
+       style="font-size:13px;color:#e63946;font-weight:600;">1×</a>
+    <a class="lms-sp d-block px-3 py-1 text-decoration-none" href="#" data-speed="1.25"
+       style="font-size:13px;color:rgba(255,255,255,.78);">1.25×</a>
+    <a class="lms-sp d-block px-3 py-1 text-decoration-none" href="#" data-speed="1.5"
+       style="font-size:13px;color:rgba(255,255,255,.78);">1.5×</a>
+    <a class="lms-sp d-block px-3 py-1 text-decoration-none" href="#" data-speed="1.75"
+       style="font-size:13px;color:rgba(255,255,255,.78);">1.75×</a>
+    <a class="lms-sp d-block px-3 py-1 text-decoration-none" href="#" data-speed="2"
+       style="font-size:13px;color:rgba(255,255,255,.78);">2×</a>
+  </div>
+
+  <div id="ctrl-{{ yt_video_id }}"
+       style="position:absolute;bottom:0;left:0;width:100%;z-index:10;
+              background:linear-gradient(transparent,rgba(0,0,0,.9) 70%);
+              padding:46px 16px 14px;
+              opacity:0;transition:opacity .25s ease;pointer-events:none;">
+
+    <div id="pb-{{ yt_video_id }}" class="lms-pbar"
+         style="position:relative;height:20px;cursor:pointer;margin-bottom:10px;pointer-events:auto;">
+
+      <div style="position:absolute;inset:0;display:flex;align-items:center;">
+        <div style="position:relative;width:100%;">
+          <div class="lms-track" style="height:4px;background:rgba(255,255,255,.2);
+               border-radius:2px;position:relative;overflow:hidden;
+               transition:height .15s ease;">
+            <!-- Buffer fill -->
+            <div id="bf-{{ yt_video_id }}"
+                 style="position:absolute;inset:0 auto 0 0;background:rgba(255,255,255,.22);
+                        width:0%;"></div>
+            <!-- Play progress fill -->
+            <div id="pf-{{ yt_video_id }}"
+                 style="position:absolute;inset:0 auto 0 0;background:#e63946;
+                        width:0%;transition:width .1s linear;"></div>
+          </div>
+          <!-- Scrubber thumb -->
+          <div id="pt-{{ yt_video_id }}" class="lms-thumb"
+               style="position:absolute;width:14px;height:14px;border-radius:50%;
+                      background:#fff;top:50%;transform:translate(-50%,-50%);
+                      left:0%;opacity:0;transition:opacity .18s;
+                      box-shadow:0 1px 5px rgba(0,0,0,.55);pointer-events:none;"></div>
+        </div>
+      </div>
+
+      <!-- Hover time bubble -->
+      <div id="ptt-{{ yt_video_id }}"
+           style="position:absolute;bottom:26px;transform:translateX(-50%);
+                  background:rgba(0,0,0,.82);color:#fff;font-size:11.5px;
+                  padding:3px 8px;border-radius:5px;pointer-events:none;display:none;
+                  white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:.2px;">
+        0:00
+      </div>
+    </div>
+
+    <!-- Button row -->
+    <div style="display:flex;align-items:center;gap:4px;pointer-events:auto;">
+
+      <!-- Play / Pause -->
+      <button id="ppb-{{ yt_video_id }}" class="btn btn-link p-0 border-0 text-white lms-ctrl-btn"
+              style="font-size:1.6rem;line-height:1;min-width:28px;" title="Play / Pause (Space)">
+        <i id="ppi-{{ yt_video_id }}" class="bi bi-play-fill"></i>
+      </button>
+
+      <!-- Skip −10 s -->
+      <button id="skb-{{ yt_video_id }}" class="btn btn-link p-0 border-0 text-white lms-ctrl-btn"
+              style="font-size:1.2rem;line-height:1;padding:0 2px!important;" title="−10 s (←)">
+        <i class="bi bi-skip-backward-fill"></i>
+      </button>
+
+      <!-- Skip +10 s -->
+      <button id="skf-{{ yt_video_id }}" class="btn btn-link p-0 border-0 text-white lms-ctrl-btn"
+              style="font-size:1.2rem;line-height:1;padding:0 2px!important;" title="+10 s (→)">
+        <i class="bi bi-skip-forward-fill"></i>
+      </button>
+
+      <!-- Volume icon / mute toggle -->
+      <button id="mb-{{ yt_video_id }}" class="btn btn-link p-0 border-0 text-white lms-ctrl-btn ms-1"
+              style="font-size:1.2rem;line-height:1;" title="Mute (M)">
+        <i id="mi-{{ yt_video_id }}" class="bi bi-volume-up-fill"></i>
+      </button>
+
+      <!-- Volume slider -->
+      <input id="vs-{{ yt_video_id }}" type="range" class="lms-vol"
+             min="0" max="100" value="100"
+             style="width:66px;height:4px;background:rgba(255,255,255,.3);
+                    border-radius:2px;border:none;outline:none;padding:0;">
+
+      <!-- Time stamp -->
+      <span style="font-size:12.5px;color:rgba(255,255,255,.9);white-space:nowrap;
+                   margin-left:8px;font-variant-numeric:tabular-nums;letter-spacing:.3px;">
+        <span id="tc-{{ yt_video_id }}">0:00</span>
+        <span style="color:rgba(255,255,255,.35);margin:0 4px;">/</span>
+        <span id="td-{{ yt_video_id }}">0:00</span>
+      </span>
+
+      <!-- Push right -->
+      <div style="flex:1;min-width:0;"></div>
+
+      <!-- Speed -->
+      <button id="spb-{{ yt_video_id }}" class="btn btn-link p-0 border-0 text-white lms-ctrl-btn"
+              style="font-size:12.5px;font-weight:700;letter-spacing:.4px;min-width:34px;"
+              title="Playback speed">
+        <span id="sl-{{ yt_video_id }}">1×</span>
+      </button>
+
+      <!-- Fullscreen -->
+      <button id="fs-{{ yt_video_id }}" class="btn btn-link p-0 border-0 text-white lms-ctrl-btn ms-1"
+              style="font-size:1.1rem;line-height:1;" title="Fullscreen (F)">
+        <i id="fsi-{{ yt_video_id }}" class="bi bi-fullscreen"></i>
+      </button>
+
+    </div>
+  </div><!-- /controls -->
+
+</div><!-- /lms-player -->
+
+
+<!-- Load YT API once per page ──────────────────────────── -->
+<script>
+(function(){
+  if (!document.getElementById('yt-iframe-api')) {
+    var s = document.createElement('script');
+    s.id  = 'yt-iframe-api';
+    s.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(s);
+  }
+})();
+</script>
+
+<!-- Player logic ────────────────────────────────────────── -->
+<script>
+(function () {
+  var VID  = '{{ yt_video_id }}';
+  var wrap = document.getElementById('lms-' + VID);
+
+  var player, dur = 0, dragging = false, hideTimer;
+
+  /* shortcut helper */
+  function g(p) { return document.getElementById(p + VID); }
+
+  var ctrl = g('ctrl-'), co = g('co-'), cf = g('cf-'), cfi = g('cfi-');
+  var bsp  = g('bsp-'),  pb = g('pb-'), pf = g('pf-'), bf  = g('bf-');
+  var pt   = g('pt-'),   ptt = g('ptt-');
+  var ppb  = g('ppb-'),  ppi = g('ppi-');
+  var mb   = g('mb-'),   mi  = g('mi-'),  vs  = g('vs-');
+  var tc   = g('tc-'),   td  = g('td-');
+  var sl   = g('sl-'),   spb = g('spb-'), spm = g('spm-');
+  var fsBtn= g('fs-'),   fsi = g('fsi-');
+  var skb  = g('skb-'),  skf = g('skf-');
+
+  /* ── Format seconds → m:ss / h:mm:ss ── */
+  function fmt(s) {
+    s = Math.floor(s || 0);
+    var h = Math.floor(s / 3600),
+        m = Math.floor((s % 3600) / 60),
+        sec = s % 60;
+    if (h > 0)
+      return h + ':' + String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+    return m + ':' + String(sec).padStart(2,'0');
+  }
+
+  /* ── Controls auto-show / auto-hide ── */
+  function showCtrl() {
+    ctrl.style.opacity       = '1';
+    ctrl.style.pointerEvents = 'auto';
+    clearTimeout(hideTimer);
+  }
+  function schedHide() {
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(function () {
+      ctrl.style.opacity       = '0';
+      ctrl.style.pointerEvents = 'none';
+    }, 2800);
+  }
+
+  wrap.addEventListener('mousemove',  function () { showCtrl(); schedHide(); });
+  wrap.addEventListener('mouseenter', function () { showCtrl(); schedHide(); });
+  wrap.addEventListener('mouseleave', function () {
+    clearTimeout(hideTimer);
+    if (player && player.getPlayerState && player.getPlayerState() === 1) {
+      ctrl.style.opacity       = '0';
+      ctrl.style.pointerEvents = 'none';
+    }
+  });
+  /* touch: tap shows controls only — play/pause via buttons */
+  co.addEventListener('touchend', function (e) {
+    e.preventDefault();
+    if (parseFloat(ctrl.style.opacity) < 0.5) { showCtrl(); schedHide(); }
+    else schedHide();
+  });
+
+  /* Block right-click — hides "Open video in new tab" context menu */
+  wrap.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+  /* Block double-click — prevents YT native fullscreen trigger */
+  co.addEventListener('dblclick', function (e) { e.preventDefault(); e.stopPropagation(); });
+
+  /* ── Center flash indicator ── */
+  function flash(icon, ml) {
+    cfi.className    = 'bi ' + icon;
+    cfi.style.marginLeft = ml || '0';
+    cf.style.opacity = '1';
+    setTimeout(function () { cf.style.opacity = '0'; }, 700);
+  }
+
+  /* ── Play / pause — control buttons only, video area non-interactive ── */
+  function togglePlay() {
+    if (!player) return;
+    if (player.getPlayerState() === 1) { player.pauseVideo(); flash('bi-pause-fill'); }
+    else                               { player.playVideo();  flash('bi-play-fill', '4px'); }
+  }
+  /* co.addEventListener('click') intentionally omitted */
+  ppb.addEventListener('click', function () {
+    if (!player) return;
+    if (player.getPlayerState() === 1) player.pauseVideo();
+    else                               player.playVideo();
+  });
+
+  /* ── Volume ── */
+  var lastVol = 100, muted = false;
+  function setVolIcon(v) {
+    if (v === 0 || muted) mi.className = 'bi bi-volume-mute-fill';
+    else if (v < 40)      mi.className = 'bi bi-volume-down-fill';
+    else                  mi.className = 'bi bi-volume-up-fill';
+  }
+  mb.addEventListener('click', function () {
+    if (!player) return;
+    muted = !muted;
+    if (muted) { player.mute();   vs.value = 0; }
+    else       { player.unMute(); player.setVolume(lastVol); vs.value = lastVol; }
+    setVolIcon(muted ? 0 : lastVol);
+  });
+  vs.addEventListener('input', function () {
+    if (!player) return;
+    var v = parseInt(vs.value);
+    if (v > 0) lastVol = v;
+    muted = (v === 0);
+    if (muted) player.mute();
+    else { player.unMute(); player.setVolume(v); }
+    setVolIcon(v);
+  });
+
+  /* ── Progress bar ── */
+  function posOf(e) {
+    var r = pb.getBoundingClientRect();
+    return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+  }
+  function setBar(frac) {
+    pf.style.width  = (frac * 100) + '%';
+    pt.style.left   = (frac * 100) + '%';
+  }
+
+  pb.addEventListener('mousemove', function (e) {
+    var pos = posOf(e);
+    ptt.style.display = 'block';
+    ptt.style.left    = (pos * 100) + '%';
+    ptt.textContent   = fmt(pos * dur);
+    if (dragging && player) player.seekTo(pos * dur, true);
+    setBar(pos);
+  });
+  pb.addEventListener('mouseleave', function () {
+    ptt.style.display = 'none';
+    if (!dragging) pt.style.opacity = '0';
+  });
+  pb.addEventListener('mouseenter', function () { pt.style.opacity = '1'; });
+  pb.addEventListener('mousedown',  function (e) {
+    e.preventDefault(); dragging = true;
+    var pos = posOf(e);
+    setBar(pos);
+    if (player) player.seekTo(pos * dur, true);
+  });
+  document.addEventListener('mousemove', function (e) {
+    if (!dragging) return;
+    var pos = posOf(e);
+    setBar(pos);
+    if (player) player.seekTo(pos * dur, true);
+  });
+  document.addEventListener('mouseup', function () { dragging = false; });
+
+  /* ── Skip buttons ── */
+  skb.addEventListener('click', function () {
+    if (!player) return;
+    player.seekTo(Math.max(0, player.getCurrentTime() - 10), true);
+    flash('bi-skip-backward-fill');
+  });
+  skf.addEventListener('click', function () {
+    if (!player) return;
+    player.seekTo(Math.min(dur, player.getCurrentTime() + 10), true);
+    flash('bi-skip-forward-fill');
+  });
+
+  /* ── Speed popup ── */
+  spb.addEventListener('click', function (e) {
+    e.stopPropagation();
+    spm.style.display = (spm.style.display === 'none' || !spm.style.display) ? 'block' : 'none';
+  });
+  document.addEventListener('click', function () { spm.style.display = 'none'; });
+  spm.addEventListener('click', function (e) { e.stopPropagation(); });
+
+  wrap.querySelectorAll('.lms-sp').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      e.preventDefault();
+      var spd = parseFloat(el.dataset.speed);
+      if (player) player.setPlaybackRate(spd);
+      sl.textContent = el.textContent;
+      wrap.querySelectorAll('.lms-sp').forEach(function (x) {
+        x.style.color      = 'rgba(255,255,255,.78)';
+        x.style.fontWeight = '';
+      });
+      el.style.color      = '#e63946';
+      el.style.fontWeight = '600';
+      spm.style.display   = 'none';
+    });
+  });
+
+  /* ── Fullscreen ── */
+  fsBtn.addEventListener('click', function () {
+    if (!document.fullscreenElement)
+      (wrap.requestFullscreen || wrap.webkitRequestFullscreen).call(wrap);
+    else
+      (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+  });
+  document.addEventListener('fullscreenchange', function () {
+    var fs = !!document.fullscreenElement;
+    fsi.className = fs ? 'bi bi-fullscreen-exit' : 'bi bi-fullscreen';
+  });
+
+  /* ── Keyboard shortcuts ── */
+  wrap.addEventListener('keydown', function (e) {
+    if (!player) return;
+    switch (e.key) {
+      case ' ': case 'k': e.preventDefault(); togglePlay(); break;
+      case 'ArrowRight':  e.preventDefault(); skf.click();  break;
+      case 'ArrowLeft':   e.preventDefault(); skb.click();  break;
+      case 'f':           e.preventDefault(); fsBtn.click(); break;
+      case 'm':           e.preventDefault(); mb.click();   break;
+      case 'ArrowUp':
+        e.preventDefault();
+        vs.value = Math.min(100, parseInt(vs.value) + 10);
+        vs.dispatchEvent(new Event('input')); break;
+      case 'ArrowDown':
+        e.preventDefault();
+        vs.value = Math.max(0, parseInt(vs.value) - 10);
+        vs.dispatchEvent(new Event('input')); break;
+    }
+  });
+
+  /* ── Init YouTube player ── */
+  function initPlayer() {
+    if (typeof YT === 'undefined' || !YT.Player) {
+      setTimeout(initPlayer, 120); return;
+    }
+    player = new YT.Player('yt-' + VID, {
+      videoId: VID,
+      playerVars: {
+        controls: 0, disablekb: 1, modestbranding: 1,
+        rel: 0, iv_load_policy: 3, showinfo: 0, fs: 0, playsinline: 1
+      },
+      events: {
+        onReady: function (e) {
+          dur = e.target.getDuration() || 0;
+          td.textContent = fmt(dur);
+          e.target.setVolume(100);
+        },
+        onStateChange: function (e) {
+          var s = e.data;
+          if (s === 1) {                          /* playing  */
+            ppi.className      = 'bi bi-pause-fill';
+            bsp.style.display  = 'none';
+            dur                = player.getDuration();
+            td.textContent     = fmt(dur);
+          } else if (s === 2 || s === 0) {        /* paused / ended */
+            ppi.className     = 'bi bi-play-fill';
+            bsp.style.display = 'none';
+          } else if (s === 3) {                   /* buffering */
+            bsp.style.display      = 'flex';
+            bsp.style.alignItems   = 'center';
+            bsp.style.justifyContent = 'center';
+          }
+        }
+      }
+    });
+  }
+
+  /* Handle multiple includes — chain onYouTubeIframeAPIReady */
+  var prev = window.onYouTubeIframeAPIReady;
+  window.onYouTubeIframeAPIReady = function () {
+    if (prev) prev();
+    initPlayer();
+  };
+  if (window.YT && window.YT.Player) initPlayer();
+
+  /* ── 250 ms ticker: progress + buffer + time ── */
+  setInterval(function () {
+    if (!player || typeof player.getCurrentTime !== 'function') return;
+    if (dragging) return;
+    var cur = player.getCurrentTime();
+    tc.textContent = fmt(cur);
+    if (dur) setBar(cur / dur);
+    var buf = player.getVideoLoadedFraction ? player.getVideoLoadedFraction() : 0;
+    bf.style.width = (buf * 100) + '%';
+  }, 250);
+
+}());
+</script>
