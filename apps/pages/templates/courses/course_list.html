@@ -48,7 +48,6 @@
     margin-bottom: 16px;
   }
   .cl-hero__title {
-    font-family: 'Instrument Serif', serif;
     font-size: clamp(2.8rem, 6vw, 4.2rem);
     font-weight: 400;
     line-height: 1.05;
@@ -234,9 +233,7 @@
 {% block content %}
 <div class="cl-hero">
   <div class="cl-container">
-    <p class="cl-hero__eyebrow">Knowledge Library</p>
     <h1 class="cl-hero__title">Explore <em>Courses</em></h1>
-    <p class="cl-hero__sub">Structured learning paths — pick a course and start today.</p>
   </div>
 </div>
 
@@ -284,7 +281,7 @@
         {% elif item.first_lecture %}
           <a href="{% url 'lecture_detail' item.first_lecture.pk %}" class="cl-card__cta cl-card__cta--default">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-            Preview Course
+            You're not Enrolled.
           </a>
         {% endif %}
       </div>

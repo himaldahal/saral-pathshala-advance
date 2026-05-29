@@ -1,401 +1,618 @@
 {% extends "base.html" %}
-{% load static %}
 
-{% block title %}Student Dashboard{% endblock %}
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root{
+    --border:#ebedf0;
+    --soft:#f7f8fa;
+    --text:#111827;
+    --muted:#6b7280;
+  }
+
+  body{
+    background:#f5f7fb;
+  }
+
+  .dashboard{
+    padding:2rem 0 4rem;
+  }
+
+  .hero-card,
+  .card-clean{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:24px;
+    box-shadow:0 10px 30px rgba(0,0,0,.03);
+  }
+
+  .hero-card{
+    padding:2rem;
+  }
+
+  .avatar{
+    width:64px;
+    height:64px;
+    border-radius:20px;
+    background:#111827;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:600;
+    font-size:1.3rem;
+    flex-shrink:0;
+  }
+
+  .muted{
+    color:var(--muted);
+  }
+
+  .stats-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1rem;
+  }
+
+  .stats-card{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:22px;
+    padding:1.4rem;
+  }
+
+  .stats-icon{
+    width:48px;
+    height:48px;
+    border-radius:14px;
+    background:var(--soft);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.1rem;
+  }
+
+  .stats-number{
+    font-size:1.8rem;
+    font-weight:700;
+    line-height:1;
+  }
+
+  .stats-label{
+    color:var(--muted);
+    font-size:.9rem;
+  }
+
+  .section-title{
+    font-size:1rem;
+    font-weight:600;
+    margin:0;
+  }
+
+  .course-card{
+    border-bottom:1px solid #f1f2f4;
+    padding:1.4rem 1.5rem;
+  }
+
+  .course-card:last-child{
+    border-bottom:none;
+  }
+
+  .course-thumb{
+    width:82px;
+    height:82px;
+    object-fit:cover;
+    border-radius:18px;
+    background:#f1f3f5;
+    flex-shrink:0;
+  }
+
+  .course-title{
+    font-size:1.05rem;
+    font-weight:600;
+    color:var(--text);
+  }
+
+  .meta{
+    color:var(--muted);
+    font-size:.88rem;
+  }
+
+  .progress{
+    height:10px;
+    border-radius:999px;
+    background:#edf1f5;
+  }
+
+  .progress-bar{
+    border-radius:999px;
+    background:#111827;
+  }
+
+  .badge-soft{
+    background:#f3f4f6;
+    border-radius:999px;
+    padding:.45rem .8rem;
+    font-size:.78rem;
+    color:#111827;
+    font-weight:500;
+  }
+
+  .profile-list{
+    padding:1.5rem;
+  }
+
+  .profile-item{
+    padding:1rem 0;
+    border-bottom:1px solid #f1f2f4;
+  }
+
+  .profile-item:last-child{
+    border-bottom:none;
+    padding-bottom:0;
+  }
+
+  .profile-label{
+    font-size:.82rem;
+    color:var(--muted);
+    margin-bottom:.2rem;
+  }
+
+  .profile-value{
+    font-weight:500;
+  }
+
+  .activity-item{
+    padding:1rem 1.5rem;
+    border-bottom:1px solid #f1f2f4;
+  }
+
+  .activity-item:last-child{
+    border-bottom:none;
+  }
+
+  .empty{
+    padding:4rem 2rem;
+    text-align:center;
+  }
+
+  .empty-icon{
+    width:80px;
+    height:80px;
+    border-radius:24px;
+    background:#f3f4f6;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:auto auto 1rem;
+    font-size:2rem;
+    color:#6b7280;
+  }
+
+  @media(max-width:991px){
+    .stats-grid{
+      grid-template-columns:repeat(2,1fr);
+    }
+  }
+
+  @media(max-width:767px){
+
+    .dashboard{
+      padding-top:1rem;
+    }
+
+    .hero-card{
+      padding:1.4rem;
+    }
+
+    .stats-grid{
+      grid-template-columns:1fr;
+    }
+
+    .course-thumb{
+      width:70px;
+      height:70px;
+    }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<section class="min-h-screen bg-gradient-to-b from-gray-50 to-white py-10">
+<div class="container dashboard">
 
-    <div class="max-w-7xl mx-auto px-4 lg:px-8">
+  <!-- HERO -->
+  <div class="hero-card mb-4">
 
-        <!-- TOP HEADER -->
-        <div class="bg-white border border-gray-100 shadow-sm rounded-3xl overflow-hidden mb-8">
+    <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-4">
 
-            <!-- Cover -->
-            <div class="h-40 bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 relative">
+      <div class="d-flex align-items-center gap-3">
 
-                <div class="absolute -bottom-12 left-8">
-                    <div class="w-24 h-24 rounded-3xl bg-white shadow-lg p-1">
-                        <div class="w-full h-full rounded-3xl bg-indigo-100 flex items-center justify-center text-4xl font-bold text-indigo-700">
-                          {{ user.get_short_name }}
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- User Info -->
-            <div class="pt-16 pb-8 px-8">
-
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-
-                    <div>
-
-                        <h1 class="text-3xl font-bold text-gray-900">
-                            Welcome back, {{ user_obj.get_short_name }}
-                        </h1>
-
-                        <p class="text-gray-500 mt-2">
-                            Manage your account, courses and learning progress.
-                        </p>
-
-                        <div class="flex flex-wrap gap-3 mt-5">
-
-                            {% if user_obj.is_phone_verified %}
-                            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-700 text-sm font-medium">
-                                <span class="w-2 h-2 rounded-full bg-green-500"></span>
-                                Phone Verified
-                            </span>
-                            {% else %}
-                            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-100 text-red-700 text-sm font-medium">
-                                <span class="w-2 h-2 rounded-full bg-red-500"></span>
-                                Phone Not Verified
-                            </span>
-                            {% endif %}
-
-                            {% if user_obj.is_email_verified %}
-                            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-sm font-medium">
-                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                                Email Verified
-                            </span>
-                            {% else %}
-                            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-100 text-yellow-700 text-sm font-medium">
-                                <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
-                                Email Not Verified
-                            </span>
-                            {% endif %}
-
-                        </div>
-
-                    </div>
-
-                    <div class="flex flex-wrap gap-3">
-
-                        <a href="#"
-                           class="inline-flex items-center justify-center px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 transition text-white font-medium shadow-sm">
-                            Edit Profile
-                        </a>
-
-                        <a href="#"
-                           class="inline-flex items-center justify-center px-5 py-3 rounded-2xl border border-gray-200 hover:bg-gray-50 transition text-gray-700 font-medium">
-                            Change Password
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </div>
-
+        <div class="avatar">
+          {{ user.get_short_name|slice:":1"|upper }}
         </div>
 
-        <!-- GRID -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-            <!-- LEFT -->
-            <div class="lg:col-span-2 space-y-8">
-
-                <!-- PERSONAL INFO -->
-                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
-
-                    <div class="flex items-center justify-between mb-8">
-                        <div>
-                            <h2 class="text-2xl font-bold text-gray-900">
-                                Personal Information
-                            </h2>
-
-                            <p class="text-gray-500 mt-1">
-                                Your basic account information.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                        <div class="p-5 rounded-2xl bg-gray-50">
-                            <p class="text-sm text-gray-500 mb-2">
-                                Full Name
-                            </p>
-
-                            <h3 class="text-lg font-semibold text-gray-900">
-                                {{ user_obj.short_name|default:"N/A" }}
-                            </h3>
-                        </div>
-
-                        <div class="p-5 rounded-2xl bg-gray-50">
-                            <p class="text-sm text-gray-500 mb-2">
-                                Email Address
-                            </p>
-
-                            <h3 class="text-lg font-semibold text-gray-900 break-all">
-                                {{ user_obj.email|default:"N/A" }}
-                            </h3>
-                        </div>
-
-                        <div class="p-5 rounded-2xl bg-gray-50">
-                            <p class="text-sm text-gray-500 mb-2">
-                                Phone Number
-                            </p>
-
-                            <h3 class="text-lg font-semibold text-gray-900">
-                                {{ user_obj.phone|default:"N/A" }}
-                            </h3>
-                        </div>
-
-                        <div class="p-5 rounded-2xl bg-gray-50">
-                            <p class="text-sm text-gray-500 mb-2">
-                                Current Level
-                            </p>
-
-                            <h3 class="text-lg font-semibold text-gray-900">
-                                {{ user_obj.get_current_level_display|default:"N/A" }}
-                            </h3>
-                        </div>
-
-                        <div class="md:col-span-2 p-5 rounded-2xl bg-gray-50">
-                            <p class="text-sm text-gray-500 mb-2">
-                                Previous Institute
-                            </p>
-
-                            <h3 class="text-lg font-semibold text-gray-900">
-                                {{ user_obj.previous_institute|default:"Not Provided" }}
-                            </h3>
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!-- ACCOUNT DETAILS -->
-                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
-
-                    <div class="mb-8">
-                        <h2 class="text-2xl font-bold text-gray-900">
-                            Account Details
-                        </h2>
-
-                        <p class="text-gray-500 mt-1">
-                            Information related to your account.
-                        </p>
-                    </div>
-
-                    <div class="space-y-5">
-
-                        <div class="flex items-center justify-between p-5 rounded-2xl border border-gray-100">
-                            <div>
-                                <p class="text-sm text-gray-500">
-                                    Joined On
-                                </p>
-
-                                <h3 class="font-semibold text-gray-900 mt-1">
-                                    {{ user_obj.date_joined|date:"F d, Y" }}
-                                </h3>
-                            </div>
-
-                            <div class="text-right">
-                                <p class="text-sm text-gray-500">
-                                    Time
-                                </p>
-
-                                <h3 class="font-semibold text-gray-900 mt-1">
-                                    {{ user_obj.date_joined|date:"h:i A" }}
-                                </h3>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center justify-between p-5 rounded-2xl border border-gray-100">
-                            <div>
-                                <p class="text-sm text-gray-500">
-                                    Last Login
-                                </p>
-
-                                <h3 class="font-semibold text-gray-900 mt-1">
-                                    {% if user_obj.last_login %}
-                                        {{ user_obj.last_login|date:"F d, Y - h:i A" }}
-                                    {% else %}
-                                        Never Logged In
-                                    {% endif %}
-                                </h3>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center justify-between p-5 rounded-2xl border border-gray-100">
-                            <div>
-                                <p class="text-sm text-gray-500">
-                                    Login Permission
-                                </p>
-
-                                <h3 class="font-semibold text-gray-900 mt-1">
-                                    {% if user_obj.can_login %}
-                                        Allowed
-                                    {% else %}
-                                        Restricted
-                                    {% endif %}
-                                </h3>
-                            </div>
-
-                            <div>
-                                {% if user_obj.can_login %}
-                                <span class="px-4 py-2 rounded-full bg-green-100 text-green-700 text-sm font-medium">
-                                    Active
-                                </span>
-                                {% else %}
-                                <span class="px-4 py-2 rounded-full bg-red-100 text-red-700 text-sm font-medium">
-                                    Blocked
-                                </span>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <!-- RIGHT -->
-            <div class="space-y-8">
-
-                <!-- INTERESTED COURSE -->
-                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-
-                    <div class="p-6 border-b border-gray-100">
-                        <h2 class="text-xl font-bold text-gray-900">
-                            Interested Course
-                        </h2>
-
-                        <p class="text-gray-500 text-sm mt-1">
-                            Your selected learning interest.
-                        </p>
-                    </div>
-
-                    {% if user_obj.interested_course %}
-
-                    <div class="p-6">
-
-                        <img src="{{ user_obj.interested_course.thumbnail.url }}"
-                             alt="{{ user_obj.interested_course.name }}"
-                             class="w-full h-52 object-cover rounded-2xl">
-
-                        <div class="mt-5">
-
-                            <h3 class="text-xl font-bold text-gray-900">
-                                {{ user_obj.interested_course.name }}
-                            </h3>
-
-                            <p class="text-sm text-gray-500 mt-2">
-                                {{ user_obj.interested_course.slug }}
-                            </p>
-
-                            <a href="#"
-                               class="mt-5 inline-flex items-center justify-center w-full px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 transition text-white font-medium">
-                                View Course
-                            </a>
-
-                        </div>
-
-                    </div>
-
-                    {% else %}
-
-                    <div class="p-8 text-center">
-
-                        <div class="w-20 h-20 mx-auto rounded-3xl bg-gray-100 flex items-center justify-center text-3xl">
-                            📚
-                        </div>
-
-                        <h3 class="mt-5 text-lg font-bold text-gray-900">
-                            No Course Selected
-                        </h3>
-
-                        <p class="text-gray-500 text-sm mt-2">
-                            You have not selected any interested course yet.
-                        </p>
-
-                    </div>
-
-                    {% endif %}
-
-                </div>
-
-                <!-- QUICK STATS -->
-                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
-
-                    <h2 class="text-xl font-bold text-gray-900 mb-6">
-                        Quick Stats
-                    </h2>
-
-                    <div class="space-y-4">
-
-                        <div class="flex items-center justify-between p-4 rounded-2xl bg-indigo-50">
-                            <div>
-                                <p class="text-sm text-indigo-500">
-                                    Account Status
-                                </p>
-
-                                <h3 class="font-bold text-indigo-900 mt-1">
-                                    {% if user_obj.is_active %}
-                                        Active
-                                    {% else %}
-                                        Disabled
-                                    {% endif %}
-                                </h3>
-                            </div>
-
-                            <div class="text-3xl">
-                                🔐
-                            </div>
-                        </div>
-
-                        <div class="flex items-center justify-between p-4 rounded-2xl bg-green-50">
-                            <div>
-                                <p class="text-sm text-green-500">
-                                    Phone Status
-                                </p>
-
-                                <h3 class="font-bold text-green-900 mt-1">
-                                    {% if user_obj.is_phone_verified %}
-                                        Verified
-                                    {% else %}
-                                        Pending
-                                    {% endif %}
-                                </h3>
-                            </div>
-
-                            <div class="text-3xl">
-                                📱
-                            </div>
-                        </div>
-
-                        <div class="flex items-center justify-between p-4 rounded-2xl bg-blue-50">
-                            <div>
-                                <p class="text-sm text-blue-500">
-                                    Email Status
-                                </p>
-
-                                <h3 class="font-bold text-blue-900 mt-1">
-                                    {% if user_obj.is_email_verified %}
-                                        Verified
-                                    {% else %}
-                                        Pending
-                                    {% endif %}
-                                </h3>
-                            </div>
-
-                            <div class="text-3xl">
-                                ✉️
-                            </div>
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
+        <div>
+          <h3 class="fw-bold mb-1">
+            Welcome back, {{ user.get_short_name }}
+          </h3>
+
+          <div class="muted">
+            Continue learning from where you left off.
+          </div>
+
+          <div class="d-flex flex-wrap gap-2 mt-3">
+
+            {% if user.is_phone_verified %}
+            <span class="badge-soft">
+              <i class="bi bi-patch-check-fill me-1"></i>
+              Phone Verified
+            </span>
+            {% endif %}
+
+            {% if user.is_email_verified %}
+            <span class="badge-soft">
+              <i class="bi bi-envelope-check me-1"></i>
+              Email Verified
+            </span>
+            {% endif %}
+
+            {% if user.current_level %}
+            <span class="badge-soft text-capitalize">
+              <i class="bi bi-mortarboard me-1"></i>
+              {{ user.current_level|cut:"_" }}
+            </span>
+            {% endif %}
+
+          </div>
         </div>
+
+      </div>
+
+      <div class="text-lg-end">
+        <div class="muted small mb-1">
+          Overall Progress
+        </div>
+
+        <div class="display-6 fw-bold">
+          {{ overall_progress }}%
+        </div>
+
+        <div class="muted small">
+          {{ completed_lectures }}/{{ total_lectures }} lectures completed
+        </div>
+      </div>
 
     </div>
 
-</section>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid mb-4">
+
+    <div class="stats-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="stats-label mb-2">
+            Courses
+          </div>
+
+          <div class="stats-number">
+            {{ total_courses }}
+          </div>
+        </div>
+
+        <div class="stats-icon">
+          <i class="bi bi-book"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="stats-label mb-2">
+            Subjects
+          </div>
+
+          <div class="stats-number">
+            {{ total_subjects }}
+          </div>
+        </div>
+
+        <div class="stats-icon">
+          <i class="bi bi-grid"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="stats-label mb-2">
+            Lectures
+          </div>
+
+          <div class="stats-number">
+            {{ total_lectures }}
+          </div>
+        </div>
+
+        <div class="stats-icon">
+          <i class="bi bi-play-circle"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="stats-label mb-2">
+            Completed
+          </div>
+
+          <div class="stats-number">
+            {{ completed_lectures }}
+          </div>
+        </div>
+
+        <div class="stats-icon">
+          <i class="bi bi-check-circle"></i>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="row g-4">
+
+    <!-- LEFT -->
+    <div class="col-lg-8">
+
+      <div class="card-clean overflow-hidden">
+
+        <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+          <h5 class="section-title">
+            <i class="bi bi-journal-text me-2"></i>
+            Enrolled Courses
+          </h5>
+
+          <a href="{% url 'course_list' %}"
+             class="btn btn-sm btn-light border">
+            Browse Courses
+          </a>
+        </div>
+
+        {% if enrollment_data %}
+
+          {% for item in enrollment_data %}
+          <div class="course-card">
+
+            <div class="d-flex flex-column flex-md-row gap-3 justify-content-between">
+
+              <div class="d-flex gap-3">
+
+                {% if item.course.thumbnail %}
+                <img src="{{ item.course.thumbnail.url }}"
+                     class="course-thumb"
+                     alt="{{ item.course.name }}">
+                {% endif %}
+
+                <div class="flex-grow-1">
+
+                  <div class="course-title mb-2">
+                    {{ item.course.name }}
+                  </div>
+
+                  <div class="meta d-flex flex-wrap gap-3 mb-3">
+
+                    <span>
+                      <i class="bi bi-grid me-1"></i>
+                      {{ item.subject_count }} Subjects
+                    </span>
+
+                    <span>
+                      <i class="bi bi-play-circle me-1"></i>
+                      {{ item.lecture_count }} Lectures
+                    </span>
+
+                    <span>
+                      <i class="bi bi-check2-circle me-1"></i>
+                      {{ item.completed_count }} Completed
+                    </span>
+
+                  </div>
+
+                  <div class="progress mb-2">
+                    <div class="progress-bar"
+                         style="width:{{ item.progress_percent }}%">
+                    </div>
+                  </div>
+
+                  <div class="d-flex justify-content-between align-items-center">
+                    <small class="muted">
+                      {{ item.progress_percent }}% completed
+                    </small>
+
+                    <small class="muted">
+                      Joined {{ item.enrollment.enrolled_at|timesince }} ago
+                    </small>
+                  </div>
+
+                </div>
+
+              </div>
+
+              <div class="d-flex align-items-center">
+
+                {% if item.next_lecture %}
+                <a href="{{ item.next_lecture.get_absolute_url }}"
+                   class="btn btn-dark px-4">
+                  Continue
+                </a>
+                {% else %}
+                <span class="badge-soft">
+                  Completed
+                </span>
+                {% endif %}
+
+              </div>
+
+            </div>
+
+          </div>
+          {% endfor %}
+
+        {% else %}
+
+          <div class="empty">
+
+            <div class="empty-icon">
+              <i class="bi bi-journal-x"></i>
+            </div>
+
+            <h5 class="fw-semibold mb-2">
+              No enrolled courses
+            </h5>
+
+            <p class="text-muted mb-4">
+              Start learning by enrolling in a course.
+            </p>
+
+            <a href="{% url 'course_list' %}"
+               class="btn btn-dark px-4">
+              Explore Courses
+            </a>
+
+          </div>
+
+        {% endif %}
+
+      </div>
+
+      <!-- RECENT ACTIVITY -->
+      <div class="card-clean overflow-hidden mt-4">
+
+        <div class="p-4 border-bottom">
+          <h5 class="section-title">
+            <i class="bi bi-clock-history me-2"></i>
+            Recent Activity
+          </h5>
+        </div>
+
+        {% if recent_progress %}
+
+          {% for progress in recent_progress %}
+          <div class="activity-item">
+
+            <div class="d-flex justify-content-between gap-3">
+
+              <div>
+                <div class="fw-medium mb-1">
+                  {{ progress.lecture.title }}
+                </div>
+
+                <div class="muted small">
+                  {{ progress.lecture.section.subject.name }}
+                </div>
+              </div>
+
+              <div class="text-end">
+                {% if progress.completed %}
+                <div class="small fw-medium">
+                  Completed
+                </div>
+                {% endif %}
+
+                <div class="muted small">
+                  {{ progress.watched_at|timesince }} ago
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+          {% endfor %}
+
+        {% else %}
+
+          <div class="p-4 text-center text-muted">
+            No recent activity found.
+          </div>
+
+        {% endif %}
+
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="col-lg-4">
+
+      <div class="card-clean">
+
+        <div class="p-4 border-bottom">
+          <h5 class="section-title">
+            <i class="bi bi-person-circle me-2"></i>
+            Profile
+          </h5>
+        </div>
+
+        <div class="profile-list">
+
+          <div class="profile-item">
+            <div class="profile-label">Full Name</div>
+            <div class="profile-value">
+              {{ user.get_full_name }}
+            </div>
+          </div>
+
+          <div class="profile-item">
+            <div class="profile-label">Email</div>
+            <div class="profile-value">
+              {{ user.email }}
+            </div>
+          </div>
+
+          <div class="profile-item">
+            <div class="profile-label">Phone</div>
+            <div class="profile-value">
+              {{ user.phone|default:"Not Added" }}
+            </div>
+          </div>
+
+          <div class="profile-item">
+            <div class="profile-label">Institute</div>
+            <div class="profile-value">
+              {{ user.previous_institute|default:"Not Provided" }}
+            </div>
+          </div>
+
+          <div class="profile-item">
+            <div class="profile-label">Interested Course</div>
+            <div class="profile-value">
+              {% if user.interested_course %}
+                {{ user.interested_course.name }}
+              {% else %}
+                Not Selected
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="profile-item">
+            <div class="profile-label">Joined</div>
+            <div class="profile-value">
+              {{ user.date_joined|date:"F d, Y" }}
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
 {% endblock %}
