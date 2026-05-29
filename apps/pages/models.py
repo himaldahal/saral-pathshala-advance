@@ -69,11 +69,7 @@ class Course(models.Model):
             .first()
         )
 
-
-# =========================================================
 # SUBJECT
-# =========================================================
-
 class Subject(models.Model):
     courses = models.ManyToManyField(
         Course,
@@ -97,11 +93,7 @@ class Subject(models.Model):
     def lecture_count(self):
         return Lecture.objects.filter(section__subject=self).count()
 
-
-# =========================================================
 # SECTION
-# =========================================================
-
 class Section(models.Model):
     subject = models.ForeignKey(
         Subject,

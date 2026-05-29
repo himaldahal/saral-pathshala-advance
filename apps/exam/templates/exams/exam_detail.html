@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ exam.title }}</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  body{background:#f6f8fb;font-family:'Segoe UI',system-ui,sans-serif;}
+  .topbar{background:#1a1a2e;padding:.9rem 1.5rem;display:flex;align-items:center;gap:1rem;}
+  .topbar a{color:#fff;text-decoration:none;font-weight:600;}
+  .topbar .spacer{flex:1;}
+  .hero{background:#1a1a2e;color:#fff;padding:2.5rem 1.5rem 3rem;}
+  .hero .course-label{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+    color:#adb5bd;margin-bottom:.4rem;}
+  .hero h1{font-size:1.8rem;font-weight:700;margin:0;}
+  .card-info{background:#fff;border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,.08);
+    padding:1.5rem;margin-top:-1.5rem;}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.8rem;
+    margin-bottom:1.5rem;}
+  .stat-box{background:#f6f8fb;border-radius:8px;padding:.9rem 1rem;text-align:center;}
+  .stat-box .val{font-size:1.4rem;font-weight:700;color:#1a1a2e;}
+  .stat-box .lbl{font-size:.72rem;color:#6c757d;margin-top:.15rem;}
+  .rule-item{display:flex;align-items:center;gap:.5rem;font-size:.85rem;padding:.3rem 0;
+    border-bottom:1px solid #f0f0f0;}
+  .rule-item:last-child{border:none;}
+  .btn-start-exam{background:#e94560;border:none;color:#fff;padding:.75rem 2rem;
+    border-radius:8px;font-size:1rem;font-weight:600;text-decoration:none;display:inline-block;}
+  .btn-start-exam:hover{background:#c73652;color:#fff;}
+  .instructions-box{background:#fffbea;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;
+    padding:1rem 1.2rem;margin-bottom:1.2rem;font-size:.9rem;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="{% url 'exams:exam_list' %}"><i class="bi bi-arrow-left me-1"></i>All Exams</a>
+  <div class="spacer"></div>
+  {% if is_staff %}
+    <a href="/admin/exams/exam/{{ exam.pk }}/change/" style="font-size:.8rem;color:#adb5bd;">
+      <i class="bi bi-pencil me-1"></i>Edit
+    </a>
+  {% endif %}
+</div>
+
+<div class="hero">
+  <div class="container" style="max-width:700px;">
+    <div class="course-label">{{ exam.course.name }}</div>
+    <h1>{{ exam.title }}</h1>
+    {% if exam.description %}
+      <div class="mt-2" style="color:#cdd5df;font-size:.9rem;">{{ exam.description|safe }}</div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="container py-3" style="max-width:700px;">
+  <div class="card-info">
+
+    {% if messages %}
+      {% for m in messages %}
+        <div class="alert alert-{{ m.tags }}">{{ m }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {# ── Stats grid ─────────────────────────────────────────────── #}
+    <div class="stat-grid">
+      <div class="stat-box">
+        <div class="val">{{ questions_count }}</div>
+        <div class="lbl">Questions</div>
+      </div>
+      <div class="stat-box">
+        <div class="val">{{ sections_count }}</div>
+        <div class="lbl">Sections</div>
+      </div>
+      {% if exam.duration_minutes %}
+      <div class="stat-box">
+        <div class="val">{{ exam.duration_minutes }}<small style="font-size:.9rem;"> min</small></div>
+        <div class="lbl">Duration</div>
+      </div>
+      {% endif %}
+      <div class="stat-box">
+        <div class="val">+{{ exam.correct_marks }}</div>
+        <div class="lbl">Correct</div>
+      </div>
+      {% if exam.has_negative_marking %}
+      <div class="stat-box" style="background:#fff5f5;">
+        <div class="val" style="color:#dc3545;">−{{ exam.negative_marks }}</div>
+        <div class="lbl">Wrong</div>
+      </div>
+      {% endif %}
+    </div>
+
+    {# ── Schedule ────────────────────────────────────────────────── #}
+    <div class="mb-3">
+      <div class="rule-item">
+        <i class="bi bi-calendar-event text-primary"></i>
+        <strong>Start:</strong> {{ exam.start_date|date:"d M Y, H:i" }}
+      </div>
+      {% if exam.end_date %}
+      <div class="rule-item">
+        <i class="bi bi-calendar-x text-danger"></i>
+        <strong>End:</strong> {{ exam.end_date|date:"d M Y, H:i" }}
+      </div>
+      {% else %}
+      <div class="rule-item">
+        <i class="bi bi-infinity text-success"></i>
+        <strong>Duration:</strong> No time limit
+      </div>
+      {% endif %}
+      <div class="rule-item">
+        <i class="bi bi-bar-chart text-info"></i>
+        <strong>Results:</strong>
+        {% if exam.result_mode == 'after_end' %}After exam ends
+        {% elif exam.result_mode == 'auto' %}{{ exam.result_publish_time|date:"d M Y, H:i" }}
+        {% elif exam.result_mode == 'hidden' %}Not published
+        {% else %}Admin-controlled{% endif %}
+      </div>
+    </div>
+
+    {# ── Instructions ────────────────────────────────────────────── #}
+    {% if exam.instructions %}
+    <div class="instructions-box">
+      <strong><i class="bi bi-info-circle me-1"></i>Instructions</strong>
+      <div class="mt-1">{{ exam.instructions|safe }}</div>
+    </div>
+    {% endif %}
+
+    {# ── CTA ─────────────────────────────────────────────────────── #}
+    <div class="d-flex align-items-center gap-3 flex-wrap mt-2">
+      {% if attempt and attempt.is_submitted %}
+        <a href="{% url 'exams:exam_result' exam.slug %}" class="btn btn-outline-primary">
+          <i class="bi bi-graph-up me-1"></i>View Result
+        </a>
+      {% elif attempt %}
+        <a href="{% url 'exams:exam_attempt' exam.slug %}" class="btn-start-exam">
+          <i class="bi bi-play-fill me-1"></i>Resume Exam
+        </a>
+        <small class="text-muted">You have a saved attempt.</small>
+      {% elif exam.is_accessible %}
+        <form method="post" action="{% url 'exams:start_exam' exam.slug %}">
+          {% csrf_token %}
+          <button type="submit" class="btn-start-exam">
+            <i class="bi bi-play-fill me-1"></i>Start Exam
+          </button>
+        </form>
+      {% elif is_staff %}
+        <form method="post" action="{% url 'exams:start_exam' exam.slug %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline-warning">
+            <i class="bi bi-eye me-1"></i>Preview (Staff)
+          </button>
+        </form>
+      {% else %}
+        <button class="btn btn-secondary" disabled>
+          <i class="bi bi-lock me-1"></i>Not Available
+        </button>
+      {% endif %}
+      <a href="{% url 'exams:exam_list' %}" class="text-muted" style="font-size:.85rem;">
+        <i class="bi bi-arrow-left me-1"></i>Back
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

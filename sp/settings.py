@@ -18,7 +18,7 @@ MY_APPS = [
     'apps.exam',
 ]
 
-EXTERNAL_APPS = []
+EXTERNAL_APPS = ['tinymce']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -101,3 +101,49 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Media files
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Option A: In-memory (fast, single process)
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "exam-portal-cache",
+        "TIMEOUT": 300,
+        "OPTIONS": {
+            "MAX_ENTRIES": 2000,
+        },
+    }
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TINYMCE
+# ─────────────────────────────────────────────────────────────────────────────
+TINYMCE_DEFAULT_CONFIG = {
+    "height": 300,
+    "menubar": False,
+    "plugins": (
+        "advlist autolink lists link image charmap preview "
+        "anchor searchreplace visualblocks code fullscreen "
+        "insertdatetime media table codesample"
+    ),
+    "toolbar": (
+        "undo redo | styles | bold italic underline | "
+        "alignleft aligncenter alignright | "
+        "bullist numlist | codesample code | link image | fullscreen"
+    ),
+    "images_upload_url":'/astabakraa/sp/upload_images/',
+    "codesample_global_prismjs": True,
+    "codesample_languages": [
+        {"text": "Python",     "value": "python"},
+        {"text": "JavaScript", "value": "javascript"},
+        {"text": "C",          "value": "c"},
+        {"text": "C++",        "value": "cpp"},
+        {"text": "Java",       "value": "java"},
+        {"text": "SQL",        "value": "sql"},
+        {"text": "Bash",       "value": "bash"},
+    ],
+    # Preserve MathJax dollar-sign delimiters
+    "extended_valid_elements": "span[*]",
+    "protect": [r"/\$.*?\$/"],   # don't escape $ inside content
+}
+ 
+TINYMCE_SPELLCHECKER = False

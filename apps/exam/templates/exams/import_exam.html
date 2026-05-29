@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Import Exam</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  body{background:#f6f8fb;font-family:'Segoe UI',system-ui,sans-serif;}
+  .topbar{background:#1a1a2e;padding:.9rem 1.5rem;display:flex;align-items:center;gap:1rem;}
+  .topbar a{color:#fff;text-decoration:none;font-weight:600;}
+  .topbar .spacer{flex:1;}
+  .card-box{background:#fff;border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,.08);padding:1.8rem;}
+  .drop-zone{
+    border:2px dashed #ced4da;border-radius:10px;padding:2.5rem;text-align:center;
+    cursor:pointer;transition:border-color .15s,background .15s;
+  }
+  .drop-zone:hover,.drop-zone.drag-over{border-color:#0d6efd;background:#f0f5ff;}
+  .step-num{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:28px;height:28px;background:#1a1a2e;color:#fff;
+    border-radius:50%;font-size:.8rem;font-weight:700;flex-shrink:0;
+  }
+  textarea.json-area{font-family:monospace;font-size:.82rem;min-height:240px;
+    background:#f8fafc;border:1.5px solid #dee2e6;border-radius:8px;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="{% url 'exams:exam_list' %}"><i class="bi bi-arrow-left me-1"></i>Exams</a>
+  <div class="spacer"></div>
+  <a href="{% url 'exams:download_template' %}" class="btn btn-sm btn-outline-light">
+    <i class="bi bi-download me-1"></i>Download Template
+  </a>
+</div>
+
+<div class="container py-4" style="max-width:720px;">
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="alert alert-{{ m.tags }} alert-dismissible fade show">
+        {{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <h4 class="fw-bold mb-1">Import Exam from JSON</h4>
+  <p class="text-muted mb-3" style="font-size:.88rem;">
+    Set up a full exam (sections, paragraphs, questions, scoring rules) in seconds by uploading a JSON file.
+    You can use <strong>Gemini / GPT</strong> to fill the template automatically.
+  </p>
+
+  {# How-to steps #}
+  <div class="mb-4" style="display:flex;flex-direction:column;gap:.8rem;">
+    <div style="display:flex;align-items:flex-start;gap:.8rem;">
+      <span class="step-num">1</span>
+      <div>
+        <strong>Download the template</strong><br>
+        <small class="text-muted">Click "Download Template" above to get a pre-structured JSON file.</small>
+      </div>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:.8rem;">
+      <span class="step-num">2</span>
+      <div>
+        <strong>Fill it with Gemini / GPT</strong><br>
+        <small class="text-muted">Paste the template into Gemini with your question list and ask it to populate the JSON. Review the output.</small>
+      </div>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:.8rem;">
+      <span class="step-num">3</span>
+      <div>
+        <strong>Upload here</strong><br>
+        <small class="text-muted">Upload the filled JSON file or paste the JSON text below.</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-box">
+    <form method="post" action="{% url 'exams:import_exam' %}" enctype="multipart/form-data" id="importForm">
+      {% csrf_token %}
+
+      {# File drop zone #}
+      <div class="drop-zone mb-3" id="dropZone" onclick="document.getElementById('jsonFile').click()">
+        <i class="bi bi-file-earmark-code" style="font-size:2rem;color:#6c757d;"></i>
+        <p class="mb-0 mt-2 text-muted">Drop your JSON file here or <strong>click to browse</strong></p>
+        <p class="text-muted" style="font-size:.78rem;">Only .json files</p>
+      </div>
+      <input type="file" id="jsonFile" name="json_file" accept=".json" style="display:none"
+             onchange="fileSelected(this)">
+      <div id="file-name" class="text-muted mb-3" style="font-size:.82rem;display:none;"></div>
+
+      <div class="text-center text-muted my-2" style="font-size:.82rem;">— or paste JSON below —</div>
+
+      <textarea name="json_text" id="jsonText" class="form-control json-area mb-3"
+                placeholder='{"course_title": "...", "exam": {...}, "sections": [...]}'></textarea>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary flex-grow-1">
+          <i class="bi bi-upload me-1"></i>Import Exam
+        </button>
+        <button type="button" class="btn btn-outline-secondary" onclick="clearForm()">
+          Clear
+        </button>
+      </div>
+    </form>
+  </div>
+
+  {# Gemini prompt helper #}
+  <div class="card-box mt-3" style="background:#fffbea;border:1px solid #fcd34d;">
+    <h6 class="fw-bold mb-2"><i class="bi bi-stars me-1 text-warning"></i>Gemini Prompt Template</h6>
+    <p style="font-size:.82rem;margin-bottom:.5rem;">Copy and send this to Gemini along with the JSON template and your question list:</p>
+    <div style="background:#fff;border-radius:6px;padding:.8rem;font-family:monospace;
+                font-size:.78rem;border:1px solid #fde68a;white-space:pre-wrap;"
+         id="geminiPrompt">You are an exam JSON builder. I will give you:
+1. A JSON template structure
+2. A list of MCQ questions with their options and correct answers
+
+Your task: Fill the JSON template with the questions exactly as provided.
+- Put LaTeX formulas inside $ ... $ (inline) or $$ ... $$ (display)
+- For code, use: &lt;pre&gt;&lt;code class="language-python"&gt;...&lt;/code&gt;&lt;/pre&gt;
+- For images, use: &lt;img src="URL" style="max-width:100%"&gt;
+- correct_option must be "1", "2", "3", or "4"
+- Preserve all math notation exactly
+- Return ONLY valid JSON, no markdown code fences
+
+Here is the template: [PASTE TEMPLATE]
+Here are the questions: [PASTE QUESTIONS]</div>
+    <button class="btn btn-sm btn-outline-warning mt-2" onclick="copyPrompt()">
+      <i class="bi bi-copy me-1"></i>Copy Prompt
+    </button>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('jsonFile');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) { fileInput.files = e.dataTransfer.files; fileSelected({files:[f]}); }
+});
+
+function fileSelected(input) {
+  const f = input.files[0];
+  if (f) {
+    const el = document.getElementById('file-name');
+    el.textContent = '📎 ' + f.name + ' (' + (f.size / 1024).toFixed(1) + ' KB)';
+    el.style.display = 'block';
+    // Read and preview in textarea
+    const reader = new FileReader();
+    reader.onload = e => { document.getElementById('jsonText').value = e.target.result; };
+    reader.readAsText(f);
+  }
+}
+
+function clearForm() {
+  document.getElementById('jsonText').value = '';
+  document.getElementById('file-name').style.display = 'none';
+  fileInput.value = '';
+}
+
+function copyPrompt() {
+  const text = document.getElementById('geminiPrompt').textContent;
+  navigator.clipboard.writeText(text).then(() => alert('Prompt copied!'));
+}
+</script>
+</body>
+</html>
