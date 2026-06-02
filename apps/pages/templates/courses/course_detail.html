@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if course.name %}{{ course.name }} - Entrance Preparation - {{ site_settings.site_name }}{% else %}{{ site_settings.site_title }}{% endif %}{% endblock %}
+
+{% block meta_description %}{{ course.seo_excerpt|default:course.description|striptags|truncatechars:155 }}{% endblock %}
+
+{% block meta_keywords %}{{ course.tags|default:site_settings.meta_keywords }}{% endblock %}
+
+{% block content %}
+<!-- Course Hero Banner -->
+<section class="py-5 bg-white border-bottom shadow-sm">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-3">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'course_list' %}">Courses</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ course.name }}</li>
+      </ol>
+    </nav>
+    
+    <div class="row g-5 align-items-center">
+      <div class="col-lg-7">
+        <span class="badge bg-soft text-primary border px-3 py-2 rounded-pill mb-3 small fw-bold"><i class="bi bi-award-fill text-warning me-1"></i> Entrance Program</span>
+        <h1 class="display-4 fw-bold lh-sm mb-3 serif-title text-dark">{{ course.name }}</h1>
+        <p class="lead text-muted mb-4">
+          {{ course.seo_excerpt|default:"Complete structured preparation program with top-notch video lectures and test simulators." }}
+        </p>
+        
+        <div class="d-flex flex-wrap gap-4 text-muted small mb-4">
+          <span><i class="bi bi-grid-fill text-primary me-2"></i><b>{{ subjects.count }}</b> Subjects</span>
+          <span><i class="bi bi-collection-play-fill text-danger me-2"></i><b>{{ course.total_lectures }}</b> Video Lectures</span>
+          <span><i class="bi bi-shield-fill text-success me-2"></i> Secured MCQ Exams</span>
+        </div>
+      </div>
+      
+      <div class="col-lg-5">
+        <div class="card border border-light shadow-sm rounded-4 overflow-hidden">
+          {% if course.thumbnail %}
+            <img src="{{ course.thumbnail.url }}" class="card-img-top" alt="{{ course.name }}" style="max-height: 250px; object-fit: cover;">
+          {% else %}
+            <div class="bg-primary text-white d-flex align-items-center justify-content-center" style="height: 250px;">
+              <i class="bi bi-book-half display-1"></i>
+            </div>
+          {% endif %}
+          
+          <div class="card-body p-4 text-center">
+            {% if is_enrolled %}
+              <div class="alert alert-success border-0 py-2 small mb-3"><i class="bi bi-check-circle-fill me-2"></i>You are already enrolled in this course.</div>
+              {% if course.get_first_lecture %}
+                <a href="{% url 'lecture_detail' course.get_first_lecture.pk %}" class="btn btn-brand-primary w-100 py-2.5 rounded-pill shadow-sm">
+                  <i class="bi bi-play-circle-fill me-2"></i>Continue Learning
+                </a>
+              {% else %}
+                <a href="{% url 'dashboard' %}" class="btn btn-brand-primary w-100 py-2.5 rounded-pill shadow-sm">Go to Dashboard</a>
+              {% endif %}
+            {% else %}
+              {% if user.is_authenticated %}
+                <a href="{% url 'enroll_instantly' course.slug %}" class="btn btn-brand-primary w-100 py-2.5 rounded-pill shadow-sm mb-3">
+                  <i class="bi bi-envelope-paper-fill me-2"></i>Enroll
+                </a>
+                <p class="text-muted small mb-0"><i class="bi bi-info-circle me-1"></i>Since you are logged in, clicking will submit an enrollment request with your profile details.</p>
+              {% else %}
+                <!-- Lead Form for Guest Users -->
+                <h5 class="fw-bold mb-3 text-dark text-start"><i class="bi bi-telephone-outbound text-primary me-2"></i>Enroll Now</h5>
+                <form method="POST" action="{% url 'enroll_request' %}" class="text-start needs-validation" novalidate>
+                  {% csrf_token %}
+                  <input type="hidden" name="course_slug" value="{{ course.slug }}">
+                  <!-- Honeypot -->
+                  <input type="text" name="website_url" style="display: none;" tabindex="-1" autocomplete="off">
+                  
+                  <div class="mb-3">
+                    <label for="enroll_name" class="form-label fw-semibold text-muted small">Full Name</label>
+                    <input type="text" class="form-control form-control-sm shadow-sm" id="enroll_name" name="name" placeholder="John Doe" required>
+                  </div>
+                  
+                  <div class="mb-3">
+                    <label for="enroll_phone" class="form-label fw-semibold text-muted small">Phone Number</label>
+                    <input type="text" class="form-control form-control-sm shadow-sm" id="enroll_phone" name="phone" placeholder="98XXXXXXXX" required>
+                  </div>
+                  
+                  <button type="submit" class="btn btn-brand-secondary w-100 py-2 rounded-pill shadow-sm mb-3">
+                    <i class="bi bi-send-fill me-2"></i>Enroll
+                  </button>
+                  <p class="text-muted text-center" style="font-size: 0.75rem;"><i class="bi bi-shield-lock me-1"></i>Protected by secure spam prevention.</p>
+                </form>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Curriculum Syllabus Overview -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="row g-5">
+      <div class="col-lg-8">
+        
+        <!-- Udemy-style Collapsible Course Description -->
+        {% if course.description %}
+        <div class="card border border-light shadow-sm rounded-4 p-4 bg-white mb-4">
+          <h4 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle-fill text-primary me-2"></i>About This Course</h4>
+          <div class="course-description-content position-relative overflow-hidden" id="courseDescContent" style="max-height: 200px; transition: max-height 0.4s ease;">
+            <div class="text-muted" style="line-height: 1.6;">
+              {{ course.description|safe }}
+            </div>
+            <!-- Fade overlay for collapse -->
+            <div class="description-fade-overlay position-absolute bottom-0 start-0 w-100" id="descFadeOverlay" style="height: 60px; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1)); pointer-events: none;"></div>
+          </div>
+          <div class="text-start mt-2">
+            <button class="btn btn-sm btn-link text-decoration-none fw-bold p-0 text-primary" id="toggleDescBtn" type="button">
+              Show more <i class="bi bi-chevron-down ms-1"></i>
+            </button>
+          </div>
+        </div>
+        {% endif %}
+
+        <h3 class="serif-title mb-4"><i class="bi bi-mortarboard-fill text-primary me-2"></i>Course Curriculum Syllabus</h3>
+        
+        {% if subjects %}
+          <div class="accordion shadow-sm rounded-4 overflow-hidden border border-light bg-white" id="syllabusAccordion">
+            {% for subject in subjects %}
+              <div class="accordion-item border-0 border-bottom border-light">
+                <h2 class="accordion-header" id="headingSub{{ subject.pk }}">
+                  <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} fw-bold fs-5 p-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSub{{ subject.pk }}" aria-expanded="{% if forloop.first %}true{% endif %}" aria-controls="collapseSub{{ subject.pk }}">
+                    <i class="bi bi-folder-fill text-warning me-3"></i>{{ subject.name }}
+                    <span class="badge bg-light text-muted border ms-auto small fw-normal">{{ subject.lecture_count }} Lectures</span>
+                  </button>
+                </h2>
+                <div id="collapseSub{{ subject.pk }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="headingSub{{ subject.pk }}" data-bs-parent="#syllabusAccordion">
+                  <div class="accordion-body p-4 bg-white">
+                    {% if subject.description %}
+                      <p class="text-muted small mb-4 bg-light p-3 rounded border border-light">{{ subject.description }}</p>
+                    {% endif %}
+                    
+                    {% if subject.sections.all %}
+                      <div class="d-flex flex-column gap-3">
+                        {% for section in subject.sections.all %}
+                          <div class="p-3 bg-light rounded-3 border">
+                            <h6 class="fw-bold mb-2 text-dark"><i class="bi bi-collection-play me-2"></i>{{ section.title|default:"Standard Syllabus Section" }}</h6>
+                            <ul class="list-unstyled d-flex flex-column gap-2 mb-0 ps-3">
+                              {% for lecture in section.lectures.all %}
+                                <li class="d-flex justify-content-between align-items-center text-muted small border-bottom border-light pb-2 last-border-none py-1">
+                                  {% if is_enrolled %}
+                                    <a href="{% url 'lecture_detail' lecture.pk %}" class="text-decoration-none text-dark d-flex align-items-center gap-2 hover-primary">
+                                      <i class="bi bi-play-circle-fill text-success fs-6"></i>
+                                      <span>{{ lecture.title }}</span>
+                                    </a>
+                                  {% elif lecture.is_preview %}
+                                    <a href="{% url 'lecture_detail' lecture.pk %}" class="text-decoration-none text-success fw-medium d-flex align-items-center gap-2">
+                                      <i class="bi bi-play-circle-fill text-success fs-6"></i>
+                                      <span>{{ lecture.title }}</span>
+                                      <span class="badge bg-success-subtle text-success border border-success-subtle small fw-bold" style="font-size: 0.6rem; padding: 2px 5px;">FREE PREVIEW</span>
+                                    </a>
+                                  {% else %}
+                                    <span class="text-muted d-flex align-items-center gap-2" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#lockedLectureModal">
+                                      <i class="bi bi-lock-fill text-muted"></i>
+                                      <span class="text-muted">{{ lecture.title }}</span>
+                                    </span>
+                                  {% endif %}
+                                  <span class="badge bg-white text-muted border small">{{ lecture.duration_display|default:"Video Included" }}</span>
+                                </li>
+                              {% empty %}
+                                <li class="text-muted small">No lectures added yet.</li>
+                              {% endfor %}
+                            </ul>
+                          </div>
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      <span class="text-muted small">Syllabus segments are currently being organized.</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="p-5 bg-white border rounded-4 text-center text-muted shadow-sm">
+            <i class="bi bi-archive fs-1 d-block mb-3"></i>
+            <h5>No syllabus modules added yet</h5>
+          </div>
+        {% endif %}
+      </div>
+      
+      <div class="col-lg-4">
+        <!-- Sidebar Widget -->
+        <div class="card border border-light shadow-sm rounded-4 p-4 bg-white mb-4 position-sticky" style="top: 100px;">
+          <h5 class="fw-bold mb-3 text-dark border-bottom border-light pb-2"><i class="bi bi-shield-check text-success me-2"></i>Study Guidance</h5>
+          <p class="text-muted small">
+            Our portal provides realistic entry exams tailored precisely to the official IOE, CEE, and CSIT requirements.
+          </p>
+          <div class="d-flex flex-column gap-3">
+            <div class="d-flex gap-2 align-items-start">
+              <i class="bi bi-phone text-primary fs-5"></i>
+              <div class="small">
+                <strong>Responsive Mobile Design</strong>
+                <span class="d-block text-muted">Study seamlessly on any phone, tablet or desktop.</span>
+              </div>
+            </div>
+            <div class="d-flex gap-2 align-items-start">
+              <i class="bi bi-clock-history text-danger fs-5"></i>
+              <div class="small">
+                <strong>Study Time Tracked</strong>
+                <span class="d-block text-muted">Review progress charts on your student dashboard.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Locked Lecture Modal -->
+<div class="modal fade" id="lockedLectureModal" tabindex="-1" aria-labelledby="lockedLectureModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow-lg">
+      <div class="modal-header border-0 bg-light p-4 rounded-top-4">
+        <h5 class="modal-title fw-bold text-dark" id="lockedLectureModalLabel">
+          <i class="bi bi-lock-fill text-warning me-2"></i>Content Locked
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4 text-center">
+        <div class="mb-3">
+          <i class="bi bi-shield-lock-fill text-danger display-4"></i>
+        </div>
+        <h6 class="fw-bold mb-2">This is a premium lecture video.</h6>
+        <p class="text-muted small mb-0">
+          To access the full syllabus videos, study materials, and mock exams, please request enrollment.
+        </p>
+      </div>
+      <div class="modal-footer border-0 p-4 pt-0 justify-content-center">
+        <button type="button" class="btn btn-sm btn-light border px-4 rounded-pill" data-bs-dismiss="modal">Close</button>
+        {% if not is_enrolled %}
+          {% if user.is_authenticated %}
+            <a href="{% url 'enroll_instantly' course.slug %}" class="btn btn-sm btn-brand-primary px-4 rounded-pill shadow-sm">
+              Request Enrollment
+            </a>
+          {% else %}
+            <button class="btn btn-sm btn-brand-secondary px-4 rounded-pill shadow-sm" onclick="bootstrap.Modal.getInstance(document.getElementById('lockedLectureModal')).hide(); document.getElementById('enroll_name').focus();">
+              Submit Request
+            </button>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block extra_js %}
+<style>
+  .hover-primary:hover {
+    color: var(--brand-primary) !important;
+  }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const descContent = document.getElementById('courseDescContent');
+  const fadeOverlay = document.getElementById('descFadeOverlay');
+  const toggleBtn = document.getElementById('toggleDescBtn');
+  
+  if (descContent) {
+    if (descContent.scrollHeight <= 200) {
+      descContent.style.maxHeight = 'none';
+      if (fadeOverlay) fadeOverlay.style.display = 'none';
+      if (toggleBtn) toggleBtn.style.display = 'none';
+    } else if (toggleBtn) {
+      toggleBtn.addEventListener('click', function() {
+        if (descContent.style.maxHeight === 'none') {
+          descContent.style.maxHeight = '200px';
+          if (fadeOverlay) fadeOverlay.style.display = 'block';
+          toggleBtn.innerHTML = 'Show more <i class="bi bi-chevron-down ms-1"></i>';
+        } else {
+          descContent.style.maxHeight = 'none';
+          if (fadeOverlay) fadeOverlay.style.display = 'none';
+          toggleBtn.innerHTML = 'Show less <i class="bi bi-chevron-up ms-1"></i>';
+        }
+      });
+    }
+  }
+});
+</script>
+{% endblock %}
+{% endblock %}

@@ -48,6 +48,11 @@ class Course(models.Model):
         if not self.seo_excerpt:
             self.seo_excerpt = self.generate_seo_excerpt()
         super().save(*args, **kwargs)
+        cache.clear()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        cache.clear()
 
     def get_absolute_url(self):
         return reverse('course_detail', kwargs={'slug': self.slug})
@@ -90,6 +95,14 @@ class Subject(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        cache.clear()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        cache.clear()
+
     def lecture_count(self):
         return Lecture.objects.filter(section__subject=self).count()
 
@@ -112,6 +125,14 @@ class Section(models.Model):
 
     def __str__(self):
         return self.title or f"Section #{self.pk} - {self.subject.name}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        cache.clear()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        cache.clear()
 
     def lecture_count(self):
         return self.lectures.count()
@@ -143,6 +164,14 @@ class Lecture(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        cache.clear()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        cache.clear()
 
     def clean(self):
         super().clean()
@@ -251,6 +280,14 @@ class Enrollment(models.Model):
         on_delete=models.CASCADE,
         related_name='enrollments'
     )
+    enrolled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_enrollments',
+        help_text="The staff or admin who enrolled this user."
+    )
     enrolled_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -289,3 +326,118 @@ class LectureProgress(models.Model):
     def __str__(self):
         status = "✓" if self.completed else "○"
         return f"{status} {self.user} → {self.lecture}"
+
+# =========================================================
+# SITE SETTING (SINGLETON)
+# =========================================================
+from django.core.cache import cache
+
+class SiteSetting(models.Model):
+    site_name = models.CharField(max_length=100, default="Saral Pathshala")
+    site_title = models.CharField(max_length=200, default="Saral Pathshala - Online MCQ & Lectures Portal")
+    site_description = models.TextField(blank=True, default="Saral Pathshala is Nepal's leading e-learning platform providing course details, lectures, and online exams.")
+    meta_keywords = models.CharField(max_length=255, blank=True, default="BSC.CSIT, CSIT, CEE, IOE, Nepal, e-learning, exam preparation")
+    
+    contact_email = models.EmailField(default="info@saralpathshala.com")
+    contact_phone = models.CharField(max_length=15, default="9841234567")
+    contact_address = models.CharField(max_length=200, default="Kathmandu, Nepal")
+    whatsapp_number = models.CharField(max_length=15, default="9841234567")
+    
+    logo = models.ImageField(upload_to='site/', blank=True, null=True)
+    favicon = models.ImageField(upload_to='site/', blank=True, null=True)
+    
+    # Social Platforms
+    social_facebook = models.URLField(blank=True, default="https://facebook.com/saralpathshala")
+    social_twitter = models.URLField(blank=True, default="https://twitter.com/saralpathshala")
+    social_instagram = models.URLField(blank=True, default="https://instagram.com/saralpathshala")
+    social_tiktok = models.URLField(blank=True, default="https://tiktok.com/@saralpathshala")
+    social_linkedin = models.URLField(blank=True, default="https://linkedin.com/company/saralpathshala")
+    social_threads = models.URLField(blank=True, default="https://threads.net/@saralpathshala")
+    
+    google_analytics_id = models.CharField(max_length=50, blank=True, default="G-XXXXXXXXXX")
+    akash_sms_auth_token = models.CharField(max_length=255, blank=True, default="YOUR_AKASH_SMS_TOKEN")
+
+    class Meta:
+        verbose_name = "Site Setting"
+        verbose_name_plural = "Site Settings"
+
+    def __str__(self):
+        return self.site_name
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        cache.clear()
+
+
+# =========================================================
+# NOTICE (PHYSICAL EXAMS & RESULTS)
+# =========================================================
+
+class Notice(models.Model):
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
+    content = models.TextField(blank=True, help_text="Supports HTML. Notice body.")
+    pdf_file = models.FileField(upload_to='notices/', blank=True, null=True, help_text="Upload result sheets or notice PDF.")
+    
+    # SEO
+    meta_title = models.CharField(max_length=150, blank=True, help_text="For SEO. Leave blank to use notice title.")
+    meta_description = models.CharField(max_length=160, blank=True, help_text="For SEO description.")
+    meta_keywords = models.CharField(max_length=255, blank=True, help_text="For SEO keywords, comma separated.")
+    
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Notice"
+        verbose_name_plural = "Notices"
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+            base_slug = self.slug
+            count = 1
+            while Notice.objects.filter(slug=self.slug).exists():
+                self.slug = f"{base_slug}-{count}"
+                count += 1
+        super().save(*args, **kwargs)
+        cache.clear()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        cache.clear()
+
+    def get_absolute_url(self):
+        return reverse('notice_detail', kwargs={'slug': self.slug})
+
+
+# =========================================================
+# COURSE ENROLLMENT REQUEST (LEADS)
+# =========================================================
+
+class CourseEnrollmentRequest(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved / Enrolled'),
+        ('contacted', 'Contacted / Followed Up'),
+        ('rejected', 'Rejected'),
+    ]
+    name = models.CharField(max_length=100)
+    phone = models.CharField(max_length=15)
+    email = models.EmailField(blank=True)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='enrollment_requests')
+    message = models.TextField(blank=True)
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Enrollment Request"
+        verbose_name_plural = "Enrollment Requests"
+
+    def __str__(self):
+        return f"{self.name} ({self.phone}) -> {self.course.name}"

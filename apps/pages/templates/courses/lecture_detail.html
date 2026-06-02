@@ -470,23 +470,29 @@
               <a href="{% url 'lecture_detail' lec.pk %}"
                  class="lec-link {% if lec.pk == lecture.pk %}active{% elif lec.pk in completed_ids %}done{% endif %}">
 
-                <span class="lec-icon mt-1"
-                      style="font-size:.8rem;">
+                 <span class="lec-icon mt-1"
+                       style="font-size:.8rem;">
 
-                  {% if lec.pk == lecture.pk %}
-                    <i class="bi bi-play-fill text-warning"></i>
+                   {% if lec.pk == lecture.pk %}
+                     <i class="bi bi-play-fill text-warning"></i>
 
-                  {% elif lec.pk in completed_ids %}
-                    <i class="bi bi-check-circle-fill text-success"></i>
+                   {% elif lec.pk in completed_ids %}
+                     <i class="bi bi-check-circle-fill text-success"></i>
 
-                  {% else %}
-                    <i class="bi bi-circle text-muted"></i>
-                  {% endif %}
-                </span>
+                   {% elif not is_enrolled and not lec.is_preview %}
+                     <i class="bi bi-lock-fill text-muted" title="Locked content"></i>
 
-                <span class="lec-title">
-                  {{ lec.title }}
-                </span>
+                   {% else %}
+                     <i class="bi bi-circle text-muted"></i>
+                   {% endif %}
+                 </span>
+
+                 <span class="lec-title">
+                   {{ lec.title }}
+                   {% if lec.is_preview %}
+                     <span class="badge bg-light text-success border ms-1 fw-semibold" style="font-size:0.6rem; padding: 1px 3px;">Preview</span>
+                   {% endif %}
+                 </span>
 
                 {% if lec.duration %}
                 <span class="text-muted lec-duration mt-1"
@@ -780,20 +786,40 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // =========================
-  // ESC closes sidebar mobile
+  // ESC closes sidebar mobile & Anti-Leak protections
   // =========================
   document.addEventListener('keydown', function (e) {
-
     if (
       e.key === 'Escape' &&
       window.innerWidth <= 768
     ) {
-
       wrap.classList.add('sidebar-collapsed');
-
       updateIcon();
     }
+
+    // Anti-Leak: Block F12, Ctrl+U, Ctrl+Shift+I/J/C, Copy/Paste
+    if (e.key === 'F12' || e.keyCode === 123) {
+      e.preventDefault();
+      alert("⚠️ Security Warning: Inspection tools are disabled to protect copyright course contents.");
+      return false;
+    }
+    if (e.ctrlKey && ['c', 'v', 'x', 'u', 'C', 'V', 'X', 'U'].includes(e.key)) {
+      e.preventDefault();
+      alert("⚠️ Security Warning: Copying, pasting, cutting, and viewing source code are disabled.");
+      return false;
+    }
+    if (e.ctrlKey && e.shiftKey && ['I', 'J', 'C', 'i', 'j', 'c'].includes(e.key)) {
+      e.preventDefault();
+      alert("⚠️ Security Warning: Inspection tools are disabled.");
+      return false;
+    }
   });
+
+  // Prevent right clicks, text selections, and dragging globally
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('selectstart', e => e.preventDefault());
+  document.addEventListener('copy', e => e.preventDefault());
+  document.addEventListener('dragstart', e => e.preventDefault());
 
 });
 </script>

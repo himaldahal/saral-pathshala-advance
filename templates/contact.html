@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<section class="py-5 bg-white border-bottom shadow-sm">
+  <div class="container text-center py-4">
+    <span class="badge bg-soft text-primary border px-3 py-2 rounded-pill mb-3 small fw-bold">GET IN TOUCH</span>
+    <h1 class="display-5 fw-bold serif-title mb-3">Contact Saral Pathshala</h1>
+    <p class="lead text-muted mx-auto" style="max-width: 700px;">
+      Have questions about our online exam portal or course lectures? Reach out to us directly.
+    </p>
+  </div>
+</section>
+
+<section class="py-5">
+  <div class="container">
+    <div class="row g-5">
+      <div class="col-lg-5">
+        <h2 class="serif-title mb-4">Official Contact Details</h2>
+        <p class="text-muted">
+          Our administrative team is available to assist you with class schedules, technical exam login issues, and student enrollment verification.
+        </p>
+        
+        <div class="d-flex flex-column gap-4 mt-5">
+          <div class="d-flex gap-3 align-items-start">
+            <div class="p-3 bg-light rounded-3 border text-primary"><i class="bi bi-geo-alt-fill fs-4"></i></div>
+            <div>
+              <h6 class="fw-bold mb-1">Our Location</h6>
+              <span class="text-muted small">{{ site_settings.contact_address }}</span>
+            </div>
+          </div>
+          
+          <div class="d-flex gap-3 align-items-start">
+            <div class="p-3 bg-light rounded-3 border text-success"><i class="bi bi-telephone-fill fs-4"></i></div>
+            <div>
+              <h6 class="fw-bold mb-1">Phone Number</h6>
+              <span class="text-muted small">{{ site_settings.contact_phone }}</span>
+            </div>
+          </div>
+          
+          <div class="d-flex gap-3 align-items-start">
+            <div class="p-3 bg-light rounded-3 border text-danger"><i class="bi bi-envelope-fill fs-4"></i></div>
+            <div>
+              <h6 class="fw-bold mb-1">Email Address</h6>
+              <span class="text-muted small">{{ site_settings.contact_email }}</span>
+            </div>
+          </div>
+
+          {% if site_settings.whatsapp_number %}
+            <div class="d-flex gap-3 align-items-start">
+              <div class="p-3 bg-light rounded-3 border text-success"><i class="bi bi-whatsapp fs-4"></i></div>
+              <div>
+                <h6 class="fw-bold mb-1">WhatsApp Chat</h6>
+                <span class="text-muted small">+977 {{ site_settings.whatsapp_number }}</span>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="col-lg-7">
+        <div class="bg-light border p-4 p-md-5 rounded-4 shadow-sm">
+          <h3 class="serif-title mb-4 text-dark"><i class="bi bi-chat-left-dots-fill text-warning me-2"></i>Send Us a Message</h3>
+          <form method="POST" action="{% url 'enroll_request' %}" class="needs-validation" novalidate>
+            {% csrf_token %}
+            <!-- Honeypot for security -->
+            <input type="text" name="website_url" style="display: none;" tabindex="-1" autocomplete="off">
+            
+            <div class="mb-3">
+              <label for="lead_name" class="form-label fw-semibold text-muted small">Full Name</label>
+              <input type="text" class="form-control shadow-sm" id="lead_name" name="name" placeholder="John Doe" required>
+            </div>
+            
+            <div class="mb-3">
+              <label for="lead_phone" class="form-label fw-semibold text-muted small">Phone Number</label>
+              <input type="text" class="form-control shadow-sm" id="lead_phone" name="phone" placeholder="98XXXXXXXX" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="lead_email" class="form-label fw-semibold text-muted small">Email (Optional)</label>
+              <input type="email" class="form-control shadow-sm" id="lead_email" name="email" placeholder="name@example.com">
+            </div>
+
+            <div class="mb-3">
+              <label for="lead_course" class="form-label fw-semibold text-muted small">Select Interest Course</label>
+              <select class="form-select shadow-sm" id="lead_course" name="course_slug" required>
+                <option value="" disabled selected>Choose a course...</option>
+                <!-- This will fallback gracefully or allow guest lead submissions -->
+                <option value="bsc-csit">BSC.CSIT Entrance</option>
+                <option value="cee-preparation">CEE Medical Entrance</option>
+                <option value="ioe-engineering">IOE Engineering Entrance</option>
+              </select>
+            </div>
+
+            <div class="mb-4">
+              <label for="lead_message" class="form-label fw-semibold text-muted small">Your Message / Query</label>
+              <textarea class="form-control shadow-sm" id="lead_message" name="message" rows="4" placeholder="Write your message here..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-brand-primary btn-lg w-100 shadow-sm"><i class="bi bi-send-fill me-2"></i>Send Message Securely</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

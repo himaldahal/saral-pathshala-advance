@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Home - {{ site_settings.site_title }}{% endblock %}
+
+{% block content %}
+<!-- Premium Hero Section -->
+<section class="py-5 bg-transparent border-bottom shadow-sm">
+  <div class="container py-lg-5">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <span class="badge bg-soft text-primary border px-3 py-2 rounded-pill mb-3 small fw-bold"><i class="bi bi-rocket-takeoff-fill text-warning me-1"></i> Highly Focused Entrance Preparation</span>
+        <h1 class="display-4 fw-bold lh-sm mb-3 serif-title">Crack BSC.CSIT, CSIT, CEE & IOE Exams with Confidence</h1>
+        <p class="lead text-muted mb-4" style="font-size: 1.1rem;">
+          Welcome to <b>Saral Pathshala</b>. Learn from high-quality lectures, practice thousands of entry-level MCQs in exam simulations, and stay updated with live notices.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="{% url 'course_list' %}" class="btn btn-brand-primary btn-lg px-4 shadow-sm"><i class="bi bi-book-half me-2"></i>Explore Courses</a>
+          <a href="{% url 'exams:exam_list' %}" class="btn btn-outline-dark btn-lg px-4 shadow-sm"><i class="bi bi-pencil-square me-2"></i>Take Mock Exams</a>
+        </div>
+        <div class="row g-3 mt-4 pt-3 border-top border-light">
+          <div class="col-6 col-sm-4">
+            <h4 class="fw-bold text-primary mb-0">100%</h4>
+            <small class="text-muted">Structured Lectures</small>
+          </div>
+          <div class="col-6 col-sm-4">
+            <h4 class="fw-bold text-success mb-0">Nepal's Best</h4>
+            <small class="text-muted">MCQ Simulation</small>
+          </div>
+          <div class="col-6 col-sm-4">
+            <h4 class="fw-bold text-warning mb-0">Realtime</h4>
+            <small class="text-muted">Anti-Cheat Engine</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 text-center">
+        <div class="p-4 bg-light rounded-4 border shadow-sm position-relative overflow-hidden">
+          <div class="mesh-bg position-absolute top-0 start-0 w-100 h-100 opacity-25" style="background: radial-gradient(circle, rgba(45,137,200,0.2) 0%, transparent 60%);"></div>
+          <img src="/static/images/nav-logo.jpeg" alt="Saral Pathshala Dashboard Preview" class="img-fluid rounded-3 shadow-sm border border-light position-relative" style="max-height: 400px; object-fit: cover;" onerror="this.style.display='none';">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Active Courses Section -->
+<section class="py-5 bg-white border-top border-bottom">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+      <div>
+        <h2 class="serif-title mb-2">Our Entrance Courses</h2>
+        <p class="text-muted mb-0">Explore complete interactive lecture series and structured exam papers.</p>
+      </div>
+      <a href="{% url 'course_list' %}" class="btn btn-sm btn-outline-dark px-3 rounded-pill"><i class="bi bi-arrow-right-circle me-1"></i>View All</a>
+    </div>
+    
+    <div class="row g-4">
+      {% if courses %}
+        {% for course in courses %}
+          <div class="col-lg-4 col-md-6">
+            <div class="card h-100 border border-light shadow-sm rounded-4 overflow-hidden bg-white hover-shadow transition">
+              {% if course.thumbnail %}
+                <img src="{{ course.thumbnail.url }}" class="card-img-top" alt="{{ course.name }}" style="height: 180px; object-fit: cover;">
+              {% else %}
+                <div class="bg-primary text-white d-flex align-items-center justify-content-center" style="height: 180px;">
+                  <i class="bi bi-book-half fs-1"></i>
+                </div>
+              {% endif %}
+              <div class="card-body p-4">
+                <span class="badge bg-light text-dark border px-2 py-1 mb-2 small">{{ course.tags|default:"Entrance" }}</span>
+                <h5 class="card-title fw-bold mb-2">{{ course.name }}</h5>
+                <p class="card-text text-muted small mb-4">
+                  {{ course.seo_excerpt|default:"Detailed entrance examination preparation guide with lectures and exam questions." }}
+                </p>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="small text-muted"><i class="bi bi-collection-play me-1"></i>Lectures & MCQs</span>
+                  <a href="{% url 'course_detail' course.slug %}" class="btn btn-sm btn-outline-dark px-3 rounded-pill">View Details</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="col-12 text-center py-5">
+          <i class="bi bi-journal-x fs-1 text-muted"></i>
+          <h5 class="mt-3">No courses active at the moment</h5>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<!-- Split Dynamic Column Section: Exams vs Notices -->
+<section class="py-5 bg-transparent border-top border-bottom">
+  <div class="container">
+    <div class="row g-5">
+      <!-- Upcoming Public Exams -->
+      <div class="col-lg-6">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h3 class="serif-title mb-0"><i class="bi bi-pencil-square text-primary me-2"></i>Upcoming Exams</h3>
+          <a href="{% url 'exams:exam_list' %}" class="btn btn-sm btn-outline-dark px-3 rounded-pill">All Exams</a>
+        </div>
+        
+        <div class="d-flex flex-column gap-3">
+          {% if upcoming_exams %}
+            {% for exam in upcoming_exams %}
+              <div class="p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center hover-shadow transition">
+                <div>
+                  <h6 class="fw-bold text-dark mb-1">{{ exam.title }}</h6>
+                  <div class="small text-muted d-flex flex-wrap gap-3">
+                    <span><i class="bi bi-tag me-1"></i>{{ exam.course.name }}</span>
+                    <span><i class="bi bi-calendar-event me-1"></i>{{ exam.start_date|date:"M d, Y, h:i A" }}</span>
+                  </div>
+                </div>
+                <div>
+                  <a href="{% url 'exams:exam_detail' exam.slug %}" class="btn btn-sm btn-brand-primary px-3 rounded-pill">Details</a>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="p-4 bg-light rounded-3 text-center text-muted">
+              <i class="bi bi-calendar-x fs-2 me-2 d-block mb-2"></i>
+              No public upcoming exams scheduled. Check back soon.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Recent Result Notices -->
+      <div class="col-lg-6">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h3 class="serif-title mb-0"><i class="bi bi-bell text-warning me-2"></i>Notices & Results</h3>
+          <a href="{% url 'notice_list' %}" class="btn btn-sm btn-outline-dark px-3 rounded-pill">All Notices</a>
+        </div>
+        
+        <div class="d-flex flex-column gap-3">
+          {% if notices %}
+            {% for notice in notices %}
+              <div class="p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center hover-shadow transition">
+                <div>
+                  <h6 class="fw-bold text-dark mb-1">{{ notice.title }}</h6>
+                  <div class="small text-muted d-flex gap-3">
+                    <span><i class="bi bi-clock me-1"></i>{{ notice.created_at|date:"M d, Y" }}</span>
+                    {% if notice.pdf_file %}
+                      <span class="text-danger fw-semibold"><i class="bi bi-file-pdf me-1"></i>Result PDF Attached</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div>
+                  <a href="{% url 'notice_detail' notice.slug %}" class="btn btn-sm btn-outline-dark px-3 rounded-pill">View</a>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="p-4 bg-light rounded-3 text-center text-muted">
+              <i class="bi bi-chat-left-quote fs-2 me-2 d-block mb-2"></i>
+              No recent notifications or result publications.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Call To Action Section -->
+<section class="py-5 bg-dark text-white text-center shadow-lg position-relative overflow-hidden">
+  <div class="mesh-bg position-absolute top-0 start-0 w-100 h-100 opacity-25" style="background: radial-gradient(circle at center, var(--brand-primary) 0%, transparent 60%);"></div>
+  <div class="container py-4 position-relative">
+    <h2 class="serif-title display-5 mb-3 text-warning">Ready to Accelerate Your Prep?</h2>
+    <p class="lead mb-4 mx-auto" style="max-width: 600px;">
+      Register now for instant access to free public mock tests, entrance details, and student dashboard updates.
+    </p>
+    <div class="d-flex justify-content-center gap-3">
+      {% if not user.is_authenticated %}
+        <a href="{% url 'register' %}" class="btn btn-brand-secondary btn-lg px-4 shadow-sm"><i class="bi bi-person-plus-fill me-2"></i>Sign Up Now</a>
+        <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg px-4"><i class="bi bi-box-arrow-in-right me-2"></i>Login</a>
+      {% else %}
+        <a href="{% url 'dashboard' %}" class="btn btn-brand-primary btn-lg px-4 shadow-sm"><i class="bi bi-speedometer2 me-2"></i>My Dashboard</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

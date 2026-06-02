@@ -369,6 +369,72 @@
     <!-- LEFT -->
     <div class="col-lg-8">
 
+      <!-- Mock Exam Performance Analytics Chart -->
+      <!-- Mock Exam Performance Analytics Chart & History -->
+      {% if has_attempts %}
+      <div class="card-clean p-4 mb-4 bg-white">
+        <h5 class="section-title mb-4">
+          <i class="bi bi-bar-chart-line-fill text-primary me-2"></i>
+          Mock Exam Progress & Performance
+        </h5>
+        <div style="position: relative; height: 300px; width: 100%;">
+          <canvas id="studentPerformanceChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card-clean overflow-hidden mb-4 bg-white">
+        <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+          <h5 class="section-title">
+            <i class="bi bi-award-fill text-primary me-2"></i>
+            Mock Exams Attempt History
+          </h5>
+          <span class="badge bg-soft text-primary border rounded-pill px-3 py-1 fw-bold small" style="font-size: 0.75rem; background-color: #e8f0fe;">{{ attempts.count }} Exams Taken</span>
+        </div>
+        
+        <div class="table-responsive">
+          <table class="table align-middle table-hover mb-0" style="font-size: 0.9rem;">
+            <thead class="table-light">
+              <tr>
+                <th class="border-0 px-4">Exam Name</th>
+                <th class="border-0 text-center">Questions</th>
+                <th class="border-0 text-center">Correct/Wrong</th>
+                <th class="border-0 text-center">Marks Obtained</th>
+                <th class="border-0 text-center">Completion Date</th>
+                <th class="border-0 text-end px-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="border-top-0">
+              {% for att in attempts %}
+                <tr>
+                  <td class="px-4">
+                    <div class="fw-bold text-dark">{{ att.exam.title }}</div>
+                    <small class="text-muted"><i class="bi bi-tag me-1"></i>{{ att.exam.course.name }}</small>
+                  </td>
+                  <td class="text-center fw-medium">{{ att.exam.total_questions }} Qs</td>
+                  <td class="text-center">
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 rounded-pill small fw-bold"><i class="bi bi-check-circle-fill me-1"></i>{{ att.correct_count }}</span>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0.5 rounded-pill small fw-bold"><i class="bi bi-x-circle-fill me-1"></i>{{ att.wrong_count }}</span>
+                  </td>
+                  <td class="text-center fw-bold text-primary">{{ att.score }} / {{ att.exam.total_marks }}</td>
+                  <td class="text-center text-muted small">{{ att.completed_at|date:"M d, Y" }}</td>
+                  <td class="text-end px-4">
+                    <div class="d-flex justify-content-end gap-2">
+                      <a href="{% url 'exams:exam_result' att.exam.slug %}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 small">
+                        <i class="bi bi-eye-fill me-1"></i> Review
+                      </a>
+                      <a href="{% url 'exams:delete_attempt' att.exam.slug %}" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1" onclick="return confirm('Are you sure you want to delete this attempt? This will permanently wipe your score records.');" title="Delete Attempt">
+                        <i class="bi bi-trash3-fill"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
       <div class="card-clean overflow-hidden">
 
         <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
@@ -447,7 +513,7 @@
 
                 {% if item.next_lecture %}
                 <a href="{{ item.next_lecture.get_absolute_url }}"
-                   class="btn btn-dark px-4">
+                   class="btn btn-brand-primary px-4">
                   Continue
                 </a>
                 {% else %}
@@ -480,7 +546,7 @@
             </p>
 
             <a href="{% url 'course_list' %}"
-               class="btn btn-dark px-4">
+               class="btn btn-brand-primary px-4">
               Explore Courses
             </a>
 
@@ -558,54 +624,81 @@
           </h5>
         </div>
 
-        <div class="profile-list">
-
-          <div class="profile-item">
-            <div class="profile-label">Full Name</div>
-            <div class="profile-value">
-              {{ user.get_full_name }}
+        <div class="profile-list p-4">
+          <!-- Verification Dispatcher Panel for Unverified Accounts -->
+          {% if not user.is_email_verified %}
+            <div class="card border border-warning border-opacity-25 rounded-3 mb-4 text-center p-3" style="background-color: rgba(249, 115, 22, 0.03);">
+              <div class="small mb-1 text-warning fw-semibold"><i class="bi bi-shield-exclamation me-1"></i>Secure Your Account</div>
+              <p class="text-muted mb-3" style="font-size: 0.75rem; line-height: 1.35;">Your email address is unverified. Please verify it to enable secure recovery features and receive results.</p>
+              <form method="POST" action="{% url 'dashboard' %}">
+                {% csrf_token %}
+                <input type="hidden" name="request_verification" value="1">
+                <button type="submit" class="btn btn-sm btn-brand-secondary w-100 rounded-pill"><i class="bi bi-envelope-check-fill me-1"></i>Send Verification Link</button>
+              </form>
             </div>
-          </div>
+          {% endif %}
 
-          <div class="profile-item">
-            <div class="profile-label">Email</div>
-            <div class="profile-value">
-              {{ user.email }}
+          <form method="POST" action="{% url 'dashboard' %}" class="needs-validation" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="update_profile" value="1">
+            
+            <div class="mb-3">
+              <label class="form-label small text-muted fw-semibold" for="full_name"><i class="bi bi-person me-1"></i>Full Name</label>
+              <input type="text" class="form-control form-control-sm shadow-sm" id="full_name" name="full_name" value="{{ user.full_name }}" required>
             </div>
-          </div>
-
-          <div class="profile-item">
-            <div class="profile-label">Phone</div>
-            <div class="profile-value">
-              {{ user.phone|default:"Not Added" }}
-            </div>
-          </div>
-
-          <div class="profile-item">
-            <div class="profile-label">Institute</div>
-            <div class="profile-value">
-              {{ user.previous_institute|default:"Not Provided" }}
-            </div>
-          </div>
-
-          <div class="profile-item">
-            <div class="profile-label">Interested Course</div>
-            <div class="profile-value">
-              {% if user.interested_course %}
-                {{ user.interested_course.name }}
+            
+            <div class="mb-3">
+              <label class="form-label small text-muted fw-semibold" for="email"><i class="bi bi-envelope me-1"></i>Email Address</label>
+              {% if user.is_email_verified %}
+                <div class="input-group input-group-sm">
+                  <input type="email" class="form-control bg-light border-0 shadow-sm text-success fw-bold" id="email" value="{{ user.email }}" disabled readonly style="cursor: not-allowed;">
+                  <span class="input-group-text bg-success border-0 text-white small" title="Email is verified"><i class="bi bi-patch-check-fill"></i></span>
+                </div>
+                <div class="form-text small text-muted" style="font-size: 0.72rem;"><i class="bi bi-lock me-1"></i>Verified email is locked for security.</div>
               {% else %}
-                Not Selected
+                <input type="email" class="form-control form-control-sm shadow-sm border-warning" id="email" name="email" value="{{ user.email }}" required>
+                <div class="form-text small text-warning" style="font-size: 0.72rem;"><i class="bi bi-exclamation-circle me-1"></i>Email is unverified.</div>
               {% endif %}
             </div>
-          </div>
-
-          <div class="profile-item">
-            <div class="profile-label">Joined</div>
-            <div class="profile-value">
-              {{ user.date_joined|date:"F d, Y" }}
+            
+            <div class="mb-3">
+              <label class="form-label small text-muted fw-semibold" for="phone"><i class="bi bi-telephone me-1"></i>Phone (Locked)</label>
+              <input type="text" class="form-control form-control-sm bg-light border-0 shadow-sm" id="phone" value="{{ user.phone|default:'Not Added' }}" disabled readonly style="cursor: not-allowed;">
+              <div class="form-text small text-muted" style="font-size: 0.72rem;"><i class="bi bi-lock me-1"></i>Phone number is permanently locked.</div>
             </div>
-          </div>
+            
+            <div class="mb-3">
+              <label class="form-label small text-muted fw-semibold" for="current_level"><i class="bi bi-mortarboard me-1"></i>Education Level</label>
+              <select class="form-select form-select-sm shadow-sm" id="current_level" name="current_level">
+                <option value="">-- Select Education Level --</option>
+                {% for val, label in student_levels %}
+                  <option value="{{ val }}" {% if user.current_level == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
 
+            <div class="mb-3">
+              <label class="form-label small text-muted fw-semibold" for="interested_course"><i class="bi bi-award me-1"></i>Interested Course</label>
+              <select class="form-select form-select-sm shadow-sm" id="interested_course" name="interested_course">
+                <option value="">-- Select Interested Course --</option>
+                {% for course in active_courses %}
+                  <option value="{{ course.slug }}" {% if user.interested_course.slug == course.slug %}selected{% endif %}>{{ course.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small text-muted fw-semibold" for="previous_institute"><i class="bi bi-building me-1"></i>Previous Institute</label>
+              <input type="text" class="form-control form-control-sm shadow-sm" id="previous_institute" name="previous_institute" value="{{ user.previous_institute|default:'' }}" placeholder="e.g. St. Xavier's College">
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label small text-muted fw-semibold"><i class="bi bi-calendar3 me-1"></i>Date Joined (ReadOnly)</label>
+              <input type="text" class="form-control form-control-sm bg-light border-0 shadow-sm" value="{{ user.date_joined|date:'F d, Y' }}" disabled readonly style="cursor: not-allowed;">
+            </div>
+
+            <button type="submit" class="btn btn-sm btn-brand-primary w-100 shadow-sm"><i class="bi bi-save me-1"></i> Save Changes</button>
+          </form>
         </div>
 
       </div>
@@ -615,4 +708,68 @@
   </div>
 
 </div>
+
+{% if has_attempts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const labels = {{ chart_labels_json|safe }};
+    const scores = {{ chart_scores_json|safe }};
+    const averages = {{ chart_averages_json|safe }};
+
+    if (labels && labels.length > 0) {
+        const ctx = document.getElementById('studentPerformanceChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'My Score (%)',
+                        data: scores,
+                        borderColor: '#2D89C8',
+                        backgroundColor: 'rgba(45, 137, 200, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: '#2D89C8',
+                        pointRadius: 5
+                    },
+                    {
+                        label: 'Class Average (%)',
+                        data: averages,
+                        borderColor: '#E67E22',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        tension: 0.3,
+                        pointBackgroundColor: '#E67E22',
+                        pointRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Score Percentage (%)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endif %}
 {% endblock %}

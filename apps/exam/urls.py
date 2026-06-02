@@ -14,4 +14,5 @@ urlpatterns = [
     path('<slug:slug>/save-answer/',  views.save_answer,       name='save_answer'),
     path('<slug:slug>/submit/',       views.submit_exam,       name='submit_exam'),
     path('<slug:slug>/result/',       views.exam_result,       name='exam_result'),
+    path('<slug:slug>/delete-attempt/',views.delete_attempt,   name='delete_attempt'),
 ]

@@ -1,7 +1,7 @@
 {% extends 'login_base.html' %}
 {% block title %}OTP Verification{% endblock %}
 
-{% block content %}
+{% block auth_content %}
 <div class="text-center">
     <!-- Premium large format icon treatment via orange accents -->
     <div class="mb-4 mt-2 d-inline-flex justify-content-center align-items-center" style="width: 72px; height: 72px; background: rgba(230, 126, 34, 0.1); color: var(--brand-orange); border-radius: 50%;">
@@ -9,28 +9,26 @@
     </div>
     
     <h2 class="h3 fw-bold mb-2">OTP Verification</h2>
-    <p class="text-muted mb-4 px-3" style="font-size:0.95rem; line-height: 1.6;">An OTP has been sent to <b>xxxxxx{{ masked_phone }}.</b></p>
+    <p class="text-muted mb-4 px-3" style="font-size:0.95rem; line-height: 1.6;">An OTP has been sent to your phone ending with <b>{{ masked_phone }}.</b></p>
 
     <form method="POST" novalidate class="text-start mb-4">
         {% csrf_token %}
         <div class="form-floating position-relative">
-            <!-- Inject larger letter-spacing format purely by raw aesthetics targeting in html layout -->
             {{ form.otp }}
-            <label for="{{ form.otp.id_for_label }}"><i class="bi bi-key me-2"></i>Enter 6-Digit Sequence Token</label>
+            <label for="{{ form.otp.id_for_label }}"><i class="bi bi-key me-2"></i>Enter 6-Digit OTP</label>
         </div>
         
-        <!-- Style override specifically targeting forms aesthetic OTP input sizing -->
         <style>#{{ form.otp.auto_id }} { font-size: 1.2rem; letter-spacing: 0.2em; font-weight: bold; }</style>
 
-        <button type="submit" class="btn btn-brand-primary w-100 mt-4">Confirm Institutional Link <i class="bi bi-shield-check ms-2"></i></button>
+        <button type="submit" class="btn btn-brand-primary w-100 mt-4">Verify OTP <i class="bi bi-shield-check ms-2"></i></button>
     </form>
     
     <form method="POST" action="{% url 'verify_otp' %}" id="resendForm">
          {% csrf_token %}
          <input type="hidden" name="resend_action" value="1">
-         <p class="text-muted" style="font-size: 0.9rem;">Interference in token receipt matrix layer? 
+         <p class="text-muted" style="font-size: 0.9rem;">Didn't receive the code? 
          <br><br>
-         <button type="submit" class="btn btn-sm btn-light border mt-1" id="resendBtn">Re-enqueue Matrix Carrier Sequence</button>
+         <button type="submit" class="btn btn-sm btn-light border mt-1" id="resendBtn">Resend OTP</button>
          </p>
     </form>
 </div>

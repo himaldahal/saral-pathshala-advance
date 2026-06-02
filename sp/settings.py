@@ -7,9 +7,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-kfdpfxhoy55ivg**iu8qpu=%f5ndri^8d)0j^#du)(xq8%$_ub'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost','127.0.0.1']
 
 # Application definition
 MY_APPS = [
@@ -51,6 +51,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.pages.context_processors.site_settings',
             ],
         },
     },
@@ -66,6 +67,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'timeout': 20,  # Set a timeout for database operations
     }
 }
 
@@ -147,3 +149,24 @@ TINYMCE_DEFAULT_CONFIG = {
 }
  
 TINYMCE_SPELLCHECKER = False
+
+# Authentication Settings
+LOGIN_URL = '/auth/login/'
+
+# Google reCAPTCHA v3 configurations
+# (Defaults are set to Google's public test keys. Replace with actual keys in production)
+RECAPTCHA_SITE_KEY = '6LcEkVkrAAAAAKxoGK7mTXaPyg3XV3wDN5XxxudF'
+RECAPTCHA_SECRET_KEY = '6LcEkVkrAAAAAFXodlMavHGj5BsQ-FYWjmuyMvrx'
+
+akash_sms_auth_token = '6eb4a353603d0ebde90ebe74ed2f390bcacc165bdecabfc606b97a41539c2a81'
+
+# ── SMTP Email Server Configuration ───────────────────────────────────────────
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'auth.saralpathshala@gmail.com'
+# EMAIL_HOST_PASSWORD = '@Himal_9869049923'
+EMAIL_HOST_PASSWORD = 'xukr ggif byqa yaqk'
+DEFAULT_FROM_EMAIL = 'Saral Pathshala <saralpathshala.nepal@gmail.com>'
+SERVER_EMAIL = 'saralpathshala.nepal@gmail.com'

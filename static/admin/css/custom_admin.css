@@ -1,0 +1,247 @@
+/*
+ * Saral Pathshala — Custom Premium Admin Theme
+ * Cohesive Light-Theme, Sleek Card Shadowing, and Elegant Slate Styling.
+ */
+
+body, select, input, button, textarea {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* 1. Header Branding Styling */
+#header {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border-bottom: 2px solid #1e293b !important;
+  padding: 15px 30px !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+}
+
+#header a:link, #header a:visited {
+  color: #f1f5f9 !important;
+  font-weight: 500 !important;
+  transition: color 0.2s ease;
+}
+
+#header a:hover {
+  color: #2d89c8 !important;
+}
+
+#branding h1 {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+#branding h1 a {
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+#user-tools {
+  font-size: 12px !important;
+  color: #94a3b8 !important;
+}
+
+#user-tools a {
+  font-weight: 600 !important;
+}
+
+/* 2. Sleek Card Layout for Modules */
+.module, fieldset {
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01), 0 2px 4px -1px rgba(0,0,0,0.01) !important;
+  background-color: #ffffff !important;
+  overflow: hidden !important;
+  margin-bottom: 25px !important;
+}
+
+.module h2, fieldset.collapsed h2, legend {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08) !important;
+  padding: 12px 18px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.module caption {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+
+/* 3. Modern Flat Inputs & Controls */
+input[type=text], input[type=password], input[type=email], input[type=url], input[type=number], select, textarea {
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  background: #ffffff !important;
+  font-size: 13px !important;
+  color: #0f172a !important;
+  transition: all 0.2s ease !important;
+}
+
+input[type=text]:focus, input[type=password]:focus, select:focus, textarea:focus {
+  border-color: #2d89c8 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(45, 137, 200, 0.12) !important;
+}
+
+.vTextField, .vURLField, .vEmailField, .vIntegerField {
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+}
+
+/* 4. Elegant Custom Buttons */
+.button, input[type=submit], input[type=button], .submit-row a.deletelink-box {
+  background: #2d89c8 !important;
+  border: 1px solid #2d89c8 !important;
+  border-radius: 20px !important;
+  padding: 8px 22px !important;
+  color: white !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 4px rgba(45, 137, 200, 0.12) !important;
+}
+
+.button:hover, input[type=submit]:hover, input[type=button]:hover {
+  background: #226b9e !important;
+  border-color: #226b9e !important;
+  box-shadow: 0 4px 10px rgba(45, 137, 200, 0.18) !important;
+}
+
+.button.default, input[type=submit].default {
+  background: #0f172a !important;
+  border-color: #0f172a !important;
+}
+
+.button.default:hover, input[type=submit].default:hover {
+  background: #1e293b !important;
+  border-color: #1e293b !important;
+}
+
+.deletelink {
+  background: #fef2f2 !important;
+  color: #dc2626 !important;
+  border: 1px solid #fecaca !important;
+  border-radius: 20px !important;
+  padding: 6px 14px !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.deletelink:hover {
+  background: #fee2e2 !important;
+  color: #b91c1c !important;
+}
+
+/* 5. Clean, Professional Tables */
+table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+}
+
+th {
+  background: #f8fafc !important;
+  color: #64748b !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  font-size: 11px !important;
+  letter-spacing: 0.5px !important;
+  border-bottom: 2px solid rgba(15, 23, 42, 0.08) !important;
+  padding: 14px 18px !important;
+}
+
+tr {
+  border-bottom: 1px solid rgba(15, 23, 42, 0.04) !important;
+  transition: background 0.15s ease !important;
+}
+
+tr:hover {
+  background-color: #f8fafc !important;
+}
+
+td {
+  padding: 12px 18px !important;
+  font-size: 13px !important;
+  color: #334155 !important;
+  vertical-align: middle !important;
+}
+
+/* 6. Cohesive Badges System */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border: 1px solid transparent;
+}
+
+.badge-pending {
+  background-color: #fef3c7 !important;
+  color: #d97706 !important;
+  border-color: #fde68a !important;
+}
+
+.badge-sent {
+  background-color: #d1fae5 !important;
+  color: #059669 !important;
+  border-color: #a7f3d0 !important;
+}
+
+.badge-failed {
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
+  border-color: #fecaca !important;
+}
+
+/* Breadcrumbs Navigation */
+.breadcrumbs {
+  background: #ffffff !important;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06) !important;
+  padding: 12px 30px !important;
+  font-size: 12px !important;
+  color: #64748b !important;
+}
+
+.breadcrumbs a {
+  color: #2d89c8 !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+}
+
+.breadcrumbs a:hover {
+  text-decoration: underline !important;
+}
+
+/* Related Logs / Actions Module on Dashboard */
+#recent-actions-module {
+  background-color: #ffffff !important;
+}
+
+#recent-actions-module h2 {
+  background: #f8fafc !important;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+
+ul.actionlist li {
+  font-size: 12px !important;
+  color: #475569 !important;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.04) !important;
+  padding: 10px 0 !important;
+}

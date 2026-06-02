@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Notice Board & Results - {{ site_settings.site_name }}{% endblock %}
+
+{% block meta_description %}Stay updated with the latest physical exam result publications, exam routines, and notice boards from Saral Pathshala.{% endblock %}
+
+{% block content %}
+<section class="py-5 bg-white border-bottom shadow-sm">
+  <div class="container text-center py-4">
+    <span class="badge bg-soft text-primary border px-3 py-2 rounded-pill mb-3 small fw-bold"><i class="bi bi-bell-fill text-warning me-1"></i> DIRECT NOTIFICATION</span>
+    <h1 class="display-5 fw-bold serif-title mb-3">Notice Board & Results</h1>
+    <p class="lead text-muted mx-auto" style="max-width: 700px;">
+      Find all announcements regarding online test registrations, syllabus schedules, physical mock test results, and administrative routines.
+    </p>
+  </div>
+</section>
+
+<section class="py-5">
+  <div class="container" style="max-width: 900px;">
+    {% if notices %}
+      <div class="d-flex flex-column gap-4">
+        {% for notice in notices %}
+          <div class="card border border-light shadow-sm rounded-4 hover-shadow transition bg-white">
+            <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
+              <div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <span class="small text-muted"><i class="bi bi-clock me-1"></i>{{ notice.created_at|date:"F d, Y" }}</span>
+                  {% if notice.pdf_file %}
+                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-10 small"><i class="bi bi-file-pdf me-1"></i>PDF Result Attachment</span>
+                  {% endif %}
+                </div>
+                <h4 class="fw-bold mb-2 text-dark">{{ notice.title }}</h4>
+                <p class="text-muted small mb-0">
+                  {{ notice.content|striptags|truncatechars:180 }}
+                </p>
+              </div>
+              <div class="flex-shrink-0 text-end">
+                <a href="{% url 'notice_detail' notice.slug %}" class="btn btn-brand-primary px-4 rounded-pill shadow-sm"><i class="bi bi-eye-fill me-1"></i>View Notice</a>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-center py-5">
+        <i class="bi bi-bell-slash fs-1 text-muted d-block mb-3"></i>
+        <h4 class="fw-bold">No Notices Active</h4>
+        <p class="text-muted">There are no physical exam results or notices published at the moment.</p>
+        <a href="{% url 'home' %}" class="btn btn-brand-primary px-4 mt-3 rounded-pill">Back to Home</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

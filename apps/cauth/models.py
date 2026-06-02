@@ -100,7 +100,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.is_phone_verified
 
     def get_full_name(self):
-        return self.full_name or self.email
+        return self.full_name
 
     def get_short_name(self):
         name = self.get_full_name()
@@ -212,6 +212,7 @@ class PhoneOTP(models.Model):
     ip_address = models.CharField(max_length=45, blank=True)
 
     is_used  = models.BooleanField(default=False)
+    used_at = models.DateTimeField(null=True, blank=True)
     attempts = models.PositiveSmallIntegerField(default=0)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -237,17 +238,21 @@ class PhoneOTP(models.Model):
     def verify(self, entered_otp: str) -> tuple[bool, str]:
         """
         Returns (success: bool, message: str).
-        Increments attempt counter on each wrong try.
+        Increments attempt counter on each wrong try and invalidates when max is reached.
         """
-        if self.attempts >= OTP_MAX_VERIFY_ATTEMPTS:
-            return False, "Too many incorrect attempts. Request a new OTP."
-        if self.is_expired:
-            return False, "OTP has expired. Please request a new one."
         if self.is_used:
             return False, "This OTP has already been used."
+        if self.is_expired:
+            return False, "OTP has expired. Please request a new one."
+        if self.attempts >= OTP_MAX_VERIFY_ATTEMPTS:
+            return False, "Too many incorrect attempts. This OTP has been invalidated. Please request a new OTP."
 
         self.attempts += 1
         if self.otp != entered_otp.strip():
+            if self.attempts >= OTP_MAX_VERIFY_ATTEMPTS:
+                self.is_used = True
+                self.save(update_fields=['attempts', 'is_used'])
+                return False, "Too many incorrect attempts. This OTP has been invalidated. Please request a new OTP."
             self.save(update_fields=['attempts'])
             remaining = OTP_MAX_VERIFY_ATTEMPTS - self.attempts
             return False, f"Incorrect OTP. {remaining} attempt{'s' if remaining != 1 else ''} remaining."
@@ -266,6 +271,7 @@ class EmailToken(models.Model):
     is_used  = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
+    used_at = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField()
 
     class Meta:
@@ -296,6 +302,7 @@ class PasswordResetToken(models.Model):
     user     = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_tokens')
     token    = models.UUIDField(default=uuid.uuid4, unique=True)
     is_used  = models.BooleanField(default=False)
+    used_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()

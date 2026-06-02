@@ -62,7 +62,11 @@ class Exam(models.Model):
                 slug = f'{base}-{n}'; n += 1
             self.slug = slug
         super().save(*args, **kwargs)
-        cache.delete(f'exam_data_{self.pk}')
+        cache.clear()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        cache.clear()
 
     # Status helpers 
 
@@ -243,18 +247,25 @@ class ExamAttempt(models.Model):
         ordering = ['-started_at']
 
     def calculate_score(self):
-        """Recalculate and persist score from question attempts."""
-        qas = list(self.question_attempts.select_related('question', 'question__section', 'question__section__exam'))
+        """Recalculate and persist score from question attempts, including unattempted questions."""
+        # Get all questions for this exam
+        questions = list(self.exam.questions.all())
+        # Get all question attempts
+        attempts_map = {qa.question_id: qa.selected_option for qa in self.question_attempts.all()}
+
         pos = neg = 0.0
         correct = wrong = unattempted = 0
-        for qa in qas:
-            q = qa.question
-            if not qa.selected_option:
+
+        for q in questions:
+            selected = attempts_map.get(q.id)
+            if not selected:
                 unattempted += 1
-            elif qa.selected_option == q.correct_option:
-                pos += q.get_correct_marks(); correct += 1
+            elif selected == q.correct_option:
+                pos += q.get_correct_marks()
+                correct += 1
             else:
-                neg += q.get_negative_marks(); wrong += 1
+                neg += q.get_negative_marks()
+                wrong += 1
 
         self.score           = round(pos - neg, 4)
         self.negative_score  = round(neg, 4)

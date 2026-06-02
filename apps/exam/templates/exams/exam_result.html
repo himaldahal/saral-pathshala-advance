@@ -1,3 +1,4 @@
+{% load exam_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -176,20 +177,24 @@ window.MathJax = {
               <div class="q-body">
                 <div class="q-text">{{ q.text|safe }}</div>
                 {% for opt in q.options %}
-                  {% with is_correct=opt.key|stringformat:"s" == q.correct|stringformat:"s" %}
-                  {% with user_picked=opt.key|stringformat:"s" == user_opt|stringformat:"s" %}
-                  <div class="opt-row {% if is_correct %}correct-ans{% elif user_picked %}user-wrong{% else %}neutral{% endif %}">
-                    <span class="opt-prefix {% if is_correct %}correct{% elif user_picked %}wrong{% else %}neutral{% endif %}">
-                      {{ forloop.counter }}
-                    </span>
-                    <span class="opt-text">{{ opt.text|safe }}</span>
-                    {% if is_correct %}
+                  {% if opt.key|stringformat:"s" == q.correct|stringformat:"s" %}
+                    <div class="opt-row correct-ans">
+                      <span class="opt-prefix correct">{{ forloop.counter }}</span>
+                      <span class="opt-text">{{ opt.text|safe }}</span>
                       <i class="bi bi-check ms-auto text-success"></i>
-                    {% elif user_picked %}
+                    </div>
+                  {% elif opt.key|stringformat:"s" == user_opt|stringformat:"s" %}
+                    <div class="opt-row user-wrong">
+                      <span class="opt-prefix wrong">{{ forloop.counter }}</span>
+                      <span class="opt-text">{{ opt.text|safe }}</span>
                       <i class="bi bi-x ms-auto text-danger"></i>
-                    {% endif %}
-                  </div>
-                  {% endwith %}{% endwith %}
+                    </div>
+                  {% else %}
+                    <div class="opt-row neutral">
+                      <span class="opt-prefix neutral">{{ forloop.counter }}</span>
+                      <span class="opt-text">{{ opt.text|safe }}</span>
+                    </div>
+                  {% endif %}
                 {% endfor %}
 
                 {% if q.explanation %}
@@ -224,7 +229,7 @@ window.MathJax = {
                   {% else %}{{ forloop.counter }}{% endif %}
                 </span>
                 <span style="flex:1;">
-                  {{ a.student.get_full_name|default:a.student.email }}
+                  {{ a.student.get_full_name }}
                   {% if a.student == request.user %}<em>(you)</em>{% endif %}
                 </span>
                 <strong>{{ a.score|floatformat:1 }}</strong>

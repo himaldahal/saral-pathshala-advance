@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Enroll Students — Custom Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  body {
+    background-color: #f1f5f9;
+  }
+  .card-admin {
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  }
+  .upload-area {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    background-color: #f8fafc;
+    padding: 2.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .upload-area:hover {
+    border-color: var(--brand-primary);
+    background-color: #f0f7ff;
+  }
+  .code-preview {
+    background-color: #0f172a;
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.85rem;
+  }
+  .audit-badge {
+    background-color: #e2e8f0;
+    color: #475569;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 900px;">
+  <!-- Header & Back Button -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <span class="badge bg-soft text-primary border px-3 py-1.5 rounded-pill mb-2 small fw-bold"><i class="bi bi-shield-lock-fill me-1"></i> Staff Admin Workspace</span>
+      <h1 class="serif-title mb-0">Student Bulk Enrollment Importer</h1>
+    </div>
+    <a href="/dhokakhol-custom/dashboard/" class="btn btn-outline-dark rounded-pill btn-sm px-3 shadow-xs">
+      <i class="bi bi-arrow-left-circle me-1"></i> Admin Analytics
+    </a>
+  </div>
+
+  <div class="row g-4">
+    <!-- File Upload Section -->
+    <div class="col-md-7">
+      <div class="card-admin p-4 mb-4">
+        <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-file-earmark-arrow-up text-primary me-2"></i>Upload File</h5>
+        <form method="POST" enctype="multipart/form-data" id="importForm" class="needs-validation" novalidate>
+          {% csrf_token %}
+          
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-muted small">Select File Format Type</label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="file_type" id="typeCsv" value="csv" checked>
+                <label class="form-check-label small" for="typeCsv">
+                  CSV (.csv)
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="file_type" id="typeJson" value="json">
+                <label class="form-check-label small" for="typeJson">
+                  JSON (.json)
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Drag and Drop Area -->
+          <div class="mb-4">
+            <label for="import_file" class="form-label fw-semibold text-muted small">Choose File</label>
+            <div class="upload-area" onclick="document.getElementById('import_file').click();">
+              <i class="bi bi-cloud-arrow-up-fill text-muted display-4 d-block mb-2" id="uploadIcon"></i>
+              <span class="d-block fw-semibold text-dark" id="uploadText">Drag your file here or click to browse</span>
+              <small class="text-muted text-xs d-block mt-1">Accepts properly formatted CSV/JSON up to 5MB</small>
+              <input type="file" id="import_file" name="import_file" style="display: none;" accept=".csv,.json" required>
+            </div>
+            <div class="invalid-feedback">Please select a valid CSV or JSON file to import.</div>
+          </div>
+
+          <button type="submit" class="btn btn-brand-primary w-100 py-2.5 rounded-pill shadow-sm">
+            <i class="bi bi-rocket-takeoff-fill me-2"></i>Process Bulk Enrollment
+          </button>
+        </form>
+      </div>
+
+      <!-- Results Alert Section -->
+      {% if results %}
+        <div class="card-admin p-4">
+          <h5 class="fw-bold mb-3"><i class="bi bi-clipboard-data-fill text-success me-2"></i>Import Processing Logs</h5>
+          
+          <div class="row g-3 mb-4 text-center">
+            <div class="col-4">
+              <div class="p-3 bg-light rounded border">
+                <h3 class="fw-bold text-success mb-0">{{ results.success_count }}</h3>
+                <small class="text-muted">Enrolled</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-3 bg-light rounded border">
+                <h3 class="fw-bold text-danger mb-0">{{ results.errors|length }}</h3>
+                <small class="text-muted">Warnings</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-3 bg-light rounded border">
+                <h3 class="fw-bold text-dark mb-0">{{ results.total_processed }}</h3>
+                <small class="text-muted">Total Rows</small>
+              </div>
+            </div>
+          </div>
+
+          {% if results.errors %}
+            <h6 class="fw-bold text-muted mb-2">Detailed Warnings / Errors:</h6>
+            <div class="bg-light p-3 rounded border overflow-auto" style="max-height: 250px; font-size: 0.8rem;">
+              <ul class="list-unstyled mb-0 d-flex flex-column gap-2 text-danger">
+                {% for err in results.errors %}
+                  <li class="d-flex gap-2 align-items-start">
+                    <i class="bi bi-exclamation-triangle-fill mt-0.5"></i>
+                    <span>{{ err }}</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% else %}
+            <div class="alert alert-success border-0 py-2.5 small mb-0 d-flex align-items-center">
+              <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+              All student enrollments processed with zero warnings!
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Format Guide Section -->
+    <div class="col-md-5">
+      <div class="card-admin p-4">
+        <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-info-circle-fill text-warning me-2"></i>Formatting Instructions</h5>
+        <p class="text-muted small">
+          Please structure your files precisely using the fields shown below. Priority lookup is performed via <b>Email</b>; if email is empty, it will fall back to matching the user's <b>Phone number</b>.
+        </p>
+
+        <!-- CSV Layout -->
+        <h6 class="fw-bold small text-dark mb-2 mt-4"><i class="bi bi-filetype-csv text-success me-1"></i>Sample CSV Structure:</h6>
+        <pre class="code-preview mb-3">course-slug,email,phone
+plus-two-physics-4a8b,john@gmail.com,9841002233
+cee-biology-8x7a,,9861004455</pre>
+
+        <!-- JSON Layout -->
+        <h6 class="fw-bold small text-dark mb-2"><i class="bi bi-filetype-json text-warning me-1"></i>Sample JSON List Structure:</h6>
+        <pre class="code-preview mb-3">[
+  {
+    "course-slug": "plus-two-physics-4a8b",
+    "email": "john@gmail.com",
+    "phone": "9841002233"
+  },
+  {
+    "course-slug": "cee-biology-8x7a",
+    "email": "sara@gmail.com",
+    "phone": ""
+  }
+]</pre>
+
+        <div class="alert bg-light border p-3 small mb-0 text-muted">
+          <h6 class="fw-bold mb-1 text-dark"><i class="bi bi-shield-fill text-primary me-1"></i>Audit Engine Notes</h6>
+          <ul class="mb-0 ps-3">
+            <li>Tracks who initiated the enrollment <span class="audit-badge">enrolled_by</span>.</li>
+            <li>Enroller is saved as your logged-in username.</li>
+            <li>Enrolled timestamp is logged automatically <span class="audit-badge">enrolled_at</span>.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Dynamic file name selection display helper
+  document.getElementById('import_file').addEventListener('change', function(e) {
+    const filename = e.target.files[0] ? e.target.files[0].name : "Drag your file here or click to browse";
+    document.getElementById('uploadText').textContent = filename;
+    document.getElementById('uploadIcon').className = "bi bi-file-earmark-check-fill text-success display-4 d-block mb-2";
+    
+    // Automatically match radio button selection to file suffix
+    if (filename.endsWith('.json')) {
+      document.getElementById('typeJson').checked = true;
+    } else if (filename.endsWith('.csv')) {
+      document.getElementById('typeCsv').checked = true;
+    }
+  });
+
+  // Client side validation triggers
+  (function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms)
+      .forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+          if (!form.checkValidity()) {
+            event.preventDefault()
+            event.stopPropagation()
+          }
+          form.classList.add('was-validated')
+        }, false)
+      })
+  })()
+</script>
+{% endblock %}

@@ -1,13 +1,15 @@
 {% extends 'login_base.html' %}
 {% block title %}Log In{% endblock %}
 
-{% block content %}
+{% block auth_content %}
 <div>
     <h2 class="h3 fw-bold mb-2">Welcome Back.</h2>
     <p class="text-muted mb-4">Please log in to continue accessing your material.</p>
 
-    <form method="POST" novalidate>
+    <form method="POST" id="loginForm" novalidate>
         {% csrf_token %}
+        <input type="hidden" name="recaptcha_token" id="recaptchaToken">
+        <input type="text" name="website_url" style="display: none;" tabindex="-1" autocomplete="off">
         
         <div class="form-floating mb-3 position-relative">
             {{ form.email }}
@@ -27,8 +29,7 @@
                 <input class="form-check-input" type="checkbox" id="rememberMe">
                 <label class="form-check-label text-muted" for="rememberMe">Remember me</label>
             </div>
-            <!-- Stub url mapping pending prompt's context on password resets -->
-            <a href="#" class="link-text" style="font-size:0.9rem;">Forgot password?</a>
+            <a href="{% url 'forgot_password' %}" class="link-text" style="font-size:0.9rem;">Forgot password?</a>
         </div>
 
         <button type="submit" class="btn btn-brand-primary w-100">Sign in securely <i class="bi bi-arrow-right ms-2"></i></button>
@@ -38,4 +39,32 @@
         New to Saral Pathshala? <a href="{% url 'register' %}" class="link-text">Create an account</a>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% if recaptcha_site_key %}
+<script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
+<script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        var form = this;
+        if (typeof grecaptcha !== 'undefined') {
+            e.preventDefault();
+            grecaptcha.ready(function() {
+                try {
+                    grecaptcha.execute('{{ recaptcha_site_key }}', {action: 'login'}).then(function(token) {
+                        document.getElementById('recaptchaToken').value = token;
+                        form.submit();
+                    }).catch(function(err) {
+                        console.error('reCAPTCHA execution error:', err);
+                        form.submit();
+                    });
+                } catch (err) {
+                    console.error('reCAPTCHA ready execution failed:', err);
+                    form.submit();
+                }
+            });
+        }
+    });
+</script>
+{% endif %}
 {% endblock %}

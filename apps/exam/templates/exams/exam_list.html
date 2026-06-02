@@ -1,142 +1,468 @@
-{% load i18n %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Exams — {{ request.user.get_full_name|default:request.user.email }}</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% extends "base.html" %}
+
+{% block title %}Mock Exams - {{ site_settings.site_name }}{% endblock %}
+
+{% block meta_description %}Interactive Mock Examinations and past questions with real-time countdown timers and score simulators.{% endblock %}
+
+{% block extra_css %}
 <style>
-  :root{
-    --brand: #1a1a2e;
-    --accent: #e94560;
-    --muted: #6c757d;
-    --card-shadow: 0 2px 12px rgba(0,0,0,.07);
+  :root {
+    --accent-orange: #e67e22;
+    --accent-orange-hover: #d35400;
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  body{background:#f6f8fb;color:#1a1a2e;font-family:'Segoe UI',system-ui,sans-serif;}
-  .topbar{background:var(--brand);padding:.9rem 1.5rem;display:flex;align-items:center;gap:1rem;}
-  .topbar .brand{color:#fff;font-weight:700;font-size:1.1rem;text-decoration:none;}
-  .topbar .spacer{flex:1;}
-  .course-header{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
-    color:var(--muted);margin:2rem 0 .6rem;}
-  .exam-card{background:#fff;border-radius:10px;box-shadow:var(--card-shadow);
-    padding:1.1rem 1.3rem;margin-bottom:.8rem;display:flex;align-items:center;gap:1rem;
-    transition:box-shadow .15s;}
-  .exam-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.12);}
-  .badge-status{font-size:.72rem;padding:.3em .6em;border-radius:4px;}
-  .status-live{background:#e8f5e9;color:#2e7d32;}
-  .status-upcoming{background:#e3f2fd;color:#1565c0;}
-  .status-ended{background:#fce4ec;color:#b71c1c;}
-  .status-preview{background:#fff3e0;color:#e65100;}
-  .meta-text{font-size:.8rem;color:var(--muted);}
-  .btn-start{background:var(--accent);border:none;color:#fff;padding:.4rem 1.1rem;
-    border-radius:6px;font-size:.85rem;text-decoration:none;white-space:nowrap;}
-  .btn-start:hover{background:#c73652;color:#fff;}
-  .btn-resume{background:#0d6efd;border:none;color:#fff;padding:.4rem 1.1rem;
-    border-radius:6px;font-size:.85rem;text-decoration:none;}
-  .import-bar{background:#fff;border-bottom:1px solid #e8ecf0;padding:.6rem 1.5rem;
-    display:flex;gap:.8rem;align-items:center;font-size:.85rem;}
+
+  body {
+    background-color: #f3f5f8;
+  }
+
+  .exam-header-banner {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    padding: 3rem 0;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .exam-header-banner::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at 80% 20%, rgba(230, 126, 34, 0.15), transparent 45%);
+    z-index: 1;
+  }
+
+  .banner-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .search-wrapper {
+    max-width: 500px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .search-input {
+    border-radius: 50px;
+    padding: 0.75rem 1.5rem 0.75rem 3rem;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    font-size: 1rem;
+    transition: var(--transition);
+  }
+
+  .search-input:focus {
+    border-color: var(--brand-primary);
+    box-shadow: 0 4px 20px rgba(45, 137, 200, 0.15);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 1.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 1.1rem;
+  }
+
+  .tab-pill-button {
+    border-radius: 50px;
+    font-weight: 600;
+    padding: 0.6rem 1.5rem;
+    transition: var(--transition);
+    border: 1px solid transparent;
+  }
+
+  .nav-pills .nav-link.active {
+    background-color: var(--brand-primary) !important;
+    box-shadow: 0 4px 10px rgba(45, 137, 200, 0.2);
+  }
+
+  .nav-pills .nav-link {
+    color: var(--text-dark);
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    margin-right: 0.5rem;
+  }
+
+  .nav-pills .nav-link:hover:not(.active) {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+  }
+
+  .card-clean-exam {
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+    transition: var(--transition);
+    overflow: hidden;
+  }
+
+  .card-clean-exam:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.07);
+    border-color: #cbd5e1;
+  }
+
+  .countdown-badge {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .badge-status {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 6px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .status-live { background-color: #d1e7dd; color: #0f5132; }
+  .status-upcoming { background-color: #cfe2ff; color: #084298; }
+  .status-ended { background-color: #f8d7da; color: #842029; }
+  .status-attempted { background-color: #e2e8f0; color: #334155; }
+
+  .meta-item {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .delete-attempt-form {
+    display: inline-block;
+  }
+
+  .btn-action {
+    border-radius: 30px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 0.5rem 1.2rem;
+    transition: var(--transition);
+  }
+
+  .btn-give {
+    background-color: var(--accent-orange);
+    color: white;
+    border: none;
+  }
+
+  .btn-give:hover {
+    background-color: var(--accent-orange-hover);
+    color: white;
+    transform: translateY(-1px);
+  }
+
+  .btn-result {
+    background-color: var(--brand-primary);
+    color: white;
+    border: none;
+  }
+
+  .btn-result:hover {
+    background-color: var(--brand-primary-hover);
+    color: white;
+    transform: translateY(-1px);
+  }
+
+  .btn-delete {
+    background-color: #fff1f2;
+    color: #e11d48;
+    border: 1px solid #fecdd3;
+  }
+
+  .btn-delete:hover {
+    background-color: #ffe4e6;
+    color: #be123c;
+  }
+
+  .practice-badge {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+  }
 </style>
-</head>
-<body>
+{% endblock %}
 
-<div class="topbar">
-  <a href="{% url 'exams:exam_list' %}" class="brand"><i class="bi bi-journal-check me-2"></i>ExamPortal</a>
-  <div class="spacer"></div>
-  <span style="color:#adb5bd;font-size:.85rem;">{{ request.user.email }}</span>
-</div>
+{% block content %}
+<!-- Banner Section -->
+<section class="exam-header-banner shadow-sm">
+  <div class="container text-center banner-content py-3">
+    <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill mb-3 small fw-bold tracking-wider">MOCK TESTING HUB</span>
+    <h1 class="display-4 fw-bold serif-title text-white">Online Entrance Mock Exams</h1>
+    <p class="lead text-white-50 mx-auto mb-4" style="max-width: 650px; font-size: 1.05rem;">
+      Test your capability, simulate official Nepalese boards (IOE, CEE, CSIT), and track progress with detailed analytics.
+    </p>
 
+    <!-- Search filter bar -->
+    <div class="search-wrapper">
+      <i class="bi bi-search search-icon"></i>
+      <input type="text" id="examSearchInput" class="form-control search-input" placeholder="Search exams by title or course...">
+    </div>
+  </div>
+</section>
+
+<!-- Staff Bar -->
 {% if is_staff %}
-<div class="import-bar">
-  <i class="bi bi-lightning-fill text-warning"></i>
-  <strong>Staff tools:</strong>
-  <a href="{% url 'exams:import_exam_page' %}" class="btn btn-sm btn-outline-primary">
-    <i class="bi bi-upload me-1"></i>Import Exam JSON
-  </a>
-  <a href="{% url 'exams:download_template' %}" class="btn btn-sm btn-outline-secondary">
-    <i class="bi bi-download me-1"></i>Download Template
-  </a>
-  <a href="/admin/exams/" class="btn btn-sm btn-outline-dark ms-auto">
-    <i class="bi bi-gear me-1"></i>Admin
-  </a>
+<div class="bg-white border-bottom py-2.5 shadow-xs mb-4">
+  <div class="container d-flex align-items-center flex-wrap gap-2">
+    <span class="badge bg-secondary px-2.5 py-1.5 text-uppercase fw-bold" style="font-size: 0.7rem;"><i class="bi bi-shield-lock-fill me-1"></i>Staff Tools</span>
+    <a href="{% url 'exams:import_exam_page' %}" class="btn btn-xs btn-outline-primary rounded-pill btn-action py-1 px-3">
+      <i class="bi bi-upload me-1"></i>Import Exam JSON
+    </a>
+    <a href="{% url 'exams:download_template' %}" class="btn btn-xs btn-outline-secondary rounded-pill btn-action py-1 px-3">
+      <i class="bi bi-download me-1"></i>JSON Template
+    </a>
+    <a href="/dhokakhol-custom/import-enrollments/" class="btn btn-xs btn-outline-info rounded-pill btn-action py-1 px-3">
+      <i class="bi bi-people-fill me-1"></i>Bulk Enroller
+    </a>
+    <a href="/dhokakhol-custom/dashboard/" class="btn btn-xs btn-outline-success rounded-pill btn-action py-1 px-3">
+      <i class="bi bi-pie-chart-fill me-1"></i>Live Analytics
+    </a>
+    <a href="/admin/" class="btn btn-xs btn-outline-dark rounded-pill btn-action py-1 px-3 ms-auto">
+      <i class="bi bi-gear-fill me-1"></i>Admin Dashboard
+    </a>
+  </div>
 </div>
 {% endif %}
 
-<div class="container py-4" style="max-width:780px;">
-
-  {% if messages %}
-    {% for m in messages %}
-      <div class="alert alert-{{ m.tags }} alert-dismissible fade show" role="alert">
-        {{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
-
-  {% if not courses %}
-    <div class="text-center py-5">
-      <i class="bi bi-journal-x" style="font-size:3rem;color:#dee2e6;"></i>
-      <p class="text-muted mt-3">No exams available right now.</p>
-    </div>
-  {% endif %}
-
-  {% for course, exams in courses.items %}
-    <p class="course-header">{{ course.name }}</p>
-    {% for exam in exams %}
-      {% with has_ended=exam.has_ended has_started=exam.has_started %}
-
-      {# Determine status badge #}
-      {% if is_staff and not has_started %}
-        <span class="badge-status status-preview">Preview</span>
-      {% elif has_ended %}
-        {% if exam.make_public_after %}
-          {% comment %}still accessible{% endcomment %}
+<div class="container py-4" style="max-width: 900px;">
+  <!-- Two Tabs Header -->
+  <ul class="nav nav-pills mb-4 justify-content-center" id="examTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active tab-pill-button" id="my-course-tab" data-bs-toggle="pill" data-bs-target="#my-course-pane" type="button" role="tab" aria-controls="my-course-pane" aria-selected="true">
+        <i class="bi bi-star-fill me-2 text-warning"></i>My Course Exams
+        {% if interested_course %}
+          ({{ interested_course.name }})
         {% endif %}
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link tab-pill-button" id="all-course-tab" data-bs-toggle="pill" data-bs-target="#all-course-pane" type="button" role="tab" aria-controls="all-course-pane" aria-selected="false">
+        <i class="bi bi-grid-fill me-2"></i>All Other Courses
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab Content Panes -->
+  <div class="tab-content" id="examTabsContent">
+    
+    <!-- TAB 1: Interested Course -->
+    <div class="tab-content-pane tab-pane fade show active" id="my-course-pane" role="tabpanel" aria-labelledby="my-course-tab">
+      {% if not user.is_authenticated %}
+        <div class="text-center py-5 bg-white border rounded-4 shadow-sm p-4">
+          <i class="bi bi-lock-fill display-2 text-muted mb-3 d-block"></i>
+          <h4 class="fw-bold">Login to View Your Tailored Exams</h4>
+          <p class="text-muted mb-4">Logging in allows you to unlock exams tailored for your chosen interested course and monitor attempts.</p>
+          <a href="{% url 'login' %}" class="btn btn-brand-primary rounded-pill px-4 btn-action py-2">Sign In Now</a>
+        </div>
+      {% elif not interested_course %}
+        <div class="text-center py-5 bg-white border rounded-4 shadow-sm p-4">
+          <i class="bi bi-compass display-2 text-muted mb-3 d-block"></i>
+          <h4 class="fw-bold">No Course Selected</h4>
+          <p class="text-muted mb-4">Please update your interested course on your profile to filter exams specific to your path.</p>
+          <a href="{% url 'dashboard' %}" class="btn btn-brand-primary rounded-pill px-4 btn-action py-2">Go to Profile Dashboard</a>
+        </div>
+      {% else %}
+        
+        <!-- Live & Upcoming Category -->
+        <h5 class="fw-bold mb-3 mt-2 text-dark"><i class="bi bi-play-circle-fill text-success me-2"></i>Active & Upcoming Exams</h5>
+        <div class="d-flex flex-column gap-3 mb-5" id="interestedActiveList">
+          {% for exam in interested_exams %}
+            {% if not exam.has_ended %}
+              {% include 'exams/exam_card_component.html' with exam=exam %}
+            {% endif %}
+          {% empty %}
+            <div class="p-4 bg-white border rounded-3 text-center text-muted">No active or upcoming exams scheduled for your course.</div>
+          {% endfor %}
+        </div>
+
+        <!-- Past Questions Category -->
+        <h5 class="fw-bold mb-3 text-muted"><i class="bi bi-archive-fill me-2"></i>Past Questions & Practice Exams</h5>
+        <div class="d-flex flex-column gap-3" id="interestedPastList">
+          {% for exam in interested_exams %}
+            {% if exam.has_ended %}
+              {% include 'exams/exam_card_component.html' with exam=exam %}
+            {% endif %}
+          {% empty %}
+            <div class="p-4 bg-white border rounded-3 text-center text-muted">No past exams available for your course.</div>
+          {% endfor %}
+        </div>
+
       {% endif %}
+    </div>
 
-      <div class="exam-card">
-        <div style="flex:1;min-width:0;">
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <strong>{{ exam.title }}</strong>
-            {% if is_staff and not has_started %}
-              <span class="badge-status status-preview">Staff Preview</span>
-            {% elif not has_started %}
-              <span class="badge-status status-upcoming">Upcoming</span>
-            {% elif has_ended %}
-              <span class="badge-status status-ended">Ended</span>
-            {% else %}
-              <span class="badge-status status-live">Live</span>
-            {% endif %}
-          </div>
-          <div class="meta-text mt-1 d-flex flex-wrap gap-2">
-            <span><i class="bi bi-calendar3 me-1"></i>{{ exam.start_date|date:"d M Y, H:i" }}</span>
-            {% if exam.end_date %}
-              <span><i class="bi bi-arrow-right-short"></i>{{ exam.end_date|date:"d M Y, H:i" }}</span>
-            {% endif %}
-            {% if exam.duration_minutes %}
-              <span><i class="bi bi-clock me-1"></i>{{ exam.duration_minutes }} min</span>
-            {% endif %}
-            <span><i class="bi bi-question-circle me-1"></i>{{ exam.total_questions }} Qs</span>
-            {% if exam.has_negative_marking %}
-              <span class="text-danger"><i class="bi bi-dash-circle me-1"></i>–{{ exam.negative_marks }}</span>
-            {% endif %}
-          </div>
-        </div>
-        <div>
-          {% if exam.is_accessible %}
-            <a href="{% url 'exams:exam_detail' exam.slug %}" class="btn-start">
-              View <i class="bi bi-arrow-right-short"></i>
-            </a>
-          {% else %}
-            <span class="meta-text">Not yet open</span>
+    <!-- TAB 2: All Other Courses -->
+    <div class="tab-content-pane tab-pane fade" id="all-course-pane" role="tabpanel" aria-labelledby="all-course-tab">
+      
+      <!-- Live & Upcoming Category -->
+      <h5 class="fw-bold mb-3 mt-2 text-dark"><i class="bi bi-play-circle-fill text-success me-2"></i>Active & Upcoming Exams</h5>
+      <div class="d-flex flex-column gap-3 mb-5" id="otherActiveList">
+        {% for exam in other_exams %}
+          {% if not exam.has_ended %}
+            {% include 'exams/exam_card_component.html' with exam=exam %}
           {% endif %}
-        </div>
+        {% empty %}
+          <div class="p-4 bg-white border rounded-3 text-center text-muted">No active or upcoming exams scheduled in other courses.</div>
+        {% endfor %}
       </div>
-      {% endwith %}
-    {% endfor %}
-  {% endfor %}
 
+      <!-- Past Category -->
+      <h5 class="fw-bold mb-3 text-muted"><i class="bi bi-archive-fill me-2"></i>Past Questions & Practice Exams</h5>
+      <div class="d-flex flex-column gap-3" id="otherPastList">
+        {% for exam in other_exams %}
+          {% if exam.has_ended %}
+            {% include 'exams/exam_card_component.html' with exam=exam %}
+          {% endif %}
+        {% empty %}
+          <div class="p-4 bg-white border rounded-3 text-center text-muted">No past exams available in other courses.</div>
+        {% endfor %}
+      </div>
+
+    </div>
+
+  </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  
+  // ==========================================
+  // REAL-TIME SEARCH FILTER ENGINE
+  // ==========================================
+  const searchInput = document.getElementById('examSearchInput');
+  
+  searchInput.addEventListener('keyup', function(e) {
+    const query = e.target.value.toLowerCase().trim();
+    const activePane = document.querySelector('.tab-content-pane.active');
+    if (!activePane) return;
+
+    const cards = activePane.querySelectorAll('.card-clean-exam');
+    cards.forEach(function(card) {
+      const title = card.querySelector('.exam-title-text').textContent.toLowerCase();
+      const course = card.querySelector('.exam-course-text').textContent.toLowerCase();
+      
+      if (title.includes(query) || course.includes(query)) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    // Handle empty category state placeholders if all elements are hidden
+    const lists = activePane.querySelectorAll('.d-flex.flex-column');
+    lists.forEach(function(list) {
+      const visibleCards = list.querySelectorAll('.card-clean-exam[style="display: block"]').length;
+      const totalCards = list.querySelectorAll('.card-clean-exam').length;
+      let placeholder = list.querySelector('.search-empty-placeholder');
+      
+      if (totalCards > 0) {
+        if (visibleCards === 0) {
+          if (!placeholder) {
+            placeholder = document.createElement('div');
+            placeholder.className = 'search-empty-placeholder p-4 bg-white border rounded-3 text-center text-muted';
+            placeholder.innerHTML = '<i class="bi bi-search-heart d-block fs-4 mb-1"></i> No matching exams found.';
+            list.appendChild(placeholder);
+          }
+        } else {
+          if (placeholder) placeholder.remove();
+        }
+      }
+    });
+  });
+
+  // Clear search on tab switch
+  const tabButtons = document.querySelectorAll('.tab-pill-button');
+  tabButtons.forEach(btn => {
+    btn.addEventListener('shown.bs.tab', function () {
+      searchInput.value = '';
+      const placeholders = document.querySelectorAll('.search-empty-placeholder');
+      placeholders.forEach(p => p.remove());
+      const cards = document.querySelectorAll('.card-clean-exam');
+      cards.forEach(c => c.style.display = 'block');
+    });
+  });
+
+
+  // ==========================================
+  // LIVE REAL-TIME COUNTDOWN TIMER SYSTEM
+  // ==========================================
+  function updateCountdownTimers() {
+    const timers = document.querySelectorAll('.countdown-timer');
+    timers.forEach(function(timer) {
+      const startDateStr = timer.getAttribute('data-start-time');
+      if (!startDateStr) return;
+
+      const startDate = new Date(startDateStr);
+      const now = new Date();
+      const diff = startDate - now;
+
+      if (diff <= 0) {
+        // Exam has started! Replace countdown with Live Action block
+        const container = timer.closest('.exam-status-container');
+        if (container) {
+          const examSlug = timer.getAttribute('data-slug');
+          
+          // Re-render status badge to Live
+          const badgeContainer = container.querySelector('.badge-status-container');
+          if (badgeContainer) {
+            badgeContainer.innerHTML = '<span class="badge-status status-live">Live</span>';
+          }
+          
+          // Replace countdown display with a green text
+          container.innerHTML = '<span class="text-success small fw-bold"><i class="bi bi-patch-check-fill me-1"></i>Started — Live now!</span>';
+          
+          // Enable or show the Give Exam action button
+          const actionContainer = container.closest('.card-clean-exam').querySelector('.exam-action-container');
+          if (actionContainer && !actionContainer.querySelector('.btn-give')) {
+            actionContainer.innerHTML = `
+              <a href="/exams/${examSlug}/start/" class="btn btn-action btn-give shadow-sm">
+                Give Exam <i class="bi bi-arrow-right-short ms-1"></i>
+              </a>
+            `;
+          }
+        }
+        return;
+      }
+
+      // Calculate time components
+      const seconds = Math.floor((diff / 1000) % 60);
+      const minutes = Math.floor((diff / 1000 / 60) % 60);
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+      let displayStr = "starts in ";
+      if (days > 0) {
+        displayStr += `${days} d ${hours} hr ${minutes} min`;
+      } else if (hours > 0) {
+        displayStr += `${hours} hr ${minutes} min ${seconds} sec`;
+      } else if (minutes > 0) {
+        displayStr += `${minutes} min ${seconds} sec`;
+      } else {
+        displayStr += `${seconds} sec`;
+      }
+
+      timer.textContent = displayStr;
+    });
+  }
+
+  // Run immediately and update every second
+  updateCountdownTimers();
+  setInterval(updateCountdownTimers, 1000);
+});
+</script>
+{% endblock %}

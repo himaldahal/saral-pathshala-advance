@@ -8,17 +8,17 @@
   @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
 
   :root {
-    --bg:        #fcfbfa;
+    --bg:        #f8fafc;
     --surface:   #ffffff;
-    --border:    #e8e6e2;
-    --border-hover: #d1ce68; /* Subtle warm indicator */
-    --accent:    #b5945b;
-    --accent-dim: rgba(181, 148, 91, 0.06);
-    --text:      #1a1917;
-    --muted:     #7c776e;
-    --green:     #2e7d32;
-    --green-dim: #edf7ed;
-    --radius:    14px;
+    --border:    #e2e8f0;
+    --border-hover: #2D89C8; /* Brand Primary border on hover */
+    --accent:    #2D89C8; /* Brand Primary Blue */
+    --accent-dim: rgba(45, 137, 200, 0.06);
+    --text:      #0F172A;
+    --muted:     #64748B;
+    --green:     #10b981;
+    --green-dim: #ecfdf5;
+    --radius:    16px;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -211,7 +211,7 @@
   .cl-card__cta--default {
     background: var(--accent-dim);
     color: var(--accent);
-    border: 1px solid rgba(181, 148, 91, 0.3);
+    border: 1px solid rgba(45, 137, 200, 0.3);
   }
   .cl-card__cta--default:hover {
     background: var(--accent);
@@ -278,10 +278,10 @@
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>
             Continue Learning
           </a>
-        {% elif item.first_lecture %}
-          <a href="{% url 'lecture_detail' item.first_lecture.pk %}" class="cl-card__cta cl-card__cta--default">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-            You're not Enrolled.
+        {% else %}
+          <a href="{% url 'course_detail' c.slug %}" class="cl-card__cta cl-card__cta--default">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+            Enroll
           </a>
         {% endif %}
       </div>

@@ -1,0 +1,106 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static "admin/css/dashboard.css" %}">{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block nav-sidebar %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <!-- Dynamic dashboard KPIs at the top -->
+  <div style="margin-bottom: 30px;">
+    <!-- Welcome banner -->
+    <div style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white; padding: 28px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+      <h2 style="color: white; margin: 0 0 8px 0; font-size: 24px; font-weight: 700;">Welcome to Saral Pathshala Command Center</h2>
+      <p style="margin: 0; color: #94a3b8; font-size: 14px;">Real-time system health checks, mock examination metrics, and lead conversions dashboard.</p>
+    </div>
+
+    <!-- Stats row -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px;">
+      
+      <div style="background: white; border: 1px solid rgba(15, 23, 42, 0.08); padding: 15px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+        <div style="color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px;">Total Students</div>
+        <div style="color: #0f172a; font-size: 22px; font-weight: 700;">{{ total_students_count }}</div>
+      </div>
+
+      <div style="background: white; border: 1px solid rgba(15, 23, 42, 0.08); padding: 15px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+        <div style="color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px;">Active Courses</div>
+        <div style="color: #0f172a; font-size: 22px; font-weight: 700;">{{ total_courses_count }}</div>
+      </div>
+
+      <div style="background: white; border: 1px solid rgba(15, 23, 42, 0.08); padding: 15px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+        <div style="color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px;">Mock Exams</div>
+        <div style="color: #0f172a; font-size: 22px; font-weight: 700;">{{ total_exams_count }}</div>
+      </div>
+
+      <div style="background: white; border: 1px solid rgba(15, 23, 42, 0.08); padding: 15px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+        <div style="color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px;">Submissions</div>
+        <div style="color: #0f172a; font-size: 22px; font-weight: 700;">{{ total_attempts_count }}</div>
+      </div>
+
+      <div style="background: white; border: 1px solid rgba(15, 23, 42, 0.08); padding: 15px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+        <div style="color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px;">Pending CRM Leads</div>
+        <div style="color: #d97706; font-size: 22px; font-weight: 700;">{{ pending_leads_count }}</div>
+      </div>
+
+      {% if critical_failures_count > 0 %}
+        <div style="background: #fef2f2; border: 1px solid #fee2e2; padding: 15px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+          <div style="color: #dc2626; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px;">Queue Failures</div>
+          <div style="color: #dc2626; font-size: 22px; font-weight: 700;">{{ critical_failures_count }}</div>
+        </div>
+      {% else %}
+        <div style="background: white; border: 1px solid rgba(15, 23, 42, 0.08); padding: 15px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+          <div style="color: #16a34a; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px;">Queue Status</div>
+          <div style="color: #16a34a; font-size: 22px; font-weight: 700;">Healthy</div>
+        </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Quick Custom Dashboard shortcut link -->
+    <div style="margin-top: 20px; text-align: right;">
+      <a href="/dhokakhol-custom/dashboard/" style="background-color: #2d89c8; color: white; padding: 8px 18px; border-radius: 20px; font-size: 12px; font-weight: 600; text-decoration: none; box-shadow: 0 2px 4px rgba(45,137,200,0.15); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#2473a9'" onmouseout="this.style.backgroundColor='#2d89c8'">
+        ⚡ Open High-Octane Analytics Custom Dashboard &rarr;
+      </a>
+    </div>
+  </div>
+
+  {% include "admin/app_list.html" with app_list=app_list show_changelists=show_changelists %}
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div id="content-related">
+    <div class="module" id="recent-actions-module">
+        <h2>{% translate 'Recent actions' %}</h2>
+        <h3>{% translate 'My actions' %}</h3>
+        {% load log %}
+        {% get_admin_log 10 as admin_log for_user user %}
+        {% if not admin_log %}
+        <p>{% translate 'None available' %}</p>
+        {% else %}
+        <ul class="actionlist">
+        {% for entry in admin_log %}
+        <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
+            {% if entry.is_deletion or not entry.get_admin_url %}
+                {{ entry.object_repr }}
+            {% else %}
+                <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+            {% endif %}
+            <br>
+            {% if entry.content_type %}
+                <span class="mini quiet">{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}</span>
+            {% else %}
+                <span class="mini quiet">{% translate 'Unknown content' %}</span>
+            {% endif %}
+        </li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

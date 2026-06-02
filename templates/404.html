@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found (404) - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5 my-5 text-center">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="mb-4">
+        <i class="bi bi-exclamation-octagon text-danger display-1 animate__animated animate__bounce"></i>
+      </div>
+      <h1 class="serif-title display-4 fw-bold mb-3 text-dark">404 - Page Not Found</h1>
+      <p class="lead text-muted mb-4">
+        We could not find the page you are looking for. It might have been moved, deleted, or you might have entered an incorrect URL.
+      </p>
+      <div class="d-flex justify-content-center gap-3">
+        <a href="{% url 'home' %}" class="btn btn-brand-primary px-4 py-2 rounded-pill shadow-sm"><i class="bi bi-house-door-fill me-2"></i>Go Home</a>
+        <a href="{% url 'course_list' %}" class="btn btn-outline-dark px-4 py-2 rounded-pill"><i class="bi bi-book-half me-2"></i>Browse Courses</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

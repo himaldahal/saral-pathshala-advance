@@ -1,0 +1,157 @@
+{% with has_ended=exam.has_ended has_started=exam.has_started %}
+<div class="card-clean-exam p-4 mb-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+  
+  <!-- Left Side: Metadata and Info -->
+  <div style="flex: 1; min-width: 0;">
+    <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+      <!-- Course Badge -->
+      <span class="badge bg-soft text-primary border px-2.5 py-1 rounded-pill small fw-bold exam-course-text">
+        {{ exam.course.name }}
+      </span>
+
+      <!-- Title -->
+      <h5 class="fw-bold text-dark mb-0 exam-title-text ms-1" style="font-size: 1.15rem;">
+        {{ exam.title }}
+      </h5>
+
+      <!-- Live / Upcoming / Ended Status Badges -->
+      <span class="badge-status-container ms-auto ms-md-0">
+        {% if exam.user_attempt and exam.user_attempt.is_submitted %}
+          <span class="badge-status status-attempted"><i class="bi bi-check-circle-fill me-1"></i>Attempted</span>
+        {% elif exam.user_attempt %}
+          <span class="badge-status status-upcoming" style="background-color: #ffe8cc; color: #d9480f;"><i class="bi bi-clock-fill me-1"></i>In Progress</span>
+        {% elif not has_started %}
+          <span class="badge-status status-upcoming">Upcoming</span>
+        {% elif has_ended %}
+          <span class="badge-status status-ended">Ended</span>
+        {% else %}
+          <span class="badge-status status-live">Live</span>
+        {% endif %}
+      </span>
+    </div>
+
+    <!-- Exam Description (Short Excerpt) -->
+    {% if exam.description %}
+    <p class="text-muted small mb-3 text-truncate" style="max-width: 600px;">
+      {{ exam.description|striptags }}
+    </p>
+    {% endif %}
+
+    <!-- Meta Details Grid -->
+    <div class="d-flex flex-wrap gap-x-4 gap-y-2 text-muted" style="font-size: 0.82rem;">
+      <span class="meta-item">
+        <i class="bi bi-calendar-event text-primary"></i>
+        <span><b>Starts:</b> {{ exam.start_date|date:"d M Y, H:i" }}</span>
+      </span>
+
+      {% if exam.end_date %}
+      <span class="meta-item">
+        <i class="bi bi-calendar-x text-danger"></i>
+        <span><b>Ends:</b> {{ exam.end_date|date:"d M Y, H:i" }}</span>
+      </span>
+      {% endif %}
+
+      {% if exam.duration_minutes %}
+      <span class="meta-item">
+        <i class="bi bi-alarm text-warning"></i>
+        <span><b>Duration:</b> {{ exam.duration_minutes }} mins</span>
+      </span>
+      {% endif %}
+
+      <span class="meta-item">
+        <i class="bi bi-question-circle text-success"></i>
+        <span><b>Total:</b> {{ exam.total_questions }} Questions</span>
+      </span>
+
+      {% if exam.has_negative_marking %}
+      <span class="meta-item text-danger fw-semibold">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>Neg Marking (-{{ exam.negative_marks }})</span>
+      </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Middle Side: Real-time Countdown or Score metrics -->
+  <div class="d-flex flex-column align-items-md-end justify-content-center text-md-end gap-1 flex-shrink-0">
+    <div class="exam-status-container">
+      {% if not has_started %}
+        <!-- Upcoming countdown placeholder -->
+        <span class="countdown-badge countdown-timer" data-slug="{{ exam.slug }}" data-start-time="{{ exam.start_date|date:'c' }}">
+          <i class="bi bi-hourglass-split spinner-border spinner-border-sm border-0" role="status" style="width: 14px; height: 14px;"></i> Calculating...
+        </span>
+      {% elif exam.user_attempt and exam.user_attempt.is_submitted %}
+        <!-- Submitted Score Display -->
+        <div class="fw-bold text-success" style="font-size: 1.05rem;">
+          Score: {{ exam.user_attempt.score }} / {{ exam.total_marks_val }}
+        </div>
+        <div class="text-muted small">
+          Acc: {{ exam.user_attempt.percentage }}% | {{ exam.user_attempt.correct_count }} Correct
+        </div>
+      {% elif has_ended %}
+        <span class="text-muted small"><i class="bi bi-calendar-check me-1"></i>Exam concluded</span>
+      {% else %}
+        <span class="text-success small fw-bold"><i class="bi bi-patch-check-fill me-1"></i>Active — Live now!</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right Side: CTA Button Actions -->
+  <div class="exam-action-container d-flex align-items-center gap-2 flex-shrink-0">
+    {% if not user.is_authenticated %}
+      <a href="{% url 'login' %}" class="btn btn-action btn-outline-dark shadow-sm">
+        Sign in to Attempt
+      </a>
+    {% else %}
+      {% if exam.user_attempt %}
+        
+        {% if exam.user_attempt.is_submitted %}
+          <!-- View Result and Delete Attempt / Retake -->
+          <a href="{% url 'exams:exam_result' exam.slug %}" class="btn btn-action text-dark btn-result shadow-sm">
+            View Result <i class="bi bi-file-earmark-bar-graph ms-1"></i>
+          </a>
+          
+          <!-- Delete Attempt Form -->
+          <form method="POST" action="{% url 'exams:delete_attempt' exam.slug %}" class="delete-attempt-form" onsubmit="return confirm('⚠️ RETAKE CONFIRMATION\n\nAre you sure you want to delete your previous attempt? This will permanently delete all your saved answers, stats, and score ({{ exam.user_attempt.score }}/{{ exam.total_marks_val }}). This action cannot be undone.\n\nClick OK to confirm and start a fresh retake.');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-action btn-delete shadow-sm" title="Clear Attempt & Retake">
+              <i class="bi bi-trash-fill"></i> Retake
+            </button>
+          </form>
+
+        {% else %}
+          <!-- Resume Exam -->
+          <a href="{% url 'exams:exam_attempt' exam.slug %}" class="btn btn-action btn-give shadow-sm" style="background-color: #fd7e14; color: white;">
+            Resume <i class="bi bi-play-fill ms-1"></i>
+          </a>
+        {% endif %}
+
+      {% else %}
+        <!-- Give Exam action buttons -->
+        {% if has_started and not has_ended %}
+          <a href="{% url 'exams:start_exam' exam.slug %}" class="btn btn-action btn-give shadow-sm">
+            Give Exam <i class="bi bi-arrow-right-short ms-1"></i>
+          </a>
+        {% elif has_ended %}
+          {% if exam.make_public_after %}
+            <a href="{% url 'exams:start_exam' exam.slug %}" class="btn btn-action btn-outline-secondary practice-badge shadow-sm">
+              Practice <i class="bi bi-controller ms-1"></i>
+            </a>
+          {% else %}
+            <button class="btn btn-action btn-outline-secondary shadow-sm" disabled style="opacity: 0.65; cursor: not-allowed;">
+              Ended
+            </button>
+          {% endif %}
+        {% else %}
+          <!-- Upcoming exam placeholder (disabled) -->
+          <button class="btn btn-action btn-outline-secondary shadow-sm" disabled style="opacity: 0.5; cursor: not-allowed;">
+            Upcoming
+          </button>
+        {% endif %}
+
+      {% endif %}
+    {% endif %}
+  </div>
+
+</div>
+{% endwith %}

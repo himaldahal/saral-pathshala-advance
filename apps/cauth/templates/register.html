@@ -1,11 +1,13 @@
 {% extends 'login_base.html' %}
 {% block title %}Registration{% endblock %}
 
-{% block content %}
+{% block auth_content %}
 <div>
-    <h2 class="h3 fw-bold mb-2">Register </h2>
+    <h2 class="h3 fw-bold mb-2">Register</h2>
     <form method="POST" id="registerForm" novalidate>
         {% csrf_token %}
+        <input type="hidden" name="recaptcha_token" id="recaptchaToken">
+        <input type="text" name="website_url" style="display: none;" tabindex="-1" autocomplete="off">
         <div class="row g-2 mb-2">
             <div class="col-md-12 form-floating position-relative mb-2">
                 {{ form.full_name }}
@@ -28,7 +30,7 @@
             <div class="col-md-6 mb-2 position-relative">
                 <div class="form-floating">
                      {{ form.previous_institute }}
-                     <label>Previous Insitution</label>
+                     <label>Previous Institution</label>
                 </div>
             </div>
             <div class="col-md-6 mb-3 position-relative">
@@ -36,14 +38,14 @@
                  {{ form.current_level }}
             </div>
             <div class="col-md-12 mb-2">
-                  <label class="small text-muted mb-1" style="display:block; padding-left:0.4rem;">Select Desired Track</label>
+                  <label class="small text-muted mb-1" style="display:block; padding-left:0.4rem;">Select Course</label>
                  {{ form.interested_course }}
             </div>
         </div>
         
         <div class="form-floating mb-2 position-relative">
             {{ form.password }}
-            <label for="{{ form.password.id_for_label }}">Create Core Password</label>
+            <label for="{{ form.password.id_for_label }}">Password</label>
             <i class="bi bi-eye password-toggle" data-target="{{ form.password.auto_id }}"></i>
         </div>
         <!-- Real-time strength validator indicator base -->
@@ -57,16 +59,16 @@
 
         <div class="form-floating mb-4 position-relative">
             {{ form.password_confirm }}
-            <label for="{{ form.password_confirm.id_for_label }}">Repeat Core Password</label>
+            <label for="{{ form.password_confirm.id_for_label }}">Confirm Password</label>
              <i class="bi bi-eye password-toggle" data-target="{{ form.password_confirm.auto_id }}"></i>
             <div class="text-danger small mt-1">{{ form.non_field_errors }}{{ form.password_confirm.errors }}</div>
         </div>
 
-        <button type="submit" id="submitBtn" class="btn btn-brand-primary w-100">Initialize Identity Verification <i class="bi bi-arrow-right ms-2"></i></button>
+        <button type="submit" id="submitBtn" class="btn btn-brand-primary w-100">Sign Up <i class="bi bi-arrow-right ms-2"></i></button>
     </form>
 
     <div class="text-center mt-4 text-muted" style="font-size: 0.95rem;">
-        Existing Enrollee? <a href="{% url 'login' %}" class="link-text">Execute standard sign in.</a>
+        Already have an account? <a href="{% url 'login' %}" class="link-text">Log in here</a>
     </div>
 </div>
 
@@ -75,30 +77,62 @@
     const pwInput = document.getElementById("{{ form.password.auto_id }}");
     const rulesBox = document.getElementById("pw-rules");
     
-    pwInput.addEventListener('focus', () => { rulesBox.style.display = 'block'; });
-    
-    pwInput.addEventListener('keyup', (e) => {
-        const val = e.target.value;
-        const validLogic = {
-            length: val.length >= 8,
-            upper: /[A-Z]/.test(val),
-            number: /[0-9]/.test(val)
-        }
+    if (pwInput) {
+        pwInput.addEventListener('focus', () => { rulesBox.style.display = 'block'; });
         
-        function applyState(key, passCheck) {
-            const el = document.getElementById(`rule-${key}`);
-            if(passCheck) {
-                el.classList.add('valid');
-                el.querySelector('i').className = "bi bi-check-circle-fill text-success";
-            } else {
-                el.classList.remove('valid');
-                el.querySelector('i').className = "bi bi-circle";
+        pwInput.addEventListener('keyup', (e) => {
+            const val = e.target.value;
+            const validLogic = {
+                length: val.length >= 8,
+                upper: /[A-Z]/.test(val),
+                number: /[0-9]/.test(val)
             }
-        }
+            
+            function applyState(key, passCheck) {
+                const el = document.getElementById(`rule-${key}`);
+                if(el) {
+                    if(passCheck) {
+                        el.classList.add('valid');
+                        el.querySelector('i').className = "bi bi-check-circle-fill text-success";
+                    } else {
+                        el.classList.remove('valid');
+                        el.querySelector('i').className = "bi bi-circle";
+                    }
+                }
+            }
 
-        applyState('length', validLogic.length);
-        applyState('upper', validLogic.upper);
-        applyState('number', validLogic.number);
+            applyState('length', validLogic.length);
+            applyState('upper', validLogic.upper);
+            applyState('number', validLogic.number);
+        });
+    }
+</script>
+{% endblock %}
+
+{% block extra_js %}
+{% if recaptcha_site_key %}
+<script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
+<script>
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        var form = this;
+        if (typeof grecaptcha !== 'undefined') {
+            e.preventDefault();
+            grecaptcha.ready(function() {
+                try {
+                    grecaptcha.execute('{{ recaptcha_site_key }}', {action: 'register'}).then(function(token) {
+                        document.getElementById('recaptchaToken').value = token;
+                        form.submit();
+                    }).catch(function(err) {
+                        console.error('reCAPTCHA execution error:', err);
+                        form.submit();
+                    });
+                } catch (err) {
+                    console.error('reCAPTCHA ready execution failed:', err);
+                    form.submit();
+                }
+            });
+        }
     });
 </script>
+{% endif %}
 {% endblock %}

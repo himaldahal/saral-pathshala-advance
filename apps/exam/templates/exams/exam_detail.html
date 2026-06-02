@@ -1,68 +1,101 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ exam.title }}</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% extends "base.html" %}
+
+{% block title %}{{ exam.title }} - Mock Exam - {{ site_settings.site_name }}{% endblock %}
+
+{% block meta_description %}Details for {{ exam.title }} online exam on Saral Pathshala. Complete mock examination simulation.{% endblock %}
+
+{% block extra_css %}
 <style>
-  body{background:#f6f8fb;font-family:'Segoe UI',system-ui,sans-serif;}
-  .topbar{background:#1a1a2e;padding:.9rem 1.5rem;display:flex;align-items:center;gap:1rem;}
-  .topbar a{color:#fff;text-decoration:none;font-weight:600;}
-  .topbar .spacer{flex:1;}
-  .hero{background:#1a1a2e;color:#fff;padding:2.5rem 1.5rem 3rem;}
-  .hero .course-label{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
-    color:#adb5bd;margin-bottom:.4rem;}
-  .hero h1{font-size:1.8rem;font-weight:700;margin:0;}
-  .card-info{background:#fff;border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,.08);
-    padding:1.5rem;margin-top:-1.5rem;}
-  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.8rem;
-    margin-bottom:1.5rem;}
-  .stat-box{background:#f6f8fb;border-radius:8px;padding:.9rem 1rem;text-align:center;}
-  .stat-box .val{font-size:1.4rem;font-weight:700;color:#1a1a2e;}
-  .stat-box .lbl{font-size:.72rem;color:#6c757d;margin-top:.15rem;}
-  .rule-item{display:flex;align-items:center;gap:.5rem;font-size:.85rem;padding:.3rem 0;
-    border-bottom:1px solid #f0f0f0;}
-  .rule-item:last-child{border:none;}
-  .btn-start-exam{background:#e94560;border:none;color:#fff;padding:.75rem 2rem;
-    border-radius:8px;font-size:1rem;font-weight:600;text-decoration:none;display:inline-block;}
-  .btn-start-exam:hover{background:#c73652;color:#fff;}
-  .instructions-box{background:#fffbea;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;
-    padding:1rem 1.2rem;margin-bottom:1.2rem;font-size:.9rem;}
+  .card-info {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+  }
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .stat-box {
+    background: var(--bg-light);
+    border-radius: 12px;
+    padding: 1.25rem 1rem;
+    text-align: center;
+    border: 1px solid var(--border-color);
+  }
+  .stat-box .val {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-dark);
+  }
+  .stat-box .lbl {
+    font-size: .8rem;
+    color: var(--text-muted);
+    margin-top: .25rem;
+    font-weight: 600;
+  }
+  .rule-item {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    font-size: .95rem;
+    padding: .75rem 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .rule-item:last-child {
+    border-bottom: none;
+  }
+  .btn-start-exam {
+    background: var(--brand-secondary);
+    border: none;
+    color: #fff;
+    padding: .75rem 2.5rem;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.2s ease;
+  }
+  .btn-start-exam:hover {
+    background: var(--brand-secondary-hover);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(230, 126, 34, 0.2);
+  }
+  .instructions-box {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 12px 12px 0;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+    font-size: .95rem;
+  }
 </style>
-</head>
-<body>
+{% endblock %}
 
-<div class="topbar">
-  <a href="{% url 'exams:exam_list' %}"><i class="bi bi-arrow-left me-1"></i>All Exams</a>
-  <div class="spacer"></div>
-  {% if is_staff %}
-    <a href="/admin/exams/exam/{{ exam.pk }}/change/" style="font-size:.8rem;color:#adb5bd;">
-      <i class="bi bi-pencil me-1"></i>Edit
-    </a>
-  {% endif %}
-</div>
-
-<div class="hero">
-  <div class="container" style="max-width:700px;">
-    <div class="course-label">{{ exam.course.name }}</div>
-    <h1>{{ exam.title }}</h1>
-    {% if exam.description %}
-      <div class="mt-2" style="color:#cdd5df;font-size:.9rem;">{{ exam.description|safe }}</div>
-    {% endif %}
+{% block content %}
+<section class="py-5 bg-dark text-white border-bottom shadow-sm">
+  <div class="container py-3">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 text-center">
+        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill mb-3 small fw-bold">{{ exam.course.name }}</span>
+        <h1 class="display-5 fw-bold serif-title mb-3">{{ exam.title }}</h1>
+        {% if exam.description %}
+          <div class="lead text-muted mx-auto" style="max-width: 700px; color: #cbd5e1 !important;">
+            {{ exam.description|safe }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
   </div>
-</div>
+</section>
 
-<div class="container py-3" style="max-width:700px;">
+<div class="container py-5" style="max-width: 800px;">
   <div class="card-info">
-
-    {% if messages %}
-      {% for m in messages %}
-        <div class="alert alert-{{ m.tags }}">{{ m }}</div>
-      {% endfor %}
-    {% endif %}
-
+    
     {# ── Stats grid ─────────────────────────────────────────────── #}
     <div class="stat-grid">
       <div class="stat-box">
@@ -75,95 +108,100 @@
       </div>
       {% if exam.duration_minutes %}
       <div class="stat-box">
-        <div class="val">{{ exam.duration_minutes }}<small style="font-size:.9rem;"> min</small></div>
+        <div class="val">{{ exam.duration_minutes }}<small style="font-size:1rem; font-weight: 500;"> min</small></div>
         <div class="lbl">Duration</div>
       </div>
       {% endif %}
       <div class="stat-box">
         <div class="val">+{{ exam.correct_marks }}</div>
-        <div class="lbl">Correct</div>
+        <div class="lbl">Correct Mark</div>
       </div>
       {% if exam.has_negative_marking %}
-      <div class="stat-box" style="background:#fff5f5;">
+      <div class="stat-box" style="background:#fff5f5; border-color: #f8d7da;">
         <div class="val" style="color:#dc3545;">−{{ exam.negative_marks }}</div>
-        <div class="lbl">Wrong</div>
+        <div class="lbl">Negative Mark</div>
       </div>
       {% endif %}
     </div>
 
-    {# ── Schedule ────────────────────────────────────────────────── #}
-    <div class="mb-3">
+    {# ── Schedule & Rules ────────────────────────────────────────── #}
+    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-calendar-check-fill text-primary me-2"></i>Exam Schedule & Rules</h5>
+    <div class="mb-4 bg-light p-3 rounded-3 border border-light">
       <div class="rule-item">
-        <i class="bi bi-calendar-event text-primary"></i>
-        <strong>Start:</strong> {{ exam.start_date|date:"d M Y, H:i" }}
+        <i class="bi bi-calendar-event text-primary fs-5"></i>
+        <span><strong>Start Date:</strong> {{ exam.start_date|date:"d M Y, H:i" }}</span>
       </div>
       {% if exam.end_date %}
       <div class="rule-item">
-        <i class="bi bi-calendar-x text-danger"></i>
-        <strong>End:</strong> {{ exam.end_date|date:"d M Y, H:i" }}
+        <i class="bi bi-calendar-x text-danger fs-5"></i>
+        <span><strong>End Date:</strong> {{ exam.end_date|date:"d M Y, H:i" }}</span>
       </div>
       {% else %}
       <div class="rule-item">
-        <i class="bi bi-infinity text-success"></i>
-        <strong>Duration:</strong> No time limit
+        <i class="bi bi-infinity text-success fs-5"></i>
+        <span><strong>Deadline:</strong> No hard end date. Open for practice anytime.</span>
       </div>
       {% endif %}
       <div class="rule-item">
-        <i class="bi bi-bar-chart text-info"></i>
-        <strong>Results:</strong>
-        {% if exam.result_mode == 'after_end' %}After exam ends
-        {% elif exam.result_mode == 'auto' %}{{ exam.result_publish_time|date:"d M Y, H:i" }}
-        {% elif exam.result_mode == 'hidden' %}Not published
-        {% else %}Admin-controlled{% endif %}
+        <i class="bi bi-bar-chart text-info fs-5"></i>
+        <span>
+          <strong>Results Publish:</strong>
+          {% if exam.result_mode == 'after_end' %}Immediately after the exam closes.
+          {% elif exam.result_mode == 'auto' %}{{ exam.result_publish_time|date:"d M Y, H:i" }}
+          {% elif exam.result_mode == 'hidden' %}Hidden / Results will not be published.
+          {% else %}Manually published by Admin.{% endif %}
+        </span>
       </div>
     </div>
 
     {# ── Instructions ────────────────────────────────────────────── #}
     {% if exam.instructions %}
-    <div class="instructions-box">
-      <strong><i class="bi bi-info-circle me-1"></i>Instructions</strong>
-      <div class="mt-1">{{ exam.instructions|safe }}</div>
+    <div class="instructions-box shadow-sm">
+      <h6 class="fw-bold text-warning-emphasis mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Exam Instructions</h6>
+      <div class="lh-base">{{ exam.instructions|safe }}</div>
     </div>
     {% endif %}
 
-    {# ── CTA ─────────────────────────────────────────────────────── #}
-    <div class="d-flex align-items-center gap-3 flex-wrap mt-2">
-      {% if attempt and attempt.is_submitted %}
-        <a href="{% url 'exams:exam_result' exam.slug %}" class="btn btn-outline-primary">
-          <i class="bi bi-graph-up me-1"></i>View Result
+    {# ── CTA Actions ──────────────────────────────────────────────── #}
+    <div class="d-flex align-items-center gap-3 flex-wrap mt-4 pt-3 border-top border-light">
+      {% if not user.is_authenticated %}
+        <a href="{% url 'login' %}?next={% url 'exams:exam_detail' exam.slug %}" class="btn-start-exam shadow">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Login to Attempt Exam
+        </a>
+      {% elif attempt and attempt.is_submitted %}
+        <a href="{% url 'exams:exam_result' exam.slug %}" class="btn btn-outline-primary rounded-pill px-4">
+          <i class="bi bi-graph-up me-2"></i>View Result & Solutions
         </a>
       {% elif attempt %}
-        <a href="{% url 'exams:exam_attempt' exam.slug %}" class="btn-start-exam">
-          <i class="bi bi-play-fill me-1"></i>Resume Exam
+        <a href="{% url 'exams:exam_attempt' exam.slug %}" class="btn-start-exam shadow">
+          <i class="bi bi-play-fill me-2"></i>Resume Exam
         </a>
-        <small class="text-muted">You have a saved attempt.</small>
+        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>You have an active saved session.</small>
       {% elif exam.is_accessible %}
         <form method="post" action="{% url 'exams:start_exam' exam.slug %}">
           {% csrf_token %}
-          <button type="submit" class="btn-start-exam">
-            <i class="bi bi-play-fill me-1"></i>Start Exam
+          <button type="submit" class="btn-start-exam shadow">
+            <i class="bi bi-play-fill me-2"></i>Start Exam Now
           </button>
         </form>
       {% elif is_staff %}
         <form method="post" action="{% url 'exams:start_exam' exam.slug %}">
           {% csrf_token %}
-          <button type="submit" class="btn btn-outline-warning">
-            <i class="bi bi-eye me-1"></i>Preview (Staff)
+          <button type="submit" class="btn btn-outline-warning rounded-pill px-4">
+            <i class="bi bi-eye me-2"></i>Preview (Staff Mode)
           </button>
         </form>
       {% else %}
-        <button class="btn btn-secondary" disabled>
-          <i class="bi bi-lock me-1"></i>Not Available
+        <button class="btn btn-secondary rounded-pill px-4 py-2" disabled>
+          <i class="bi bi-lock-fill me-2"></i>Exam Closed
         </button>
       {% endif %}
-      <a href="{% url 'exams:exam_list' %}" class="text-muted" style="font-size:.85rem;">
-        <i class="bi bi-arrow-left me-1"></i>Back
+      
+      <a href="{% url 'exams:exam_list' %}" class="btn btn-light rounded-pill px-4 py-2 border">
+        <i class="bi bi-arrow-left me-2"></i>Back to Exams
       </a>
     </div>
 
   </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{% endblock %}

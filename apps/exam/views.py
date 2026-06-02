@@ -15,6 +15,7 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from django.urls import reverse
 
 from .models import Exam, ExamAttempt, Question, QuestionAttempt
 from .utils import get_exam_data, invalidate_exam_cache, get_leaderboard
@@ -24,28 +25,53 @@ from .utils import get_exam_data, invalidate_exam_cache, get_leaderboard
 # Exam List
 # ─────────────────────────────────────────────────────────────────────────────
 
-@login_required
 def exam_list(request):
-    cache_key = f'exam_list_{request.user.pk}'
-    exams = cache.get(cache_key)
+    is_auth = request.user.is_authenticated
+    is_staff = is_auth and (request.user.is_staff or request.user.is_superuser)
+    
+    qs = Exam.objects.select_related('course').filter(is_active=True)
+    if is_staff:
+        exams = list(qs)
+    else:
+        exams = [e for e in qs if e.is_accessible(request.user if is_auth else None)]
 
-    if exams is None:
-        qs = Exam.objects.select_related('course').filter(is_active=True)
-        if request.user.is_staff or request.user.is_superuser:
-            exams = list(qs)
-        else:
-            exams = [e for e in qs if e.is_accessible(request.user)]
-        cache.set(cache_key, exams, 60)
+    interested_course = None
+    interested_exams = []
+    other_exams = []
+    attempts = {}
 
-    # Group by course
-    courses: dict = {}
+    if is_auth:
+        attempts = {
+            att.exam_id: att
+            for att in ExamAttempt.objects.filter(student=request.user)
+        }
+        interested_course = request.user.interested_course
+
     for exam in exams:
-        courses.setdefault(exam.course, []).append(exam)
+        exam.user_attempt = attempts.get(exam.id)
+        # Fetch total marks for display on result/retake badges
+        exam.total_marks_val = exam.total_marks()
+        if exam.user_attempt:
+            # Calculate accuracy percentage score
+            total = exam.total_marks_val
+            score = exam.user_attempt.score
+            exam.user_attempt.percentage = round((score / total) * 100, 1) if total > 0 else 0.0
+
+    if interested_course:
+        for exam in exams:
+            if exam.course == interested_course:
+                interested_exams.append(exam)
+            else:
+                other_exams.append(exam)
+    else:
+        other_exams = exams
 
     return render(request, 'exams/exam_list.html', {
-        'courses': courses,
+        'interested_course': interested_course,
+        'interested_exams': interested_exams,
+        'other_exams': other_exams,
         'now': timezone.now(),
-        'is_staff': request.user.is_staff or request.user.is_superuser,
+        'is_staff': is_staff,
     })
 
 
@@ -53,16 +79,17 @@ def exam_list(request):
 # Exam Detail  (pre-start info page)
 # ─────────────────────────────────────────────────────────────────────────────
 
-@login_required
 def exam_detail(request, slug):
     exam = get_object_or_404(Exam, slug=slug, is_active=True)
 
-    is_staff = request.user.is_staff or request.user.is_superuser
-    if not is_staff and not exam.is_accessible(request.user):
+    is_staff = request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser)
+    if not is_staff and not exam.is_accessible(request.user if request.user.is_authenticated else None):
         messages.error(request, "This exam is not available yet.")
         return redirect('exams:exam_list')
 
-    attempt = ExamAttempt.objects.filter(student=request.user, exam=exam).first()
+    attempt = None
+    if request.user.is_authenticated:
+        attempt = ExamAttempt.objects.filter(student=request.user, exam=exam).first()
 
     return render(request, 'exams/exam_detail.html', {
         'exam':             exam,
@@ -95,7 +122,11 @@ def start_exam(request, slug):
         messages.info(request, "You have already submitted this exam.")
         return redirect('exams:exam_result', slug=slug)
 
-    return redirect('exams:exam_attempt', slug=slug)
+    # Preserve fresh parameter if present
+    redirect_url = reverse('exams:exam_attempt', kwargs={'slug': slug})
+    if request.GET.get('fresh') == '1':
+        redirect_url += "?fresh=1"
+    return redirect(redirect_url)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -109,27 +140,74 @@ def exam_attempt(request, slug):
     attempt = ExamAttempt.objects.filter(student=request.user, exam=exam).first()
     if not attempt:
         return redirect('exams:start_exam', slug=slug)
+
+    # ── Expiry + auto-submit logic ────────────────────────────────────────────
+    # Determines whether the exam window has closed for this student.
+    # If make_public_after is True the exam is still accessible after end_date,
+    # so we must NOT auto-submit — we just flag it as expired for the template.
+    is_expired = False
+
+    if not attempt.is_submitted:
+        now = timezone.now()
+
+        if exam.duration_minutes:
+            personal_end = attempt.started_at + timedelta(minutes=exam.duration_minutes)
+            actual_end   = min(personal_end, exam.end_date) if exam.end_date else personal_end
+            timed_out    = now > actual_end
+        else:
+            timed_out = bool(exam.end_date) and now > exam.end_date
+
+        if timed_out:
+            if exam.make_public_after:
+                # Exam is past its window but still publicly accessible —
+                # do NOT auto-submit; let the student finish and submit manually.
+                is_expired = True
+            else:
+                # Normal expiry — auto-submit and redirect to results.
+                attempt.submit()
+                invalidate_exam_cache(exam.pk)
+                cache.delete(f'exam_list_{request.user.pk}')
+                messages.info(
+                    request,
+                    "The exam duration has expired. "
+                    "Your attempt has been automatically submitted and scored."
+                )
+                return redirect('exams:exam_result', slug=slug)
+
     if attempt.is_submitted:
         return redirect('exams:exam_result', slug=slug)
 
-    # ── Load structured data (cached) ─────────────────────────────────────────
+    # ── Load structured data (cached) ────────────────────────────────────────
     exam_data = get_exam_data(exam)
 
-    # ── Previously-saved answers ───────────────────────────────────────────────
+    # ── Strip answers and explanations to prevent leakage ────────────────────
+    import copy
+    clean_data = copy.deepcopy(exam_data)
+    for sec in clean_data.get('sections', []):
+        for group in sec.get('question_groups', []):
+            for q in group.get('questions', []):
+                q.pop('correct', None)
+                q.pop('explanation', None)
+        for q in sec.get('questions_flat', []):
+            q.pop('correct', None)
+            q.pop('explanation', None)
+    exam_data = clean_data
+
+    # ── Previously-saved answers ──────────────────────────────────────────────
     answered = {
         str(qa.question_id): qa.selected_option
         for qa in attempt.question_attempts.all()
     }
 
-    # ── Timer calculation ──────────────────────────────────────────────────────
-    end_timestamp = None         # JS ms timestamp
+    # ── Timer calculation ─────────────────────────────────────────────────────
+    # end_timestamp is a JS-compatible ms timestamp used by the countdown timer.
+    # For expired-but-public exams we still pass the (past) timestamp so the
+    # template can render "00:00:00", but IS_EXPIRED in JS prevents auto-submit.
+    end_timestamp = None
 
     if exam.duration_minutes:
         personal_end = attempt.started_at + timedelta(minutes=exam.duration_minutes)
-        if exam.end_date:
-            actual_end = min(personal_end, exam.end_date)
-        else:
-            actual_end = personal_end
+        actual_end   = min(personal_end, exam.end_date) if exam.end_date else personal_end
         end_timestamp = int(actual_end.timestamp() * 1000)
     elif exam.end_date:
         end_timestamp = int(exam.end_date.timestamp() * 1000)
@@ -143,9 +221,8 @@ def exam_attempt(request, slug):
         'answered_json': json.dumps(answered),
         'end_timestamp': end_timestamp,
         'is_unlimited':  is_unlimited,
+        'is_expired':    is_expired,   # True only for make_public_after past-deadline exams
     })
-
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Save answer  (AJAX — called on every option click)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -188,17 +265,30 @@ def submit_exam(request, slug):
     attempt = get_object_or_404(ExamAttempt, student=request.user, exam=exam)
 
     if attempt.is_submitted:
-        return JsonResponse({
-            'status': 'already_submitted',
-            'redirect': request.build_absolute_uri(f'/exams/{slug}/result/')
-        })
+        if request.content_type == 'application/json':
+            return JsonResponse({
+                'status': 'already_submitted',
+                'redirect': request.build_absolute_uri(f'/exams/{slug}/result/')
+            })
+        else:
+            return redirect('exams:exam_result', slug=slug)
 
-    # ── Bulk-save answers from localStorage payload ───────────────────────────
-    try:
-        body    = json.loads(request.body)
-        answers = body.get('answers', {})
-    except (json.JSONDecodeError, AttributeError):
-        answers = {}
+    # ── Bulk-save answers from localStorage payload / form payload ───────────────────
+    answers = {}
+    is_json = request.content_type == 'application/json'
+    
+    if is_json:
+        try:
+            body    = json.loads(request.body)
+            answers = body.get('answers', {})
+        except (json.JSONDecodeError, AttributeError):
+            pass
+    else:
+        try:
+            answers_raw = request.POST.get('answers_json', '{}')
+            answers = json.loads(answers_raw)
+        except (json.JSONDecodeError, AttributeError):
+            pass
 
     if answers:
         q_map = {str(q.pk): q for q in exam.questions.all()}
@@ -222,10 +312,14 @@ def submit_exam(request, slug):
     t.start()
     t.join(timeout=5)   # wait max 5 s so redirect works
 
-    return JsonResponse({
-        'status': 'ok',
-        'redirect': request.build_absolute_uri(f'/exams/{slug}/result/')
-    })
+    if is_json:
+        return JsonResponse({
+            'status': 'ok',
+            'redirect': request.build_absolute_uri(f'/exams/{slug}/result/')
+        })
+    else:
+        messages.success(request, "Your exam has been submitted and scored successfully!")
+        return redirect('exams:exam_result', slug=slug)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -255,12 +349,15 @@ def exam_result(request, slug):
         qa.question_id: qa.selected_option
         for qa in attempt.question_attempts.select_related('question').all()
     }
-    total_marks  = sum(
-        q['marks']
-        for s in exam_data['sections']
-        for g in s['question_groups']
-        for q in g['questions']
-    )
+    
+    total_marks = 0
+    for s in exam_data.get('sections', []):
+        for g in s.get('question_groups', []):
+            for q in g.get('questions', []):
+                total_marks += q.get('marks', 0)
+        for q in s.get('questions_flat', []):
+            total_marks += q.get('marks', 0)
+            
     percentage   = round(attempt.score / total_marks * 100, 1) if total_marks else 0
     leaderboard  = get_leaderboard(exam)
 
@@ -433,3 +530,21 @@ def import_exam(request):
     except Exception as e:
         messages.error(request, f"Import failed: {e}")
         return redirect('exams:import_exam_page')
+
+
+@login_required
+def delete_attempt(request, slug):
+    """Deletes a student's own exam attempt, allowing them to retake the exam."""
+    exam = get_object_or_404(Exam, slug=slug)
+    attempt = get_object_or_404(ExamAttempt, student=request.user, exam=exam)
+    
+    # Cascade delete is handled by Django models automatically (exam_attempt -> question_attempts)
+    attempt.delete()
+    
+    # Invalidate Cache
+    cache.delete(f'exam_list_{request.user.pk}')
+    
+    messages.success(request, f"Your previous attempt for '{exam.title}' has been cleared successfully. Starting a fresh retake!")
+    
+    # Redirect directly to start_exam with fresh=1 to trigger fresh attempt clean-slate
+    return redirect(reverse('exams:start_exam', kwargs={'slug': slug}) + "?fresh=1")

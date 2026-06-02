@@ -2,79 +2,539 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Learn{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  
+  <!-- SEO Meta Tags -->
+  <title>{% block title %}{{ site_settings.site_title }}{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}{{ site_settings.site_description }}{% endblock %}">
+  <meta name="keywords" content="{% block meta_keywords %}{{ site_settings.meta_keywords }}{% endblock %}">
+  <meta name="author" content="{{ site_settings.site_name }}">
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+  
+  <!-- Favicon -->
+  {% if site_settings.favicon %}
+    <link rel="icon" type="image/png" href="{{ site_settings.favicon.url }}">
+  {% else %}
+    <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg">
+  {% endif %}
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Instrument+Serif:ital,wght@0,400;0,600;1,400&family=Geist+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5 & Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  
+  <!-- JQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <!-- Custom Core Design Styles -->
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap');
-    body { font-family: 'DM Sans', sans-serif; font-weight: 300; background: #f8f9fa; color: #212529; }
-    .navbar { background: #fff !important; border-bottom: 1px solid #e9ecef; }
-    .navbar-brand { font-weight: 500; }
-    a { text-decoration: none; }
+    :root {
+      /* Five Primary Aesthetics Tokens (Locked Premium Light Theme) */
+      --color-bg: #f8fafc; /* Crisp energetic slate-white */
+      --color-surface: #ffffff; /* Pure white card/panel background */
+      --color-border: rgba(15, 23, 42, 0.08); /* Crisp subtle border */
+      --color-text: #0f172a; /* Deep Slate 900 for high-contrast */
+      --color-muted: #64748b; /* Slate 500 for clean subtext */
+      --color-accent: #3b82f6; /* Royal brand blue */
+      --color-accent-hover: #2563eb;
+      --color-accent-dim: rgba(59, 130, 246, 0.06);
+      
+      --color-accent-orange: #f97316; /* Electric accent orange */
+      --color-accent-orange-hover: #ea580c;
+
+      --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --font-serif: 'Instrument Serif', Georgia, serif;
+      --font-mono: 'Geist Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--color-bg);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.04) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(249, 115, 22, 0.04) 0%, transparent 40%);
+      color: var(--color-text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      transition: background-color 0.25s ease, color 0.25s ease;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 {
+      font-weight: 700;
+      color: var(--color-text);
+      letter-spacing: -0.02em;
+    }
+    
+    .serif-title {
+      font-family: var(--font-serif);
+      font-weight: 500;
+    }
+
+    /* Navbar styling */
+    .navbar {
+      background-color: var(--color-surface) !important;
+      border-bottom: 1px solid var(--color-border);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+      transition: all 0.25s ease;
+    }
+    
+    .navbar-brand img {
+      max-height: 40px;
+      max-width: 180px;
+      object-fit: contain;
+      width: auto;
+    }
+
+    .nav-link {
+      font-weight: 500;
+      color: var(--color-muted) !important;
+      transition: color 0.2s ease;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: var(--color-accent) !important;
+    }
+
+    /* Sticky WhatsApp Button */
+    .whatsapp-float {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background-color: #25D366;
+      color: white;
+      border-radius: 50px;
+      text-align: center;
+      font-size: 30px;
+      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+      z-index: 9999;
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      transition: all 0.25s ease;
+    }
+
+    .whatsapp-float:hover {
+      background-color: #128C7E;
+      color: white;
+      transform: scale(1.08);
+    }
+
+    /* Floating upcoming exams calendar button */
+    .sidebar-float-btn {
+      position: fixed;
+      bottom: 100px;
+      right: 30px;
+      background-color: var(--color-accent);
+      color: white;
+      border-radius: 50px;
+      text-align: center;
+      font-size: 22px;
+      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+      z-index: 9999;
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      border: none;
+    }
+
+    .sidebar-float-btn:hover {
+      background-color: var(--color-accent-hover);
+      color: white;
+      transform: scale(1.08);
+    }
+
+    /* Footer styling */
+    footer {
+      background-color: var(--color-surface);
+      border-top: 1px solid var(--color-border);
+      color: var(--color-text);
+      transition: all 0.25s ease;
+    }
+    
+    .footer-heading {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    .footer-heading::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -6px;
+      height: 2px;
+      width: 40px;
+      background-color: var(--color-accent-orange);
+      border-radius: 2px;
+    }
+
+    .social-btn {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      transition: all 0.2s ease;
+      font-size: 1rem;
+      border: 1px solid var(--color-border);
+    }
+
+    .social-btn:hover {
+      background-color: var(--color-accent);
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .footer-links a {
+      color: var(--color-muted);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--color-accent);
+      padding-left: 4px;
+    }
+
+    /* Global styling widgets */
+    .btn-brand-primary {
+      background-color: var(--color-accent);
+      color: #ffffff !important;
+      border: none;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .btn-brand-primary:hover {
+      background-color: var(--color-accent-hover);
+      color: #ffffff !important;
+    }
+
+    .btn-brand-secondary {
+      background-color: var(--color-accent-orange);
+      color: #ffffff !important;
+      border: none;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .btn-brand-secondary:hover {
+      background-color: var(--color-accent-orange-hover);
+      color: #ffffff !important;
+    }
+
+    /* Dark theme compatibility overloads */
+    .card, .offcanvas, .modal-content, .list-group-item {
+      background-color: var(--color-surface) !important;
+      border-color: var(--color-border) !important;
+      color: var(--color-text) !important;
+    }
+    
+    .table-light {
+      --bs-table-bg: var(--color-bg) !important;
+      --bs-table-color: var(--color-text) !important;
+    }
+    
+    .bg-light {
+      background-color: var(--color-bg) !important;
+    }
+    
+    .text-dark {
+      color: var(--color-text) !important;
+    }
+    
+    .text-muted, .small.text-muted {
+      color: var(--color-muted) !important;
+    }
+    
+    .border-light {
+      border-color: var(--color-border) !important;
+    }
+    
+    .form-control, .form-select {
+      background-color: var(--color-surface);
+      border-color: var(--color-border);
+      color: var(--color-text);
+    }
+    
+    .form-control:focus, .form-select:focus {
+      background-color: var(--color-surface);
+      color: var(--color-text);
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px var(--color-accent-dim);
+    }
+
+    main {
+      flex: 1;
+    }
   </style>
+
   {% block extra_css %}{% endblock %}
+
+  <!-- Google Analytics Tracking Integration -->
+  {% if site_settings.google_analytics_id and site_settings.google_analytics_id != "G-XXXXXXXXXX" %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ site_settings.google_analytics_id }}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '{{ site_settings.google_analytics_id }}');
+    </script>
+  {% endif %}
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg sticky-top shadow-sm">
-  <div class="container">
-    <a class="navbar-brand text-dark" href="{% url 'course_list' %}">
-      <i class="bi bi-book-half text-warning me-2"></i>Learn
-    </a>
-    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="mainNav">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-          <a class="nav-link {% block nav_courses %}{% endblock %}" href="{% url 'course_list' %}">
-            <i class="bi bi-grid me-1"></i>Courses
-          </a>
-        </li>
-      </ul>
-      <ul class="navbar-nav ms-auto align-items-center gap-1">
-        {% if user.is_authenticated %}
-          <li class="nav-item">
-            <span class="nav-link text-muted small">
-              <i class="bi bi-person-circle me-1"></i>{{ user.get_full_name|default:user.email }}
-            </span>
-          </li>
-          <li class="nav-item">
-            <a class="btn btn-sm btn-outline-secondary px-3" href="{% url 'logout' %}">Logout</a>
-          </li>
-        {% else %}
-          <li class="nav-item">
-            <a class="btn btn-sm btn-warning px-3" href="{% url 'login' %}">Login</a>
-          </li>
-        {% endif %}
-      </ul>
+  <!-- Top Contact Header -->
+  <div class="bg-dark text-white py-2 d-none d-md-block shadow-sm" style="font-size: 0.85rem;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-4">
+        <span><i class="bi bi-telephone-fill text-warning me-2"></i>{{ site_settings.contact_phone }}</span>
+        <span><i class="bi bi-envelope-fill text-warning me-2"></i>{{ site_settings.contact_email }}</span>
+        <span><i class="bi bi-geo-alt-fill text-warning me-2"></i>{{ site_settings.contact_address }}</span>
+      </div>
+      <div>
+        <span><i class="bi bi-lightbulb-fill text-warning me-1"></i> Nepal's Premier Entrance Perperation Institute</span>
+      </div>
     </div>
   </div>
-</nav>
 
-<main>
-  {% if messages %}
-  <div class="container mt-3">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags|default:'secondary' }} alert-dismissible fade show py-2" role="alert">
-      {{ message }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  <!-- Main Navbar -->
+  <nav class="navbar navbar-expand-lg sticky-top shadow-sm">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
+        {% if site_settings.logo %}
+          <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.site_name }}">
+        {% else %}
+          <img src="/static/images/logo.svg" alt="Saral Pathshala" onerror="this.src='/static/images/nav-logo.jpeg';">
+        {% endif %}
+        <span class="fw-bold fs-4 serif-title text-dark">{{ site_settings.site_name }}</span>
+      </a>
+      
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      
+      <div class="collapse navbar-collapse" id="mainNavbar">
+        <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1 gap-lg-3">
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if 'courses' in request.path or 'course/' in request.path %}active{% endif %}" href="{% url 'course_list' %}">Courses</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if 'exams' in request.path %}active{% endif %}" href="{% url 'exams:exam_list' %}">Exams</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if 'notices' in request.path %}active{% endif %}" href="{% url 'notice_list' %}">Notices</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}" href="{% url 'about' %}">About Us</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}" href="{% url 'contact' %}">Contact</a>
+          </li>
+        </ul>
+        
+        <div class="d-flex align-items-center gap-2 gap-sm-3">
+          {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="btn btn-brand-primary btn-sm px-3 rounded-pill shadow-sm"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+            <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm px-3 rounded-pill shadow-sm"><i class="bi bi-box-arrow-right me-1"></i>Logout</a>
+          {% else %}
+            <a href="{% url 'login' %}" class="btn btn-outline-dark btn-sm px-3 rounded-pill shadow-sm"><i class="bi bi-box-arrow-in-right me-1"></i>Login</a>
+            <a href="{% url 'register' %}" class="btn btn-brand-secondary btn-sm px-3 rounded-pill shadow-sm"><i class="bi bi-person-plus me-1"></i>Register</a>
+          {% endif %}
+        </div>
+      </div>
     </div>
-    {% endfor %}
-  </div>
+  </nav>
+
+  <!-- Flash Messages -->
+  {% if messages %}
+    <div class="container mt-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'secondary' }} alert-dismissible fade show shadow-sm border-0 d-flex align-items-center" role="alert">
+          <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill text-success{% elif message.tags == 'error' %}bi-exclamation-triangle-fill text-danger{% else %}bi-info-circle-fill text-info{% endif %} fs-5 me-3"></i>
+          <div>{{ message }}</div>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
   {% endif %}
 
-  {% block content %}{% endblock %}
-</main>
+  <!-- Core Content Block -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
 
-<footer class="border-top py-4 mt-5 bg-white">
-  <div class="container text-center">
-    <small class="text-muted">© {% now "Y" %} Learn. All rights reserved.</small>
+  <!-- Sticky WhatsApp Floating Lead -->
+  {% if site_settings.whatsapp_number %}
+    <a href="https://wa.me/977{{ site_settings.whatsapp_number }}" class="whatsapp-float shadow-lg" target="_blank" title="Chat with support on WhatsApp">
+      <i class="bi bi-whatsapp"></i>
+    </a>
+  {% endif %}
+
+  <!-- Floating Upcoming Exams Toggle Button -->
+  <button class="sidebar-float-btn shadow-lg" type="button" data-bs-toggle="offcanvas" data-bs-target="#upcomingExamsSidebar" aria-controls="upcomingExamsSidebar" title="View Upcoming Exams">
+    <i class="bi bi-calendar3"></i>
+  </button>
+
+  <!-- Collapsible Sidebar (Offcanvas) for Upcoming Exams -->
+  <div class="offcanvas offcanvas-end border-start shadow" tabindex="-1" id="upcomingExamsSidebar" aria-labelledby="upcomingExamsSidebarLabel" style="width: 360px; z-index: 100000;">
+    <div class="offcanvas-header bg-dark text-white p-4">
+      <h5 class="offcanvas-title fw-bold serif-title d-flex align-items-center gap-2" id="upcomingExamsSidebarLabel">
+        <i class="bi bi-calendar-event text-warning"></i> Upcoming Exams
+      </h5>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-4 bg-light">
+      {% if upcoming_exams_sidebar %}
+        <div class="d-flex flex-column gap-3">
+          {% for exam in upcoming_exams_sidebar %}
+            <div class="card border border-light shadow-sm rounded-3 overflow-hidden bg-white hover-shadow transition">
+              <div class="card-body p-3">
+                <span class="badge bg-soft text-primary border px-2 py-0.5 rounded-pill small mb-2" style="font-size: 0.72rem; background-color: #e8f0fe;">
+                  {{ exam.course.name }}
+                </span>
+                <h6 class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">{{ exam.title }}</h6>
+                <p class="text-muted small mb-2" style="font-size: 0.78rem;">
+                  <i class="bi bi-clock-fill text-warning me-1"></i> Starts: {{ exam.start_date|date:"M d, h:i A" }}
+                </p>
+                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-light">
+                  <span class="small text-muted" style="font-size: 0.75rem;">
+                    <i class="bi bi-question-circle me-1"></i>{{ exam.total_questions }} Qs
+                  </span>
+                  <a href="{% url 'exams:exam_detail' exam.slug %}" class="btn btn-sm btn-brand-primary py-1 px-2.5 rounded-pill" style="font-size: 0.75rem;">Details</a>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-calendar-x display-6 mb-2 d-block"></i>
+          <span>No upcoming exams scheduled.</span>
+        </div>
+      {% endif %}
+    </div>
   </div>
-</footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-{% block extra_js %}{% endblock %}
+  <!-- Premium Lightweight Footer -->
+  <footer class="py-5 mt-5">
+    <div class="container">
+      <div class="row g-4 mb-4">
+        <div class="col-lg-4 col-md-6">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <i class="bi bi-braces-asterisk text-warning fs-3"></i>
+            <span class="fw-bold fs-4 serif-title">{{ site_settings.site_name }}</span>
+          </div>
+          <p class="text-muted small mb-4">
+            Providing modern, advanced MCQ-based online exam preparation and high-quality course lectures. Prepare dynamically for BSC.CSIT, CSIT, CEE, IOE, and other major entry exams in Nepal.
+          </p>
+          <div class="d-flex gap-2">
+            {% if site_settings.social_facebook %}
+              <a href="{{ site_settings.social_facebook }}" class="social-btn" target="_blank" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+            {% endif %}
+            {% if site_settings.social_twitter %}
+              <a href="{{ site_settings.social_twitter }}" class="social-btn" target="_blank" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+            {% endif %}
+            {% if site_settings.social_instagram %}
+              <a href="{{ site_settings.social_instagram }}" class="social-btn" target="_blank" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+            {% endif %}
+            {% if site_settings.social_tiktok %}
+              <a href="{{ site_settings.social_tiktok }}" class="social-btn" target="_blank" aria-label="TikTok"><i class="bi bi-tiktok"></i></a>
+            {% endif %}
+            {% if site_settings.social_linkedin %}
+              <a href="{{ site_settings.social_linkedin }}" class="social-btn" target="_blank" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+            {% endif %}
+            {% if site_settings.social_threads %}
+              <a href="{{ site_settings.social_threads }}" class="social-btn" target="_blank" aria-label="Threads"><i class="bi bi-threads"></i></a>
+            {% endif %}
+          </div>
+        </div>
+        
+        <div class="col-lg-2 col-md-6 footer-links">
+          <h6 class="footer-heading">Quick Links</h6>
+          <ul class="list-unstyled d-flex flex-column gap-2 small">
+            
+            <li><a href="{% url 'home' %}">Home</a></li>
+            
+            <li><a href="{% url 'course_list' %}">Courses</a></li>
+            <li><a href="{% url 'exams:exam_list' %}">Online Exams</a></li>
+            <li><a href="{% url 'notice_list' %}">Recent Notices</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-lg-2 col-md-6 footer-links">
+          <h6 class="footer-heading">Support</h6>
+          <ul class="list-unstyled d-flex flex-column gap-2 small">
+            <li><a href="{% url 'about' %}">About Us</a></li>
+            <li><a href="{% url 'contact' %}">Contact Us</a></li>
+            <li><a href="{% url 'sitemap_xml' %}" target="_blank">XML Sitemap</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-lg-4 col-md-6">
+          <h6 class="footer-heading">Contact Details</h6>
+          <ul class="list-unstyled d-flex flex-column gap-3 small text-muted">
+            <li class="d-flex align-items-start gap-2">
+              <i class="bi bi-geo-alt-fill text-warning mt-1"></i>
+              <span>{{ site_settings.contact_address }}</span>
+            </li>
+            <li class="d-flex align-items-start gap-2">
+              <i class="bi bi-telephone-fill text-warning mt-1"></i>
+              <span>{{ site_settings.contact_phone }}</span>
+            </li>
+            <li class="d-flex align-items-start gap-2">
+              <i class="bi bi-envelope-fill text-warning mt-1"></i>
+              <span>{{ site_settings.contact_email }}</span>
+            </li>
+            {% if site_settings.whatsapp_number %}
+              <li class="d-flex align-items-start gap-2">
+                <i class="bi bi-whatsapp text-success mt-1"></i>
+                <span>Direct WhatsApp: <b>+977 {{ site_settings.whatsapp_number }}</b></span>
+              </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+      
+      <hr class="border-color my-4">
+      
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+        <p class="text-muted small mb-0">
+          © {% now "Y" %} <b>{{ site_settings.site_name }}</b>. Built for high performance entrance learning.
+        </p>
+        <p class="text-muted small mb-0">
+          All standard exam prep content is copyrighted by Saral Pathshala.
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  
+
+  
+  {% block extra_js %}{% endblock %}
 </body>
 </html>

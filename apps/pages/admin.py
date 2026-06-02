@@ -9,16 +9,19 @@ from .models import (
     Section,
     Lecture,
     Enrollment,
-    LectureProgress
+    LectureProgress,
+    SiteSetting,
+    Notice,
+    CourseEnrollmentRequest
 )
 
 
 # ─────────────────────────────────────────────
 # CUSTOM ADMIN BRANDING
 # ─────────────────────────────────────────────
-admin.site.site_header = "🎓 EduPanel — Course Manager"
-admin.site.site_title = "EduPanel Admin"
-admin.site.index_title = "Content Management"
+admin.site.site_header = "🎓 Saral Pathshala — Command Center"
+admin.site.site_title = "Saral Pathshala Command Center"
+admin.site.index_title = "Platform Administration & Systems Control"
 
 
 # ─────────────────────────────────────────────
@@ -509,6 +512,21 @@ class EnrollmentAdmin(AdminStyleMixin, admin.ModelAdmin):
 
     raw_id_fields = ('user',)
 
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
     def progress_bar(self, obj):
 
         total = Lecture.objects.filter(
@@ -742,3 +760,146 @@ class CourseAdmin(AdminStyleMixin, admin.ModelAdmin):
         )
 
     enrollment_count.short_description = 'Enrollments'
+
+
+# ─────────────────────────────────────────────
+# SITE SETTING ADMIN (SINGLETON)
+# ─────────────────────────────────────────────
+from django.shortcuts import redirect
+
+@admin.register(SiteSetting)
+class SiteSettingAdmin(admin.ModelAdmin):
+    list_display = ('site_name', 'contact_email', 'contact_phone', 'whatsapp_number')
+    
+    fieldsets = (
+        ('General Branding', {
+            'fields': ('site_name', 'site_title', 'logo', 'favicon')
+        }),
+        ('SEO & Meta Details', {
+            'fields': ('site_description', 'meta_keywords', 'google_analytics_id')
+        }),
+        ('Contact Information', {
+            'fields': ('contact_email', 'contact_phone', 'contact_address', 'whatsapp_number')
+        }),
+        ('Social Links', {
+            'fields': ('social_facebook', 'social_twitter', 'social_instagram', 'social_tiktok', 'social_linkedin', 'social_threads')
+        }),
+        ('Third-Party Integrations', {
+            'fields': ('akash_sms_auth_token',)
+        }),
+    )
+
+    def has_add_permission(self, request):
+        return not SiteSetting.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_urls(self):
+        from django.urls import path
+        urls = super().get_urls()
+        custom_urls = [
+            path('flush-cache/', self.admin_site.admin_view(self.flush_cache_view), name='flush_cache'),
+        ]
+        return custom_urls + urls
+
+    def flush_cache_view(self, request):
+        from django.core.cache import cache
+        from django.contrib import messages
+        cache.clear()
+        messages.success(request, "🚀 Entire website cache flushed successfully!")
+        return redirect(request.META.get('HTTP_REFERER', '/admin/pages/sitesetting/'))
+
+
+# ─────────────────────────────────────────────
+# NOTICE ADMIN (PHYSICAL EXAMS & RESULTS)
+# ─────────────────────────────────────────────
+@admin.register(Notice)
+class NoticeAdmin(AdminStyleMixin, admin.ModelAdmin):
+    list_display = ('title', 'slug', 'is_active', 'has_pdf', 'created_at')
+    list_filter = ('is_active', 'created_at')
+    search_fields = ('title', 'content')
+    prepopulated_fields = {'slug': ('title',)}
+    
+    fieldsets = (
+        ('Notice Information', {
+            'fields': ('title', 'slug', 'content', 'pdf_file', 'is_active')
+        }),
+        ('SEO Customization', {
+            'fields': ('meta_title', 'meta_description', 'meta_keywords'),
+            'classes': ('collapse',),
+        }),
+    )
+
+    def has_pdf(self, obj):
+        return bool(obj.pdf_file)
+    has_pdf.boolean = True
+    has_pdf.short_description = "PDF?"
+
+
+# ─────────────────────────────────────────────
+# COURSE ENROLLMENT REQUEST ADMIN (LEADS)
+# ─────────────────────────────────────────────
+@admin.register(CourseEnrollmentRequest)
+class CourseEnrollmentRequestAdmin(AdminStyleMixin, admin.ModelAdmin):
+    list_display = ('name', 'phone', 'email', 'course', 'status_badge', 'created_at')
+    list_filter = ('status', 'course', 'created_at')
+    search_fields = ('name', 'phone', 'email', 'message')
+    actions = ['mark_contacted', 'mark_approved']
+
+    def status_badge(self, obj):
+        colors = {
+            'pending': '#ffc107',
+            'approved': '#28a745',
+            'contacted': '#17a2b8',
+            'rejected': '#dc3545'
+        }
+        return format_html(
+            '<span class="badge" style="background-color: {}; color: white;">{}</span>',
+            colors.get(obj.status, '#6c757d'),
+            obj.get_status_display()
+        )
+    status_badge.short_description = 'Status'
+
+    def mark_contacted(self, request, queryset):
+        queryset.update(status='contacted')
+        self.message_user(request, "Selected requests marked as Contacted.")
+    mark_contacted.short_description = "Mark selected as Contacted"
+
+    def mark_approved(self, request, queryset):
+        queryset.update(status='approved')
+        self.message_user(request, "Selected requests marked as Approved.")
+    mark_approved.short_description = "Mark selected as Approved"
+
+
+# ─────────────────────────────────────────────
+# MONKEY-PATCH FOR DYNAMIC INDEX WIDGETS
+# ─────────────────────────────────────────────
+original_index = admin.site.index
+
+def custom_admin_index(request, extra_context=None):
+    extra_context = extra_context or {}
+    
+    from apps.cauth.models import User, MailQueue, SMSQueue, QueueStatus
+    from apps.pages.models import Course, CourseEnrollmentRequest
+    from apps.exam.models import Exam, ExamAttempt
+
+    extra_context['total_students_count'] = User.objects.filter(is_staff=False, is_superuser=False).count()
+    extra_context['total_courses_count'] = Course.objects.filter(is_active=True).count()
+    extra_context['total_exams_count'] = Exam.objects.filter(is_active=True).count()
+    extra_context['pending_leads_count'] = CourseEnrollmentRequest.objects.filter(status='pending').count()
+    extra_context['pending_mails_count'] = MailQueue.objects.filter(status=QueueStatus.PENDING).count()
+    extra_context['pending_sms_count'] = SMSQueue.objects.filter(status=QueueStatus.PENDING).count()
+    extra_context['failed_mails_count'] = MailQueue.objects.filter(status=QueueStatus.FAILED).count()
+    extra_context['failed_sms_count'] = SMSQueue.objects.filter(status=QueueStatus.FAILED).count()
+    extra_context['total_attempts_count'] = ExamAttempt.objects.filter(is_submitted=True).count()
+    
+    # Combined count of critical failures in outbound system queues
+    extra_context['critical_failures_count'] = (
+        MailQueue.objects.filter(status=QueueStatus.FAILED).count() +
+        SMSQueue.objects.filter(status=QueueStatus.FAILED).count()
+    )
+
+    return original_index(request, extra_context=extra_context)
+
+admin.site.index = custom_admin_index

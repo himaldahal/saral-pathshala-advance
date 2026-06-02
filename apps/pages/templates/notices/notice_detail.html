@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}{% if notice.meta_title %}{{ notice.meta_title }}{% else %}{{ notice.title }} - Notice Detail - {{ site_settings.site_name }}{% endif %}{% endblock %}
+
+{% block meta_description %}{% if notice.meta_description %}{{ notice.meta_description }}{% else %}{{ notice.content|striptags|truncatechars:155 }}{% endif %}{% endblock %}
+
+{% block meta_keywords %}{% if notice.meta_keywords %}{{ notice.meta_keywords }}{% else %}{{ site_settings.meta_keywords }}{% endif %}{% endblock %}
+
+{% block content %}
+<section class="py-5 bg-white border-bottom shadow-sm">
+  <div class="container" style="max-width: 900px;">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-3">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'notice_list' %}">Notices</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Detail</li>
+      </ol>
+    </nav>
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <span class="text-muted small"><i class="bi bi-calendar3 me-1"></i>Published: {{ notice.created_at|date:"F d, Y" }}</span>
+      {% if notice.pdf_file %}
+        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-10 small"><i class="bi bi-file-pdf me-1"></i>PDF Attachment</span>
+      {% endif %}
+    </div>
+    <h1 class="serif-title display-5 fw-bold mb-0 text-dark">{{ notice.title }}</h1>
+  </div>
+</section>
+
+<section class="py-5">
+  <div class="container" style="max-width: 900px;">
+    <div class="card border border-light shadow-sm rounded-4 p-4 p-md-5 bg-white mb-4">
+      <!-- Notice Main Content -->
+      <div class="notice-content text-dark mb-5" style="line-height: 1.7; font-size: 1.05rem;">
+        {{ notice.content|safe }}
+      </div>
+      
+      <!-- PDF Result Attachment Embedded Viewer -->
+      {% if notice.pdf_file %}
+        <div class="border-top border-light pt-4 mt-4">
+          <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4 p-3 bg-light rounded-3 border">
+            <div>
+              <h5 class="fw-bold mb-1"><i class="bi bi-file-pdf-fill text-danger me-2"></i>Physical Exam Result Sheet</h5>
+              <span class="text-muted small">Scroll below to view, or click download to save the result PDF.</span>
+            </div>
+            <div>
+              <a href="{{ notice.pdf_file.url }}" class="btn btn-danger px-4 rounded-pill shadow-sm" download>
+                <i class="bi bi-download me-1"></i>Download PDF
+              </a>
+            </div>
+          </div>
+          
+          <!-- Embedded PDF Frame -->
+          <div class="bg-dark p-2 rounded-3 shadow-sm border border-secondary" style="overflow: hidden;">
+            <iframe src="{{ notice.pdf_file.url }}" width="100%" height="700px" style="border: none; border-radius: 6px;" title="Result PDF Viewer">
+              <div class="text-center text-white py-5">
+                <i class="bi bi-exclamation-triangle fs-1 text-warning mb-3"></i>
+                <p>Your browser does not support embedding PDFs directly.</p>
+                <a href="{{ notice.pdf_file.url }}" class="btn btn-danger btn-sm" download>Download PDF Instead</a>
+              </div>
+            </iframe>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+    
+    <div class="text-center">
+      <a href="{% url 'notice_list' %}" class="btn btn-outline-dark px-4 rounded-pill"><i class="bi bi-arrow-left me-1"></i>Back to Notices Board</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

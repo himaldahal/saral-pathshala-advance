@@ -1,269 +1,181 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>{% block title %}Authentication{% endblock %} - Saral Pathshala</title>
+{% extends 'base.html' %}
+
+{% block title %}{% block auth_title %}Authentication{% endblock %} - Saral Pathshala{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        /* Brand Color Injection */
+        --brand-blue: #3b82f6; /* Modern Blue */
+        --brand-blue-hover: #2563eb;
+        --brand-orange: #f97316; /* Modern Orange */
+        --brand-orange-hover: #ea580c;
+        
+        --bg-color: #f8fafc; /* Locked Light Theme background */
+        --surface-color: #ffffff; /* locked light theme surface */
+        --text-dark: #0f172a; /* Locked light theme text */
+        --text-muted: #64748b;
+        --input-border: rgba(15, 23, 42, 0.08);
+        --font-ui: 'Plus Jakarta Sans', system-ui, sans-serif;
+        --font-display: 'Lora', serif;
+    }
+
+    /* -------------------------- 
+       Refined Inputs
+       -------------------------- */
+    .ui-input {
+        font-family: var(--font-ui);
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--input-border);
+        border-radius: 8px;
+        background-color: var(--surface-color);
+        transition: all 0.2s ease;
+        font-size: 0.95rem;
+    }
     
-    <!-- Ultra-lightweight preconnects for speed -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    .ui-input:focus {
+        background-color: #fff;
+        border-color: var(--brand-blue);
+        box-shadow: 0 0 0 4px rgba(45, 137, 200, 0.1);
+        outline: none;
+    }
+
+    .form-floating label {
+        padding: 0.8rem 1rem;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    /* Button & Link execution */
+    .btn-brand-primary {
+        background: var(--brand-blue);
+        color: white;
+        padding: 0.85rem;
+        border-radius: 8px;
+        font-weight: 600;
+        border: none;
+        width: 100%;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 15px rgba(45, 137, 200, 0.15);
+    }
+    .btn-brand-primary:hover {
+        background: var(--brand-blue-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 20px rgba(45, 137, 200, 0.25);
+        color: white;
+    }
+
+    .auth-brand-logo {
+        color: var(--brand-orange);
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 2rem;
+        display: inline-block;
+        text-decoration: none;
+    }
     
-    <!-- Google Fonts: Editorial Serif (Lora) & Premium UI Geometric (Plus Jakarta Sans) -->
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    .link-text {
+        color: var(--brand-blue);
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.2s;
+    }
+    .link-text:hover { color: var(--brand-orange); }
+
+    .password-toggle {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: var(--text-muted);
+        z-index: 10;
+    }
     
-    <!-- Minimal External Needs (Boostrap Grid/Flex/Core, ignoring massive JS utilities we dont need) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    .realtime-validation {
+        display: none; /* Block activated by JS */
+        margin-top: 5px;
+        font-size: 0.8rem;
+    }
+    
+    .rv-rule { color: var(--text-muted); transition: color 0.3s; }
+    .rv-rule.valid { color: #10b981; }
 
-    <style>
-        :root {
-            /* Brand Color Injection */
-            --brand-blue: #2D89C8;
-            --brand-blue-hover: #226f99;
-            --brand-orange: #E67E22;
-            --brand-orange-hover: #cc701c;
-            
-            --bg-color: #FFFFFF;
-            --surface-color: #F8FAFC;
-            --text-dark: #0F172A;
-            --text-muted: #64748B;
-            --input-border: #E2E8F0;
-            --font-ui: 'Plus Jakarta Sans', system-ui, sans-serif;
-            --font-display: 'Lora', serif;
-        }
+    /* The beautiful premium organic mesh behind text */
+    .mesh-bg {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 1;
+        opacity: 0.95;
+        background: 
+            radial-gradient(circle at 15% 50%, rgba(45, 137, 200, 1), transparent 50%),
+            radial-gradient(circle at 85% 30%, rgba(230, 126, 34, 0.9), transparent 50%),
+            radial-gradient(circle at 90% 80%, rgba(15, 23, 42, 0.4), transparent 50%);
+        filter: blur(40px);
+        animation: meshFlow 20s infinite alternate;
+    }
+    
+    @keyframes meshFlow {
+        0% { transform: scale(1) translate(0, 0); }
+        50% { transform: scale(1.2) translate(5%, -5%); }
+        100% { transform: scale(1) translate(-5%, 5%); }
+    }
+</style>
+{% endblock %}
 
-        /* -------------------------- 
-           Layout & Split Panel Engine
-           -------------------------- */
-        body {
-            font-family: var(--font-ui);
-            background: var(--surface-color);
-            color: var(--text-dark);
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            margin: 0;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* Responsive Architecture */
-        .auth-layout {
-            display: flex;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .visual-panel {
-            flex: 1.1;
-            position: relative;
-            background-color: var(--brand-blue);
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        /* The beautiful premium organic mesh behind text */
-        .mesh-bg {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            z-index: 1;
-            opacity: 0.95;
-            background: 
-                radial-gradient(circle at 15% 50%, rgba(45, 137, 200, 1), transparent 50%),
-                radial-gradient(circle at 85% 30%, rgba(230, 126, 34, 0.9), transparent 50%),
-                radial-gradient(circle at 90% 80%, rgba(15, 23, 42, 0.4), transparent 50%);
-            filter: blur(80px);
-            animation: meshFlow 20s infinite alternate;
-        }
-        
-        @keyframes meshFlow {
-            0% { transform: scale(1) translate(0, 0); }
-            50% { transform: scale(1.2) translate(5%, -5%); }
-            100% { transform: scale(1) translate(-5%, 5%); }
-        }
-
-        .visual-content {
-            z-index: 2;
-            color: #fff;
-            padding: 5rem;
-            max-width: 600px;
-        }
-
-        .display-quote {
-            font-family: var(--font-display);
-            font-size: 2.5rem;
-            line-height: 1.2;
-            font-weight: 500;
-            margin-bottom: 1.5rem;
-        }
-
-        .form-panel {
-            flex: 1;
-            background: var(--bg-color);
-            position: relative;
-            z-index: 5;
-            box-shadow: -20px 0 50px rgba(0,0,0,0.03);
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto; /* Internal scrolling if necessary */
-            padding: 2rem;
-        }
-
-        .form-wrapper {
-            margin: auto;
-            width: 100%;
-            max-width: 600px;
-            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        @keyframes slideUp {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* -------------------------- 
-           Refined Inputs
-           -------------------------- */
-        .ui-input {
-            font-family: var(--font-ui);
-            padding: 0.8rem 1rem;
-            border: 1px solid var(--input-border);
-            border-radius: 8px;
-            background-color: var(--surface-color);
-            transition: all 0.2s ease;
-            font-size: 0.95rem;
-        }
-        
-        .ui-input:focus {
-            background-color: #fff;
-            border-color: var(--brand-blue);
-            box-shadow: 0 0 0 4px rgba(45, 137, 200, 0.1);
-            outline: none;
-        }
-
-        .form-floating label {
-            padding: 0.8rem 1rem;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        /* Button & Link execution */
-        .btn-brand-primary {
-            background: var(--brand-blue);
-            color: white;
-            padding: 0.85rem;
-            border-radius: 8px;
-            font-weight: 600;
-            border: none;
-            width: 100%;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 15px rgba(45, 137, 200, 0.15);
-        }
-        .btn-brand-primary:hover {
-            background: var(--brand-blue-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 20px rgba(45, 137, 200, 0.25);
-            color: white;
-        }
-
-        .auth-brand-logo {
-            color: var(--brand-orange);
-            font-family: var(--font-display);
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 2rem;
-            display: inline-block;
-            text-decoration: none;
-        }
-        
-        .link-text {
-            color: var(--brand-blue);
-            font-weight: 600;
-            text-decoration: none;
-            transition: 0.2s;
-        }
-        .link-text:hover { color: var(--brand-orange); }
-
-        .password-toggle {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: var(--text-muted);
-            z-index: 10;
-        }
-        
-        .realtime-validation {
-            display: none; /* Block activated by JS */
-            margin-top: 5px;
-            font-size: 0.8rem;
-        }
-        
-        .rv-rule { color: var(--text-muted); transition: color 0.3s; }
-        .rv-rule.valid { color: #10b981; }
-
-        @media (max-width: 991px) {
-            body { overflow: auto; }
-            .visual-panel { display: none; }
-            .form-panel { 
-                box-shadow: none; 
-                padding: 1.5rem;
-                justify-content: center;
-                align-items: center; 
-            }
-            .form-wrapper { padding: 2rem; background: #fff; border-radius: 12px; border: 1px solid var(--input-border); box-shadow: 0 10px 30px rgba(0,0,0,0.02);}
-        }
-    </style>
-</head>
-<body>
-
-    <div class="auth-layout">
-        <div class="visual-panel">
-            <div class="mesh-bg"></div>
-            <div class="visual-content">
-                <h1 class="display-quote">"Learning is never accumulated by chance. It must be sought with ardor and attended with diligence."</h1>
-                <p style="opacity:0.85;">Saral Pathshala ensures zero-distraction focus from Grade XI up through Master's programs across Nepal.</p>
-            </div>
-        </div>
-
-        <div class="form-panel">
-            <div class="form-wrapper">
-                <a href="/" class="auth-brand-logo"><i class="bi bi-braces-asterisk"></i> Saral Pathshala</a>
-                
-                {% if messages %}
-                <div class="mb-4">
-                    {% for msg in messages %}
-                        <div class="alert alert-{% if msg.tags == 'error' %}danger{% else %}{{ msg.tags }}{% endif %} border-0 shadow-sm" role="alert">
-                            {{ msg }}
+{% block content %}
+<div class="container my-5 py-2">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-9">
+            <div class="card border-0 shadow rounded-4 overflow-hidden bg-white">
+                <div class="row g-0">
+                    <!-- Left Visual Panel -->
+                    <div class="col-md-6 d-none d-md-block position-relative overflow-hidden" style="min-height: 500px; background-color: var(--brand-blue);">
+                        <div class="mesh-bg"></div>
+                        <div class="h-100 d-flex flex-column justify-content-between p-5 text-white position-relative" style="z-index: 2;">
+                            <div>
+                                <span class="badge bg-white text-primary border px-3 py-2 rounded-pill mb-3 small fw-bold" style="background-color: rgba(255,255,255,0.15) !important; border-color: rgba(255,255,255,0.2) !important; color: white !important;">
+                                    WELCOME TO SARAL PATHSHALA
+                                </span>
+                            </div>
+                            <div>
+                                <h2 class="serif-title display-6 fw-bold mb-3" style="font-family: 'Lora', serif; font-weight: 500; line-height: 1.3;">"Learning is never accumulated by chance. It must be sought with ardor and attended with diligence."</h2>
+                                <p class="mb-0 text-white-50" style="font-size: 0.95rem;">
+                                    Saral Pathshala ensures zero-distraction focus from Grade XI up through Master's programs across Nepal.
+                                </p>
+                            </div>
+                            <div class="small text-white-50">
+                                © 2026 Saral Pathshala. All rights reserved.
+                            </div>
                         </div>
-                    {% endfor %}
+                    </div>
+                    <!-- Right Form Panel -->
+                    <div class="col-md-6 d-flex align-items-center p-4 p-md-5 bg-white">
+                        <div class="w-100">
+                            {% block auth_content %}
+                            {% endblock %}
+                        </div>
+                    </div>
                 </div>
-                {% endif %}
-                
-                {% block content %}
-                {% endblock %}
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Toggle Password Visibility JS Logic Used By Multiple Pages -->
-    <script>
-        document.querySelectorAll('.password-toggle').forEach(icon => {
-            icon.addEventListener('click', function() {
-                const input = document.getElementById(this.dataset.target);
-                if (input.type === 'password') {
-                    input.type = 'text';
-                    this.classList.replace('bi-eye', 'bi-eye-slash');
-                } else {
-                    input.type = 'password';
-                    this.classList.replace('bi-eye-slash', 'bi-eye');
-                }
-            });
+<!-- Toggle Password Visibility JS Logic Used By Multiple Pages -->
+<script>
+    document.querySelectorAll('.password-toggle').forEach(icon => {
+        icon.addEventListener('click', function() {
+            const input = document.getElementById(this.dataset.target);
+            if (input.type === 'password') {
+                input.type = 'text';
+                this.classList.replace('bi-eye', 'bi-eye-slash');
+            } else {
+                input.type = 'password';
+                this.classList.replace('bi-eye-slash', 'bi-eye');
+            }
         });
-    </script>
-</body>
-</html>
+    });
+</script>
+{% endblock %}

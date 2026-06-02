@@ -1,0 +1,1113 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Analytics Dashboard & CRM — Custom Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  body {
+    background-color: #f8fafc;
+  }
+  .card-stat {
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01), 0 2px 4px -1px rgba(0,0,0,0.01);
+    padding: 1.5rem;
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+  }
+  .card-stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 20px -3px rgba(0,0,0,0.04), 0 4px 12px -2px rgba(0,0,0,0.02);
+  }
+  .stat-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+  }
+  .realtime-dot {
+    width: 9px;
+    height: 9px;
+    background-color: #10b981;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 1.5s infinite alternate;
+  }
+  @keyframes pulse {
+    0% { transform: scale(0.9); opacity: 0.5; }
+    100% { transform: scale(1.3); opacity: 1; }
+  }
+  .nav-tabs-custom {
+    border-bottom: 2px solid #e2e8f0;
+  }
+  .nav-tabs-custom .nav-link {
+    color: #64748b;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+    transition: all 0.2s ease;
+    border-radius: 0;
+  }
+  .nav-tabs-custom .nav-link:hover {
+    color: var(--brand-primary);
+  }
+  .nav-tabs-custom .nav-link.active {
+    color: var(--brand-primary);
+    border-bottom-color: var(--brand-primary);
+    background: transparent;
+  }
+  .crm-badge {
+    font-weight: 600;
+    font-size: 0.72rem;
+    border-radius: 50px;
+    padding: 0.25rem 0.6rem;
+    border: 1px solid transparent;
+  }
+  .badge-pending {
+    background-color: #fef3c7;
+    color: #d97706;
+    border-color: #fde68a;
+  }
+  .badge-approved {
+    background-color: #d1fae5;
+    color: #059669;
+    border-color: #a7f3d0;
+  }
+  .badge-contacted {
+    background-color: #e0f2fe;
+    color: #0284c7;
+    border-color: #bae6fd;
+  }
+  .badge-rejected {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border-color: #fecaca;
+  }
+</style>
+<!-- ChartJS CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5 px-md-5">
+  <!-- Top Workspace Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-5">
+    <div>
+      <span class="badge bg-soft text-primary border px-3 py-1.5 rounded-pill mb-2 small fw-bold"><i class="bi bi-shield-lock-fill me-1"></i> Custom Admin Command Center</span>
+      <h1 class="serif-title mb-0">Management, Leads & Data Visualizations</h1>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'admin_import_enrollments' %}" class="btn btn-brand-primary rounded-pill btn-action py-2 px-4 shadow-sm">
+        <i class="bi bi-people-fill me-2"></i>Bulk Enroller Tools
+      </a>
+      <a href="/dhokakhol/" class="btn btn-outline-dark rounded-pill btn-action py-2 px-4 shadow-xs">
+        <i class="bi bi-gear-fill me-2"></i>Django DB Admin
+      </a>
+    </div>
+  </div>
+
+  <!-- Key Metrics Row -->
+  <div class="row g-4 mb-5">
+    <div class="col-lg-3 col-md-6 col-sm-12">
+      <div class="card-stat d-flex align-items-center gap-3">
+        <div class="stat-icon bg-primary text-white bg-opacity-10 text-primary">
+          <i class="bi bi-mortarboard-fill text-primary"></i>
+        </div>
+        <div>
+          <h3 class="fw-bold mb-0 text-dark">{{ total_students }}</h3>
+          <small class="text-muted">Registered Students</small>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-2 col-md-6 col-sm-12">
+      <div class="card-stat d-flex align-items-center gap-3">
+        <div class="stat-icon bg-success text-white bg-opacity-10 text-success">
+          <i class="bi bi-collection-play-fill text-success"></i>
+        </div>
+        <div>
+          <h3 class="fw-bold mb-0 text-dark">{{ total_courses }}</h3>
+          <small class="text-muted">Active Courses</small>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-2 col-md-6 col-sm-12">
+      <div class="card-stat d-flex align-items-center gap-3">
+        <div class="stat-icon bg-warning text-white bg-opacity-10 text-warning">
+          <i class="bi bi-pencil-square text-warning"></i>
+        </div>
+        <div>
+          <h3 class="fw-bold mb-0 text-dark">{{ total_exams }}</h3>
+          <small class="text-muted">Mock Examinations</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-6 col-sm-12">
+      <div class="card-stat d-flex align-items-center gap-3">
+        <div class="stat-icon bg-danger text-white bg-opacity-10 text-danger">
+          <i class="bi bi-person-fill-add text-danger"></i>
+        </div>
+        <div>
+          <h3 class="fw-bold mb-0 text-danger">
+            {{ pending_requests_count }} <span class="small fw-normal text-muted" style="font-size: 0.8rem;">/ {{ total_requests_count }}</span>
+          </h3>
+          <small class="text-muted">Pending Leads CRM</small>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 col-sm-12">
+      <div class="card-stat d-flex align-items-center gap-3 bg-dark text-white border-dark">
+        <div class="stat-icon bg-success text-white bg-opacity-20">
+          <span class="realtime-dot"></span>
+        </div>
+        <div>
+          <h3 class="fw-bold mb-0 text-success">{{ realtime_count }}</h3>
+          <small class="text-white-50">Active Mock Takers</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Workspace Tabs -->
+  <ul class="nav nav-tabs nav-tabs-custom mb-4" id="adminTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="crm-tab" data-bs-toggle="tab" data-bs-target="#crm-panel" type="button" role="tab" aria-controls="crm-panel" aria-selected="true">
+        <i class="bi bi-briefcase-fill me-2"></i>CRM Enrollment Leads
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="exams-tab" data-bs-toggle="tab" data-bs-target="#exams-panel" type="button" role="tab" aria-controls="exams-panel" aria-selected="false">
+        <i class="bi bi-bar-chart-line-fill me-2"></i>Mock Exam Analytics
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="students-tab" data-bs-toggle="tab" data-bs-target="#students-panel" type="button" role="tab" aria-controls="students-panel" aria-selected="false">
+        <i class="bi bi-people-fill me-2"></i>Student Demographics
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs-panel" type="button" role="tab" aria-controls="logs-panel" aria-selected="false">
+        <i class="bi bi-activity me-2"></i>System Operations & Logs
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings-panel" type="button" role="tab" aria-controls="settings-panel" aria-selected="false">
+        <i class="bi bi-gear-fill me-2"></i>Site Configurations
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab Contents -->
+  <div class="tab-content" id="adminTabsContent">
+    
+    <!-- TAB 1: CRM ENROLLMENT LEADS -->
+    <div class="tab-pane fade show active" id="crm-panel" role="tabpanel" aria-labelledby="crm-tab">
+      <div class="card border border-light shadow-sm rounded-4 p-4 bg-white">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+          <div>
+            <h5 class="fw-bold text-dark mb-1"><i class="bi bi-telephone-inbound-fill text-primary me-2"></i>Course Enrollment Lead Requests</h5>
+            <p class="text-muted small mb-0">Approve course requests and automatically enroll students with one click.</p>
+          </div>
+          <span class="badge bg-primary px-3 py-2 rounded-pill fw-bold">{{ pending_requests_count }} Pending Actions</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="border-0">Lead Details</th>
+                <th class="border-0">Course</th>
+                <th class="border-0">Message</th>
+                <th class="border-0">Lead Date</th>
+                <th class="border-0 text-center">Status</th>
+                <th class="border-0 text-end">CRM Action Panel</th>
+              </tr>
+            </thead>
+            <tbody class="border-top-0">
+              {% for req in recent_requests %}
+                <tr>
+                  <td>
+                    <div class="fw-bold text-dark">{{ req.name }}</div>
+                    <div class="small text-muted">
+                      <a href="tel:{{ req.phone }}" class="text-decoration-none text-muted"><i class="bi bi-telephone me-1"></i>{{ req.phone }}</a>
+                      {% if req.email %}
+                        | <a href="mailto:{{ req.email }}" class="text-decoration-none text-muted"><i class="bi bi-envelope me-1"></i>{{ req.email }}</a>
+                      {% endif %}
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge bg-soft text-primary border rounded-pill px-2.5 py-1 small fw-bold">
+                      {{ req.course.name }}
+                    </span>
+                  </td>
+                  <td class="text-muted small" style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ req.message }}">
+                    {{ req.message|default:"—" }}
+                  </td>
+                  <td class="small text-muted">{{ req.created_at|date:"M d, Y, h:i A" }}</td>
+                  <td class="text-center">
+                    <span class="crm-badge badge-{{ req.status }}">
+                      {{ req.get_status_display }}
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <div class="d-flex justify-content-end gap-1.5">
+                      {% if req.status == 'pending' or req.status == 'contacted' %}
+                        <a href="{% url 'admin_manage_enrollment_request' req.pk 'approve' %}" class="btn btn-sm btn-success rounded-pill px-2.5 py-1" title="Approve Enrollment">
+                          <i class="bi bi-check-circle-fill me-1"></i> Approve
+                        </a>
+                      {% endif %}
+                      {% if req.status == 'pending' %}
+                        <a href="{% url 'admin_manage_enrollment_request' req.pk 'contact' %}" class="btn btn-sm btn-info text-white rounded-pill px-2.5 py-1" title="Mark as Followed Up">
+                          <i class="bi bi-telephone-outbound-fill me-1"></i> Contact
+                        </a>
+                      {% endif %}
+                      {% if req.status != 'rejected' and req.status != 'approved' %}
+                        <a href="{% url 'admin_manage_enrollment_request' req.pk 'reject' %}" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1" title="Reject Lead">
+                          <i class="bi bi-x-circle-fill"></i>
+                        </a>
+                      {% endif %}
+                      {% if req.status == 'approved' %}
+                        <span class="text-success small fw-semibold"><i class="bi bi-shield-check me-1"></i>Enrolled</span>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center py-5 text-muted">
+                    <i class="bi bi-telephone-x display-6 mb-2 d-block"></i> No guest enrollment leads submitted yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: EXAM ANALYTICS -->
+    <div class="tab-pane fade" id="exams-panel" role="tabpanel" aria-labelledby="exams-tab">
+      <div class="row g-4 mb-4">
+        <!-- Chart Column: Performance Distribution -->
+        <div class="col-lg-8">
+          <div class="card border border-light shadow-sm rounded-4 p-4 bg-white h-100">
+            <h5 class="fw-bold text-dark mb-4"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Class Average Performance (%) & Takers by Mock Exam</h5>
+            <div style="position: relative; height: 350px;">
+              <canvas id="averageScoresChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Real-time Live Watch List -->
+        <div class="col-lg-4">
+          <div class="card border border-light shadow-sm rounded-4 p-4 bg-white h-100">
+            <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+              <span class="realtime-dot"></span> Live Examination Monitor
+            </h5>
+            <p class="text-muted small">Realtime activity tracking across the portal over the last 3 hours.</p>
+            
+            <div class="overflow-auto pe-1" style="max-height: 310px;">
+              {% if realtime_attempts %}
+                <div class="list-group list-group-flush">
+                  {% for att in realtime_attempts %}
+                    <div class="list-group-item px-0 py-3 border-light">
+                      <div class="d-flex justify-content-between align-items-start mb-1">
+                        <h6 class="fw-bold mb-0 text-dark small"><i class="bi bi-person-fill text-muted me-1"></i>{{ att.student.full_name }}</h6>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle small fw-bold" style="font-size: 0.65rem; padding: 0.15rem 0.35rem;">LIVE Attempt</span>
+                      </div>
+                      <div class="small text-muted d-flex justify-content-between">
+                        <span><i class="bi bi-pencil-square me-1 text-primary"></i>{{ att.exam.title|truncatechars:22 }}</span>
+                        <span>Start: <b>{{ att.started_at|date:"h:i A" }}</b></span>
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="text-center py-5 text-muted">
+                  <i class="bi bi-info-circle display-6 d-block mb-2"></i>
+                  <span>No students are active inside exam sessions right now.</span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Exam Metrics & Distributions Grid -->
+      <div class="card border border-light shadow-sm rounded-4 p-4 bg-white">
+        <h5 class="fw-bold text-dark mb-4"><i class="bi bi-grid-3x3-gap-fill text-primary me-2"></i>Mock Examinations Statistics & Mark Patterns</h5>
+        
+        <div class="table-responsive">
+          <table class="table align-middle table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="border-0">Exam Title</th>
+                <th class="border-0">Course</th>
+                <th class="border-0 text-center">Attempts</th>
+                <th class="border-0 text-center">Live Takers</th>
+                <th class="border-0 text-center">Avg Score (%)</th>
+                <th class="border-0 text-center">Min/Max</th>
+                <th class="border-0 text-center" style="min-width: 150px;">Marks Distribution (Fail/Pass/Good/Ex)</th>
+                <th class="border-0 text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="border-top-0">
+              {% for stat in exam_stats %}
+                <tr>
+                  <td>
+                    <div class="fw-bold text-dark">{{ stat.exam.title }}</div>
+                    <small class="text-muted"><i class="bi bi-question-circle me-1"></i>{{ stat.exam.total_questions }} Qs | Total: {{ stat.total_marks }} marks</small>
+                  </td>
+                  <td>
+                    <span class="badge bg-soft text-primary border rounded-pill px-2.5 py-1 small fw-bold">
+                      {{ stat.exam.course.name }}
+                    </span>
+                  </td>
+                  <td class="text-center fw-bold">{{ stat.total_attempts }}</td>
+                  <td class="text-center">
+                    {% if stat.active_now > 0 %}
+                      <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 rounded-pill small fw-bold">
+                        {{ stat.active_now }} Active
+                      </span>
+                    {% else %}
+                      <span class="text-muted small">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    {% if stat.total_attempts > 0 %}
+                      <span class="fw-bold text-primary">{{ stat.average_score }}</span>
+                      <small class="text-muted d-block" style="font-size:0.75rem;">({{ stat.average_pct }}%)</small>
+                    {% else %}
+                      <span class="text-muted small">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    {% if stat.total_attempts > 0 %}
+                      <small class="text-muted d-block"><b>Min:</b> {{ stat.min_score }}</small>
+                      <small class="text-muted d-block"><b>Max:</b> {{ stat.max_score }}</small>
+                    {% else %}
+                      <span class="text-muted small">—</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if stat.total_attempts > 0 %}
+                      <div class="progress" style="height: 12px; border-radius: 20px;" title="Fail / Pass / Good / Excellent count">
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: {% widthratio stat.pattern.fail stat.total_attempts 100 %}%" aria-valuenow="{{ stat.pattern.fail }}" aria-valuemin="0" aria-valuemax="{{ stat.total_attempts }}"></div>
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {% widthratio stat.pattern.pass stat.total_attempts 100 %}%" aria-valuenow="{{ stat.pattern.pass }}" aria-valuemin="0" aria-valuemax="{{ stat.total_attempts }}"></div>
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: {% widthratio stat.pattern.good stat.total_attempts 100 %}%" aria-valuenow="{{ stat.pattern.good }}" aria-valuemin="0" aria-valuemax="{{ stat.total_attempts }}"></div>
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {% widthratio stat.pattern.excellent stat.total_attempts 100 %}%" aria-valuenow="{{ stat.pattern.excellent }}" aria-valuemin="0" aria-valuemax="{{ stat.total_attempts }}"></div>
+                      </div>
+                      <div class="d-flex justify-content-between small text-muted mt-1" style="font-size: 0.72rem;">
+                        <span>F: {{ stat.pattern.fail }}</span>
+                        <span>P: {{ stat.pattern.pass }}</span>
+                        <span>G: {{ stat.pattern.good }}</span>
+                        <span>Ex: {{ stat.pattern.excellent }}</span>
+                      </div>
+                    {% else %}
+                      <span class="text-muted small">No submitted attempts yet.</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <a href="{% url 'admin_export_exam_results' stat.exam.pk %}" class="btn btn-sm btn-outline-success rounded-pill d-inline-flex align-items-center gap-1">
+                      <i class="bi bi-file-earmark-spreadsheet-fill"></i> Export CSV
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="8" class="text-center py-5 text-muted">
+                    <i class="bi bi-calendar-x display-6 mb-2 d-block"></i> No mock examinations configured yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: STUDENT DEMOGRAPHICS -->
+    <div class="tab-pane fade" id="students-panel" role="tabpanel" aria-labelledby="students-tab">
+      <div class="row g-4 mb-5">
+        <!-- Demographics Pie Chart -->
+        <div class="col-lg-5 col-md-12">
+          <div class="card border border-light shadow-sm rounded-4 p-4 bg-white h-100">
+            <h5 class="fw-bold text-dark mb-4"><i class="bi bi-pie-chart-fill text-primary me-2"></i>Educational Tier Distribution</h5>
+            <div style="position: relative; height: 300px;" class="d-flex align-items-center justify-content-center">
+              <canvas id="demographicsChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Course popularity horizontal bar -->
+        <div class="col-lg-7 col-md-12">
+          <div class="card border border-light shadow-sm rounded-4 p-4 bg-white h-100">
+            <h5 class="fw-bold text-dark mb-4"><i class="bi bi-bookmark-star-fill text-primary me-2"></i>Course Popularity by Enrollee Count</h5>
+            <div style="position: relative; height: 300px;">
+              <canvas id="coursesChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Students Registrations List -->
+      <div class="card border border-light shadow-sm rounded-4 p-4 bg-white">
+        <h5 class="fw-bold text-dark mb-4"><i class="bi bi-person-lines-fill text-primary me-2"></i>Recently Registered Student Accounts</h5>
+        
+        <div class="table-responsive">
+          <table class="table align-middle table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="border-0">Student Name</th>
+                <th class="border-0">Email Address</th>
+                <th class="border-0">Phone Number</th>
+                <th class="border-0">Tier Level</th>
+                <th class="border-0">Registration Date</th>
+                <th class="border-0 text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody class="border-top-0">
+              {% for student in recent_students %}
+                <tr>
+                  <td>
+                    <div class="fw-bold text-dark">{{ student.full_name }}</div>
+                    <small class="text-muted"><i class="bi bi-building me-1"></i>{{ student.previous_institute|default:"No Previous Institute Info" }}</small>
+                  </td>
+                  <td>{{ student.email }}</td>
+                  <td>{{ student.phone|default:"—" }}</td>
+                  <td>
+                    <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 small fw-bold">
+                      {{ student.get_current_level_display|default:"General / Not Selected" }}
+                    </span>
+                  </td>
+                  <td class="small text-muted">{{ student.date_joined|date:"M d, Y, h:i A" }}</td>
+                  <td class="text-center">
+                    {% if student.is_phone_verified %}
+                      <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 rounded-pill small fw-bold"><i class="bi bi-patch-check-fill me-1"></i>Verified</span>
+                    {% else %}
+                      <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-0.5 rounded-pill small fw-bold"><i class="bi bi-patch-exclamation me-1"></i>Unverified</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center py-5 text-muted">
+                    No student accounts have been registered yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: SYSTEM OPERATIONS & LOGS -->
+    <div class="tab-pane fade" id="logs-panel" role="tabpanel" aria-labelledby="logs-tab">
+      
+      <!-- Operational Actions & Diagnostics Row -->
+      <div class="row g-4 mb-4">
+        <!-- Live operations controls -->
+        <div class="col-lg-6">
+          <div class="card h-100 shadow-sm rounded-4 p-4 bg-white" style="border: 1px solid rgba(15, 23, 42, 0.08);">
+            <h5 class="fw-bold mb-1 text-dark"><i class="bi bi-cpu text-primary me-2"></i>Background Services & Command Center</h5>
+            <p class="text-muted small mb-4">Manually trigger transactional workers and manage message brokers directly from this dashboard.</p>
+            
+            <div class="row g-3">
+              <div class="col-sm-6">
+                <div class="p-3 border rounded-3 bg-light d-flex flex-column h-100">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="fw-bold small text-dark"><i class="bi bi-envelope-check text-success me-1"></i>Email Outbound Broker</span>
+                    <span class="badge bg-success-subtle text-success small">{{ mail_queue_stats.pending }} pending</span>
+                  </div>
+                  <p class="text-muted small mb-3 flex-grow-1" style="font-size: 0.78rem;">Processes the transaction log and dispatches outstanding student alerts, OTP codes, and welcome packages.</p>
+                  <form method="POST" action="{% url 'admin_dashboard' %}">
+                    {% csrf_token %}
+                    <button type="submit" name="process_mail_queue" value="1" class="btn btn-sm btn-brand-primary w-100 rounded-pill">
+                      <i class="bi bi-send-fill me-1"></i>Flush Mail Queue
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              <div class="col-sm-6">
+                <div class="p-3 border rounded-3 bg-light d-flex flex-column h-100">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="fw-bold small text-dark"><i class="bi bi-chat-text text-info me-1"></i>SMS Gateway Dispatcher</span>
+                    <span class="badge bg-info-subtle text-info small">{{ sms_queue_stats.pending }} pending</span>
+                  </div>
+                  <p class="text-muted small mb-3 flex-grow-1" style="font-size: 0.78rem;">Sends Nepal mobile network phone OTP tokens and login verification alerts through connected gateways.</p>
+                  <form method="POST" action="{% url 'admin_dashboard' %}">
+                    {% csrf_token %}
+                    <button type="submit" name="process_sms_queue" value="1" class="btn btn-sm btn-info text-white w-100 rounded-pill">
+                      <i class="bi bi-phone-vibrate me-1"></i>Flush SMS Queue
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="p-3 border rounded-3 bg-brand-primary-subtle d-flex align-items-center justify-content-between" style="background-color: rgba(99, 102, 241, 0.05); border-color: rgba(99, 102, 241, 0.15) !important;">
+                  <div>
+                    <h6 class="fw-bold text-dark mb-1" style="font-size: 0.85rem;"><i class="bi bi-lightning-charge text-brand-primary me-1"></i>Run Unified Cron Task</h6>
+                    <p class="text-muted mb-0" style="font-size: 0.76rem;">Execute the unified background worker to dispatch outstanding OTPs/Emails and clear expired/used tokens in one click.</p>
+                  </div>
+                  <form method="POST" action="{% url 'admin_dashboard' %}">
+                    {% csrf_token %}
+                    <button type="submit" name="run_unified_cron" value="1" class="btn btn-sm btn-brand-primary rounded-pill px-3">
+                      <i class="bi bi-cpu-fill me-1"></i>Execute Cron
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="p-3 border rounded-3 bg-light d-flex align-items-center justify-content-between">
+                  <div>
+                    <h6 class="fw-bold text-dark mb-1" style="font-size: 0.85rem;"><i class="bi bi-arrow-counterclockwise text-warning me-1"></i>Retry Failed Messages</h6>
+                    <p class="text-muted mb-0" style="font-size: 0.76rem;">Reset attempt counters and queued state for all failed outbound Mail and SMS items.</p>
+                  </div>
+                  <form method="POST" action="{% url 'admin_dashboard' %}">
+                    {% csrf_token %}
+                    <button type="submit" name="retry_failed_queues" value="1" class="btn btn-sm btn-outline-warning rounded-pill px-3">
+                      <i class="bi bi-arrow-repeat me-1"></i>Retry All Failed
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SMTP Diagnostics connection test -->
+        <div class="col-lg-6">
+          <div class="card h-100 shadow-sm rounded-4 p-4 bg-white" style="border: 1px solid rgba(15, 23, 42, 0.08);">
+            <h5 class="fw-bold mb-1 text-dark"><i class="bi bi-shield-check text-primary me-2"></i>Live SMTP Diagnostics & Health Check</h5>
+            <p class="text-muted small mb-4">Validate settings.py mail server configuration in real-time by sending an instant HTML diagnostic packet.</p>
+            
+            <form method="POST" action="{% url 'admin_dashboard' %}" class="needs-validation" novalidate>
+              {% csrf_token %}
+              <div class="mb-3">
+                <label for="test_email" class="form-label fw-semibold text-muted small">Diagnostic Recipient Email</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-envelope"></i></span>
+                  <input type="email" class="form-control border-start-0 bg-light" id="test_email" name="test_email" placeholder="e.g. administrator@domain.com" required>
+                </div>
+                <div class="form-text small text-muted">A beautiful HTML test mail will be sent via current SMTP backend host settings.</div>
+              </div>
+              <button type="submit" name="send_test_email" value="1" class="btn btn-brand-primary rounded-pill w-100 py-2.5 shadow-sm fw-bold">
+                <i class="bi bi-envelope-paper-heart-fill me-2"></i>Send SMTP Diagnostic Test Email
+              </button>
+            </form>
+
+            <div class="mt-4 pt-3 border-top">
+              <span class="fw-bold small text-dark d-block mb-2"><i class="bi bi-hdd-network text-muted me-1"></i>Active Host Settings</span>
+              <div class="row g-2 text-muted small" style="font-size: 0.78rem;">
+                <div class="col-6">SMTP Host: <b class="text-dark">{% if settings.EMAIL_HOST %}{{ settings.EMAIL_HOST }}{% else %}smtp.gmail.com{% endif %}</b></div>
+                <div class="col-6">SMTP Port: <b class="text-dark">{% if settings.EMAIL_PORT %}{{ settings.EMAIL_PORT }}{% else %}587{% endif %}</b></div>
+                <div class="col-12">From Name: <b class="text-dark">{% if settings.DEFAULT_FROM_EMAIL %}{{ settings.DEFAULT_FROM_EMAIL }}{% else %}Saral Pathshala &lt;saralpathshala.nepal@gmail.com&gt;{% endif %}</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Unverified Users Notifications Panel -->
+      <div class="card border border-light shadow-sm rounded-4 p-4 bg-white mb-4" style="border: 1px solid rgba(15, 23, 42, 0.08);">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+          <div>
+            <h5 class="fw-bold text-dark mb-1"><i class="bi bi-person-exclamation text-danger me-2"></i>Unverified Student Registration Alerts</h5>
+            <p class="text-muted small mb-0">Help students who struggle to verify. Direct actions to manually bypass or trigger confirmation flows.</p>
+          </div>
+          <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-bold">{{ unverified_users.count }} Unverified Accounts</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="border-0">Student Profile</th>
+                <th class="border-0">Email Address</th>
+                <th class="border-0">Phone Number</th>
+                <th class="border-0">Date Joined</th>
+                <th class="border-0 text-center">Verification Controls</th>
+              </tr>
+            </thead>
+            <tbody class="border-top-0">
+              {% for u in unverified_users %}
+                <tr>
+                  <td>
+                    <div class="fw-bold text-dark">{{ u.get_full_name }}</div>
+                    <small class="text-muted"><i class="bi bi-tag-fill me-1"></i>{{ u.get_current_level_display|default:"General Account" }}</small>
+                  </td>
+                  <td>
+                    {{ u.email }}
+                    {% if u.is_email_verified %}
+                      <span class="badge bg-success-subtle text-success border border-success-subtle ms-1" style="font-size: 0.65rem;">Verified</span>
+                    {% else %}
+                      <span class="badge bg-warning-subtle text-warning border border-warning-subtle ms-1" style="font-size: 0.65rem;">Unverified</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {{ u.phone|default:"—" }}
+                    {% if u.phone %}
+                      {% if u.is_phone_verified %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle ms-1" style="font-size: 0.65rem;">Verified</span>
+                      {% else %}
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle ms-1" style="font-size: 0.65rem;">Unverified</span>
+                      {% endif %}
+                    {% endif %}
+                  </td>
+                  <td class="small text-muted">{{ u.date_joined|date:"M d, Y, h:i A" }}</td>
+                  <td class="text-center">
+                    <div class="d-inline-flex gap-2 justify-content-center">
+                      {% if not u.is_email_verified %}
+                        <form method="POST" action="{% url 'admin_dashboard' %}" class="d-inline" onsubmit="return confirm('Manually mark email as verified for {{ u.get_full_name }}?');">
+                          {% csrf_token %}
+                          <input type="hidden" name="user_id" value="{{ u.pk }}">
+                          <button type="submit" name="verify_user_email" value="1" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 text-nowrap">
+                            <i class="bi bi-envelope-check me-1"></i>Verify Email
+                          </button>
+                        </form>
+                      {% endif %}
+                      {% if u.phone and not u.is_phone_verified %}
+                        <form method="POST" action="{% url 'admin_dashboard' %}" class="d-inline" onsubmit="return confirm('Manually mark phone number as verified for {{ u.get_full_name }}?');">
+                          {% csrf_token %}
+                          <input type="hidden" name="user_id" value="{{ u.pk }}">
+                          <button type="submit" name="verify_user_phone" value="1" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 text-nowrap">
+                            <i class="bi bi-phone-check me-1"></i>Verify Phone
+                          </button>
+                        </form>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center py-5 text-muted">
+                    <i class="bi bi-emoji-smile-fill text-success display-6 mb-2 d-block"></i> Perfect! No unverified student accounts found in the database.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recent Mock Exam Attempts Log with Admin Controls (Reset Attempts) -->
+      <div class="card border border-light shadow-sm rounded-4 p-4 bg-white mb-4" style="border: 1px solid rgba(15, 23, 42, 0.08);">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+          <div>
+            <h5 class="fw-bold text-dark mb-1"><i class="bi bi-journals text-primary me-2"></i>Mock Exam Attempts Log & Retake Center</h5>
+            <p class="text-muted small mb-0">Track completed mock exams. Delete previous student attempts to clear their retake locks instantly.</p>
+          </div>
+          <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-bold">{{ total_attempts_count }} Completed Attempts</span>
+        </div>
+
+        <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
+          <table class="table align-middle table-hover mb-0">
+            <thead class="table-light sticky-top">
+              <tr>
+                <th class="border-0">Student</th>
+                <th class="border-0">Exam Name</th>
+                <th class="border-0">Status</th>
+                <th class="border-0 text-center">Score / Marks</th>
+                <th class="border-0">Started At</th>
+                <th class="border-0">Completed At</th>
+                <th class="border-0 text-end">Action Controls</th>
+              </tr>
+            </thead>
+            <tbody class="border-top-0">
+              {% for att in recent_attempts %}
+                <tr>
+                  <td>
+                    <div class="fw-bold text-dark">{{ att.student.get_full_name }}</div>
+                    <small class="text-muted">{{ att.student.email }}</small>
+                  </td>
+                  <td>
+                    <span class="fw-semibold text-dark">{{ att.exam.title }}</span>
+                    <small class="text-muted d-block" style="font-size: 0.72rem;">{{ att.exam.course.name }}</small>
+                  </td>
+                  <td>
+                    {% if att.is_submitted %}
+                      <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-0.5 small fw-bold">Submitted</span>
+                    {% else %}
+                      <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-0.5 small fw-bold"><i class="realtime-dot me-1"></i>Active Taker</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    {% if att.is_submitted %}
+                      <div class="fw-bold text-primary">{{ att.score }} <span class="text-muted small">/ {{ att.exam.total_marks }}</span></div>
+                      <small class="text-muted" style="font-size:0.75rem;">(C: {{ att.correct_count }} | W: {{ att.wrong_count }})</small>
+                    {% else %}
+                      <span class="text-muted small">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="small text-muted">{{ att.started_at|date:"M d, Y, h:i A" }}</td>
+                  <td class="small text-muted">{{ att.completed_at|date:"M d, Y, h:i A"|default:"—" }}</td>
+                  <td class="text-end">
+                    <form method="POST" action="{% url 'admin_dashboard' %}" class="d-inline" onsubmit="return confirm('Are you sure you want to permanently delete this exam attempt? This will purge all answers and allow student to retake the exam from scratch.');">
+                      {% csrf_token %}
+                      <input type="hidden" name="attempt_id" value="{{ att.pk }}">
+                      <button type="submit" name="delete_student_attempt" value="1" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1">
+                        <i class="bi bi-trash-fill me-1"></i>Delete & Reset
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center py-5 text-muted">
+                    No mock examination attempts logged in the system yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Outbound failure system logs and queue inspection -->
+      <div class="row g-4">
+        <!-- SMTP Email outbound logs -->
+        <div class="col-lg-6">
+          <div class="card border border-light shadow-sm rounded-4 p-4 bg-white" style="border: 1px solid rgba(15, 23, 42, 0.08);">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-envelope-exclamation text-danger me-2"></i>Failed / Critical Email Outbox Logs</h5>
+              <span class="badge bg-danger text-white rounded-pill">{{ mail_queue_stats.failed }} Failed</span>
+            </div>
+            <p class="text-muted small mb-3">Inspect delivery failure reasons and system SMTP network errors.</p>
+            
+            <div class="overflow-auto pe-1" style="max-height: 350px;">
+              {% if recent_failed_emails %}
+                <div class="list-group list-group-flush">
+                  {% for mail in recent_failed_emails %}
+                    <div class="list-group-item px-0 py-3 border-light">
+                      <div class="d-flex justify-content-between align-items-start mb-1">
+                        <h6 class="fw-bold mb-0 text-dark small">{{ mail.to_email }}</h6>
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle small fw-bold" style="font-size: 0.65rem; padding: 0.15rem 0.35rem;">Failed (Attempts: {{ mail.retry_count }})</span>
+                      </div>
+                      <div class="small text-muted mb-2">Subject: <span class="text-dark fw-semibold">{{ mail.subject }}</span> &bull; {{ mail.created_at|date:"M d, h:i A" }}</div>
+                      {% if mail.failure_reason %}
+                        <div class="p-2.5 rounded bg-light border border-light font-monospace small text-danger" style="font-size: 0.75rem; white-space: pre-wrap; word-break: break-all;">
+                          {{ mail.failure_reason }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="text-center py-5 text-muted">
+                  <i class="bi bi-check-circle-fill text-success display-6 d-block mb-2"></i>
+                  <span>Outbound email channel is clean! No failed deliveries logged.</span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- SMS Outbound logs -->
+        <div class="col-lg-6">
+          <div class="card border border-light shadow-sm rounded-4 p-4 bg-white" style="border: 1px solid rgba(15, 23, 42, 0.08);">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-chat-square-dots text-danger me-2"></i>Failed / Critical SMS Gateway Logs</h5>
+              <span class="badge bg-danger text-white rounded-pill">{{ sms_queue_stats.failed }} Failed</span>
+            </div>
+            <p class="text-muted small mb-3">Inspect mobile operator delivery errors and gateway authentication failures.</p>
+            
+            <div class="overflow-auto pe-1" style="max-height: 350px;">
+              {% if recent_failed_sms %}
+                <div class="list-group list-group-flush">
+                  {% for sms in recent_failed_sms %}
+                    <div class="list-group-item px-0 py-3 border-light">
+                      <div class="d-flex justify-content-between align-items-start mb-1">
+                        <h6 class="fw-bold mb-0 text-dark small">{{ sms.to_phone }}</h6>
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle small fw-bold" style="font-size: 0.65rem; padding: 0.15rem 0.35rem;">Failed (Attempts: {{ sms.retry_count }})</span>
+                      </div>
+                      <div class="small text-muted mb-2">Message: <span class="text-dark fw-semibold">{{ sms.message|truncatechars:35 }}</span> &bull; {{ sms.created_at|date:"M d, h:i A" }}</div>
+                      {% if sms.failure_reason %}
+                        <div class="p-2.5 rounded bg-light border border-light font-monospace small text-danger" style="font-size: 0.75rem; white-space: pre-wrap; word-break: break-all;">
+                          {{ sms.failure_reason }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="text-center py-5 text-muted">
+                  <i class="bi bi-check-circle-fill text-success display-6 d-block mb-2"></i>
+                  <span>Outbound SMS gateway is clean! No failed deliveries logged.</span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 5: SITE CONFIGURATIONS -->
+    <div class="tab-pane fade" id="settings-panel" role="tabpanel" aria-labelledby="settings-tab">
+      <div class="card border border-light shadow-sm rounded-4 p-4 bg-white">
+        <div class="mb-4">
+          <h5 class="fw-bold text-dark mb-1"><i class="bi bi-gear-fill text-primary me-2"></i>Global Portal Settings & Brand Configuration</h5>
+          <p class="text-muted small mb-0">Modify brand names, contact details, social links, SEO tags, and website assets. Enforces container constraints on uploaded images to prevent UI breakage.</p>
+        </div>
+        
+        <form method="POST" action="{% url 'admin_dashboard' %}" enctype="multipart/form-data" class="needs-validation" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="update_settings" value="1">
+          
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-muted small" for="site_name">Brand Name</label>
+              <input type="text" class="form-control" id="site_name" name="site_name" value="{{ site_settings.site_name }}" required>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-muted small" for="site_title">Brand Tagline / Title</label>
+              <input type="text" class="form-control" id="site_title" name="site_title" value="{{ site_settings.site_title }}" required>
+            </div>
+            
+            <div class="col-12">
+              <label class="form-label fw-semibold text-muted small" for="site_description">Portal SEO Description</label>
+              <textarea class="form-control" id="site_description" name="site_description" rows="3">{{ site_settings.site_description }}</textarea>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-muted small" for="meta_keywords">SEO Keywords (comma separated)</label>
+              <input type="text" class="form-control" id="meta_keywords" name="meta_keywords" value="{{ site_settings.meta_keywords }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-muted small" for="google_analytics_id">Google Analytics ID (e.g. G-XXXXXXXXXX)</label>
+              <input type="text" class="form-control" id="google_analytics_id" name="google_analytics_id" value="{{ site_settings.google_analytics_id }}">
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label fw-semibold text-muted small" for="contact_email">Support Email Address</label>
+              <input type="email" class="form-control" id="contact_email" name="contact_email" value="{{ site_settings.contact_email }}" required>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label fw-semibold text-muted small" for="contact_phone">Support Phone Number</label>
+              <input type="text" class="form-control" id="contact_phone" name="contact_phone" value="{{ site_settings.contact_phone }}" required>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label fw-semibold text-muted small" for="whatsapp_number">Support WhatsApp Number (no prefix)</label>
+              <input type="text" class="form-control" id="whatsapp_number" name="whatsapp_number" value="{{ site_settings.whatsapp_number }}">
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label fw-semibold text-muted small" for="contact_address">Physical Address Location</label>
+              <input type="text" class="form-control" id="contact_address" name="contact_address" value="{{ site_settings.contact_address }}">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold text-muted small" for="social_facebook">Facebook Company URL</label>
+              <input type="url" class="form-control" id="social_facebook" name="social_facebook" value="{{ site_settings.social_facebook }}">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold text-muted small" for="social_instagram">Instagram Company URL</label>
+              <input type="url" class="form-control" id="social_instagram" name="social_instagram" value="{{ site_settings.social_instagram }}">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold text-muted small" for="social_linkedin">LinkedIn Company URL</label>
+              <input type="url" class="form-control" id="social_linkedin" name="social_linkedin" value="{{ site_settings.social_linkedin }}">
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-muted small" for="logo">Update Company Logo</label>
+              <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
+              {% if site_settings.logo %}
+                <div class="mt-3 p-3 bg-light rounded border d-flex align-items-center gap-3">
+                  <img src="{{ site_settings.logo.url }}" alt="Company Logo Preview" style="max-height: 40px; max-width: 150px; object-fit: contain;">
+                  <span class="text-muted small">Current: <b>{{ site_settings.logo.name }}</b></span>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-muted small" for="favicon">Update Tab Favicon</label>
+              <input type="file" class="form-control" id="favicon" name="favicon" accept="image/*">
+              {% if site_settings.favicon %}
+                <div class="mt-3 p-3 bg-light rounded border d-flex align-items-center gap-3">
+                  <img src="{{ site_settings.favicon.url }}" alt="Company Favicon Preview" style="max-height: 24px; max-width: 24px; object-fit: contain;">
+                  <span class="text-muted small">Current: <b>{{ site_settings.favicon.name }}</b></span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-top text-end">
+            <button type="submit" class="btn btn-brand-primary px-5 rounded-pill shadow-sm"><i class="bi bi-save me-2"></i>Save Portal Settings</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // ----------------------------------------------------
+    // Chart 1: Performance Bar & Line Chart
+    // ----------------------------------------------------
+    const examLabels = {{ chart_exam_titles_json|safe }};
+    const avgScores = {{ chart_avg_scores_json|safe }};
+    const attempts = {{ chart_attempt_counts_json|safe }};
+
+    if (examLabels && examLabels.length > 0) {
+      const ctx = document.getElementById('averageScoresChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: examLabels,
+          datasets: [
+            {
+              label: 'Average Score (%)',
+              data: avgScores,
+              backgroundColor: 'rgba(45, 137, 200, 0.75)',
+              borderColor: 'rgba(45, 137, 200, 1)',
+              borderWidth: 1.5,
+              borderRadius: 6,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Attempts Count',
+              data: attempts,
+              backgroundColor: 'rgba(230, 126, 34, 0.75)',
+              borderColor: 'rgba(230, 126, 34, 1)',
+              borderWidth: 2,
+              borderRadius: 6,
+              type: 'line',
+              tension: 0.15,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              title: {
+                display: true,
+                text: 'Average Score (%)',
+                font: { weight: 'bold' }
+              }
+            },
+            y1: {
+              beginAtZero: true,
+              position: 'right',
+              grid: { drawOnChartArea: false },
+              title: {
+                display: true,
+                text: 'Total Attempts Count',
+                font: { weight: 'bold' }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ----------------------------------------------------
+    // Chart 2: Educational Level Doughnut Chart
+    // ----------------------------------------------------
+    const demoData = {{ demographics_json|safe }};
+    if (demoData && demoData.counts.some(c => c > 0)) {
+      const ctx2 = document.getElementById('demographicsChart').getContext('2d');
+      new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          labels: demoData.labels,
+          datasets: [{
+            data: demoData.counts,
+            backgroundColor: [
+              'rgba(45, 137, 200, 0.8)',  // Primary Blue
+              'rgba(230, 126, 34, 0.8)',  // Orange
+              'rgba(16, 185, 129, 0.8)'   // Green
+            ],
+            borderColor: '#ffffff',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { boxWidth: 12, padding: 15 }
+            }
+          }
+        }
+      });
+    } else {
+      document.getElementById('demographicsChart').style.display = 'none';
+      const container = document.getElementById('demographicsChart').parentNode;
+      container.innerHTML = `<div class="text-muted text-center py-5"><i class="bi bi-pie-chart display-6 mb-2 d-block"></i>No student tier data available yet</div>`;
+    }
+
+    // ----------------------------------------------------
+    // Chart 3: Course Enrollee Horizontal Bar Chart
+    // ----------------------------------------------------
+    const courseNames = {{ chart_course_names_json|safe }};
+    const courseCounts = {{ chart_course_enrollees_json|safe }};
+
+    if (courseNames && courseNames.length > 0) {
+      const ctx3 = document.getElementById('coursesChart').getContext('2d');
+      new Chart(ctx3, {
+        type: 'bar',
+        data: {
+          labels: courseNames,
+          datasets: [{
+            label: 'Students Enrolled',
+            data: courseCounts,
+            backgroundColor: 'rgba(16, 185, 129, 0.75)', // Green-Teal
+            borderColor: 'rgba(16, 185, 129, 1)',
+            borderWidth: 1.5,
+            borderRadius: 4
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: { precision: 0 },
+              title: {
+                display: true,
+                text: 'Number of Enrolled Students',
+                font: { weight: 'bold' }
+              }
+            }
+          }
+        }
+      });
+    } else {
+      document.getElementById('coursesChart').style.display = 'none';
+      const container = document.getElementById('coursesChart').parentNode;
+      container.innerHTML = `<div class="text-muted text-center py-5"><i class="bi bi-bookmark-x display-6 mb-2 d-block"></i>No active courses with student enrollment</div>`;
+    }
+  });
+</script>
+{% endblock %}

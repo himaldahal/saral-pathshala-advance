@@ -51,6 +51,21 @@ class VerificationFilter(admin.SimpleListFilter):
 # ── User Admin ──────────────────────────────────────────────────────────────
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin, ExportCsvMixin):
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
     list_display = ('full_name', 'email', 'phone', 'level_badge', 'verify_status', 'date_joined', 'is_staff')
     list_filter = (VerificationFilter, 'current_level', 'is_staff', 'date_joined')
     search_fields = ('full_name', 'email', 'phone')
@@ -141,6 +156,6 @@ class PasswordResetAdmin(admin.ModelAdmin):
 admin.site.register(EmailToken)
 
 # ── Site Customization ──────────────────────────────────────────────────────
-admin.site.site_header = "Saral Pathshala Admin"
-admin.site.site_title = "Saral Pathshala Portal"
-admin.site.index_title = "System Management & Analytics"
+admin.site.site_header = "🎓 Saral Pathshala — Command Center"
+admin.site.site_title = "Saral Pathshala Command Center"
+admin.site.index_title = "Platform Administration & Systems Control"
