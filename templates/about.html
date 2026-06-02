@@ -1,66 +1,174 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}About Us - {{ site_settings.site_name }}{% endblock %}
 
-{% block content %}
-<section class="py-5 bg-white border-bottom shadow-sm">
-  <div class="container text-center py-4">
-    <span class="badge bg-soft text-primary border px-3 py-2 rounded-pill mb-3 small fw-bold">WHO WE ARE</span>
-    <h1 class="display-5 fw-bold serif-title mb-3">About Saral Pathshala</h1>
-    <p class="lead text-muted mx-auto" style="max-width: 700px;">
-      Empowering students across Nepal to prepare effectively, quickly, and securely for high-stake entry examinations.
-    </p>
-  </div>
-</section>
+{% block extra_css %}
+<style>
+  .about-hero {
+    background: linear-gradient(135deg, #0f4c81 0%, #1a6bb5 60%, #1e88e5 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .about-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .about-hero .overlay-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  .stat-card {
+    background: #fff;
+    border: 1px solid #e8f0fe;
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(26, 107, 181, 0.12);
+  }
+  .stat-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1a6bb5;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.35rem;
+    font-weight: 500;
+  }
+  .feature-icon-wrap {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+  .program-card {
+    border: 1.5px solid #e8f0fe;
+    border-radius: 16px;
+    padding: 1.5rem;
+    height: 100%;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: #fff;
+  }
+  .program-card:hover {
+    border-color: #1a6bb5;
+    box-shadow: 0 6px 24px rgba(26,107,181,0.10);
+  }
+  .program-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.65rem;
+    border-radius: 100px;
+    margin-bottom: 0.85rem;
+  }
+  .section-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #1a6bb5;
+  }
+  .timeline-item {
+    display: flex;
+    gap: 1.25rem;
+    padding-bottom: 2rem;
+    position: relative;
+  }
+  .timeline-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 23px;
+    top: 48px;
+    bottom: 0;
+    width: 2px;
+    background: #e8f0fe;
+  }
+  .timeline-dot {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #e8f0fe;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #1a6bb5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+    color: #1a6bb5;
+  }
+  .contact-bar {
+    background: linear-gradient(90deg, #0f4c81, #1e88e5);
+    border-radius: 20px;
+  }
+</style>
+{% endblock %}
 
-<section class="py-5">
-  <div class="container">
-    <div class="row g-5 align-items-center">
-      <div class="col-lg-6">
-        <h2 class="serif-title mb-4">Our Vision & Mission</h2>
-        <p class="text-muted">
-          Our core objective is to deliver high-quality, comprehensive learning materials to every entrance examinee in Nepal, regardless of their location. We combine structured video lectures, real-time mock exams, and state-of-the-art anti-cheat mechanisms to ensure an authentic and high-performance prep experience.
+{% block content %}
+
+<!-- HERO -->
+<section class="about-hero py-5 text-white">
+  <div class="overlay-circle" style="width:400px;height:400px;top:-150px;right:-100px;"></div>
+  <div class="overlay-circle" style="width:250px;height:250px;bottom:-80px;left:5%;"></div>
+  <div class="container py-4 position-relative">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-7">
+        <p class="section-eyebrow" style="color:rgba(255,255,255,0.75);">Bagbazar, Kathmandu</p>
+        <h1 class="display-4 fw-bold mb-3" style="letter-spacing:-0.02em;">
+          Nepal's Trusted<br>Entrance Preparation<br>Institute
+        </h1>
+        <p class="lead mb-4" style="color:rgba(255,255,255,0.85);max-width:560px;">
+          Saral Pathshala is a premier coaching institute guiding thousands of Nepali students every year toward success in IOE, CEE, B.Sc. CSIT, BCA, BIT, CMAT, and Loksewa examinations.
         </p>
-        <p class="text-muted">
-          Whether you are targeting engineering entrance exams under IOE, medical entries via CEE, or computer science through BSC.CSIT, we have a fully customized syllabus dashboard built just for you.
-        </p>
-        
-        <h4 class="fw-bold mt-4 mb-3">Why Choose Us?</h4>
-        <ul class="list-unstyled d-flex flex-column gap-3 text-muted">
-          <li class="d-flex align-items-start gap-2">
-            <i class="bi bi-shield-check text-success fs-5"></i>
-            <span><b>Robust Anti-Cheat:</b> We secure online test attempts, ensuring strict compliance and zero answer leaks to the frontend.</span>
-          </li>
-          <li class="d-flex align-items-start gap-2">
-            <i class="bi bi-clock-history text-primary fs-5"></i>
-            <span><b>Live Timers & Auto-Submit:</b> Realistic exam experience with built-in time-limits and live leaderboard updates.</span>
-          </li>
-        
-        </ul>
+        <div class="d-flex gap-3 flex-wrap">
+          <a href="{% url 'course_list' %}" class="btn btn-light btn-lg px-4 fw-semibold" style="border-radius:12px;color:#1a6bb5;">
+            <i class="bi bi-collection-play me-2"></i>Browse Courses
+          </a>
+          <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg px-4" style="border-radius:12px;">
+            Enroll Now
+          </a>
+        </div>
       </div>
-      <div class="col-lg-6">
-        <div class="bg-light border p-5 rounded-4 shadow-sm text-center">
-          <h3 class="serif-title text-primary mb-3">System Features</h3>
-          <div class="row g-3">
-            <div class="col-6 py-3 border-bottom border-end">
-              <i class="bi bi-pencil-square text-success fs-1 mb-2 d-block"></i>
-              <span class="fw-bold d-block text-dark">Mock Tests</span>
-              <small class="text-muted">Timed MCQ papers</small>
+      <div class="col-lg-5">
+        <div class="row g-3">
+          <div class="col-6">
+            <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);border-radius:16px;padding:1.5rem;text-align:center;backdrop-filter:blur(8px);">
+              <div class="fw-bold" style="font-size:2.2rem;line-height:1;">15+</div>
+              <div style="font-size:0.85rem;opacity:.8;margin-top:4px;">Years of Excellence</div>
             </div>
-            <div class="col-6 py-3 border-bottom">
-              <i class="bi bi-collection-play text-danger fs-1 mb-2 d-block"></i>
-              <span class="fw-bold d-block text-dark">Lectures</span>
-              <small class="text-muted">High Quality embeds</small>
+          </div>
+          <div class="col-6">
+            <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);border-radius:16px;padding:1.5rem;text-align:center;backdrop-filter:blur(8px);">
+              <div class="fw-bold" style="font-size:2.2rem;line-height:1;">50K+</div>
+              <div style="font-size:0.85rem;opacity:.8;margin-top:4px;">Students Enrolled</div>
             </div>
-            <div class="col-6 py-3 border-end">
-              <i class="bi bi-bell text-warning fs-1 mb-2 d-block"></i>
-              <span class="fw-bold d-block text-dark">Result Sheets</span>
-              <small class="text-muted">Instant notice PDFs</small>
+          </div>
+          <div class="col-6">
+            <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);border-radius:16px;padding:1.5rem;text-align:center;backdrop-filter:blur(8px);">
+              <div class="fw-bold" style="font-size:2.2rem;line-height:1;">1000+</div>
+              <div style="font-size:0.85rem;opacity:.8;margin-top:4px;">Mock Tests</div>
             </div>
-            <div class="col-6 py-3">
-              <i class="bi bi-person-lock text-info fs-1 mb-2 d-block"></i>
-              <span class="fw-bold d-block text-dark">Locked OTP</span>
-              <small class="text-muted">Nepalese Akash SMS</small>
+          </div>
+          <div class="col-6">
+            <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);border-radius:16px;padding:1.5rem;text-align:center;backdrop-filter:blur(8px);">
+              <div class="fw-bold" style="font-size:2.2rem;line-height:1;">6</div>
+              <div style="font-size:0.85rem;opacity:.8;margin-top:4px;">Exam Categories</div>
             </div>
           </div>
         </div>
@@ -68,4 +176,257 @@
     </div>
   </div>
 </section>
+
+<!-- WHO WE ARE -->
+<section class="py-5 bg-white">
+  <div class="container">
+    <div class="row g-5 align-items-center">
+      <div class="col-lg-6">
+        <p class="section-eyebrow mb-2">Who We Are</p>
+        <h2 class="fw-bold mb-4" style="font-size:2rem;letter-spacing:-0.01em;">More Than a Coaching Institute</h2>
+        <p class="text-muted fs-5 mb-4">
+          Founded and based in <strong>Bagbazar, Kathmandu</strong>, Saral Pathshala has grown into one of Nepal's most recognized entrance preparation centers. We combine disciplined classroom teaching with a modern digital platform — so students in every corner of Nepal can access the same quality preparation.
+        </p>
+        <p class="text-muted mb-4">
+          Our online platform extends the physical classroom: students can watch structured video lectures, attempt live mock tests with instant analytics, and track their progress from anywhere, at any time. We offer <strong>morning, day, and evening shifts</strong> and remain open even on public holidays.
+        </p>
+        <div class="d-flex gap-3 align-items-center p-3" style="background:#f0f7ff;border-radius:14px;border:1px solid #d0e8ff;">
+          <i class="bi bi-geo-alt-fill text-primary fs-4"></i>
+          <div>
+            <div class="fw-semibold text-dark">Bagbazar, Kathmandu</div>
+            <div class="text-muted small">Opposite VIP Marga &mdash; 01-5929494 &nbsp;|&nbsp; 9840186294</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="d-flex gap-3 align-items-start p-4" style="background:#f8fafc;border-radius:16px;border:1px solid #e8f0fe;">
+              <div class="feature-icon-wrap" style="background:#e8f0fe;color:#1a6bb5;">
+                <i class="bi bi-mortarboard-fill"></i>
+              </div>
+              <div>
+                <h5 class="fw-bold mb-1">Expert Faculty</h5>
+                <p class="text-muted mb-0 small">Experienced subject specialists who know every pattern, shortcut, and trap that entrance exams set each year.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="d-flex gap-3 align-items-start p-4" style="background:#f8fafc;border-radius:16px;border:1px solid #e8f0fe;">
+              <div class="feature-icon-wrap" style="background:#e8f5ee;color:#14a85b;">
+                <i class="bi bi-shield-check-fill"></i>
+              </div>
+              <div>
+                <h5 class="fw-bold mb-1">Secure Online Tests</h5>
+                <p class="text-muted mb-0 small">Answers are never exposed to the frontend. OTP-locked access, anti-cheat mechanisms, and server-side scoring ensure integrity.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="d-flex gap-3 align-items-start p-4" style="background:#f8fafc;border-radius:16px;border:1px solid #e8f0fe;">
+              <div class="feature-icon-wrap" style="background:#fff3e8;color:#f07c00;">
+                <i class="bi bi-bar-chart-line-fill"></i>
+              </div>
+              <div>
+                <h5 class="fw-bold mb-1">Instant Analytics</h5>
+                <p class="text-muted mb-0 small">Detailed result sheets, chapter-wise weak-point breakdown, and live leaderboards after every mock test.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROGRAMS -->
+<section class="py-5" style="background:#f4f8ff;">
+  <div class="container">
+    <div class="text-center mb-5">
+      <p class="section-eyebrow mb-2">Programs We Offer</p>
+      <h2 class="fw-bold" style="font-size:2rem;letter-spacing:-0.01em;">Preparation for Every Major Entrance</h2>
+      <p class="text-muted mt-2 mx-auto" style="max-width:560px;">
+        Whether you're targeting engineering, medicine, computing, or management, we have a fully customized syllabus and test track built for your exam.
+      </p>
+    </div>
+    <div class="row g-4">
+
+      <div class="col-md-6 col-lg-4">
+        <div class="program-card">
+          <span class="program-badge" style="background:#e8f0fe;color:#1a5cbf;">Engineering</span>
+          <h5 class="fw-bold mb-2">IOE Entrance</h5>
+          <p class="text-muted small mb-3">Focused preparation for Pulchowk Campus and all IOE constituent campuses. Covers Physics, Chemistry, Math, and English.</p>
+          <ul class="list-unstyled mb-0 small text-muted">
+            <li class="mb-1"><i class="bi bi-check-circle-fill text-success me-2"></i>Full IOE syllabus coverage</li>
+            <li class="mb-1"><i class="bi bi-check-circle-fill text-success me-2"></i>Previous year paper analysis</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Weekly timed mock tests</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="program-card">
+          <span class="program-badge" style="background:#fde8e8;color:#c0392b;">Medical</span>
+          <h5 class="fw-bold mb-2">CEE (MBBS/BDS/Nursing)</h5>
+          <p class="text-muted small mb-3">Comprehensive coaching for the Medical Entrance Examination targeting MBBS, BDS, and Nursing seats across Nepal.</p>
+          <ul class="list-unstyled mb-0 small text-muted">
+            <li class="mb-1"><i class="bi bi-check-circle-fill text-success me-2"></i>Biology, Chemistry, Physics</li>
+            <li class="mb-1"><i class="bi bi-check-circle-fill text-success me-2"></i>CEE-specific question banks</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Instant result analytics</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="program-card">
+          <span class="program-badge" style="background:#e8faf1;color:#0f7b4d;">IT & Computing</span>
+          <h5 class="fw-bold mb-2">B.Sc. CSIT / BCA / BIT</h5>
+          <p class="text-muted small mb-3">Exam-specific modules for TU B.Sc. CSIT, BCA, and BIT entrance. Covers aptitude, logical reasoning, and technical subjects.</p>
+          <ul class="list-unstyled mb-0 small text-muted">
+            <li class="mb-1"><i class="bi bi-check-circle-fill text-success me-2"></i>Program-wise test sets</li>
+            <li class="mb-1"><i class="bi bi-check-circle-fill text-success me-2"></i>Aptitude and verbal sections</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Video lecture access</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="program-card">
+          <span class="program-badge" style="background:#fff8e1;color:#b07800;">Management</span>
+          <h5 class="fw-bold mb-2">CMAT / KUUMAT</h5>
+          <p class="text-muted small mb-3">Targeted coaching for BBA, BBM, and BIM entrance examinations with quantitative, verbal, and analytical preparation.</p>
+          <ul class="list-unstyled mb-0 small text-muted">
+            <li class="mb-1"><i class="bi bi-check-circle-fill text-success me-2"></i>CMAT & KUUMAT patterns</li>
+            <li class="mb-1"><i class="bi bi-check-circle-fill text-success me-2"></i>Section-wise drills</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Formula sheets & notes</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="program-card">
+          <span class="program-badge" style="background:#f0e8ff;color:#6b2dbf;">Law & Others</span>
+          <h5 class="fw-bold mb-2">B.A. LLB / Bridge / Loksewa</h5>
+          <p class="text-muted small mb-3">Preparation programs for law entrance, bridge courses, and Loksewa (Public Service Commission) examinations.</p>
+          <ul class="list-unstyled mb-0 small text-muted">
+            <li class="mb-1"><i class="bi bi-check-circle-fill text-success me-2"></i>LLB entrance coaching</li>
+            <li class="mb-1"><i class="bi bi-check-circle-fill text-success me-2"></i>PSC Loksewa prep</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Bridge course materials</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="program-card" style="border-style:dashed;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:220px;">
+          <i class="bi bi-plus-circle text-muted fs-2 mb-2"></i>
+          <h6 class="fw-bold text-muted mb-1">More Coming Soon</h6>
+          <p class="small text-muted mb-0">We continuously expand our programs based on student demand.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PLATFORM FEATURES -->
+<section class="py-5 bg-white">
+  <div class="container">
+    <div class="row g-5 align-items-center">
+      <div class="col-lg-5">
+        <p class="section-eyebrow mb-2">Online Platform</p>
+        <h2 class="fw-bold mb-4" style="font-size:2rem;letter-spacing:-0.01em;">A Complete Digital Study Environment</h2>
+        <p class="text-muted mb-4">
+          Our online platform is purpose-built for serious entrance exam preparation — not a generic LMS. Every feature is designed around how Nepali students actually prepare and what actually works.
+        </p>
+        <div class="timeline-item">
+          <div class="timeline-dot"><i class="bi bi-play-circle-fill"></i></div>
+          <div>
+            <h6 class="fw-bold mb-1">Protected Video Lectures</h6>
+            <p class="small text-muted mb-0">High-quality lecture videos with watermarking and anti-download protections. Study at your own pace — morning, afternoon, or midnight.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"><i class="bi bi-stopwatch-fill"></i></div>
+          <div>
+            <h6 class="fw-bold mb-1">Live Timed Mock Tests</h6>
+            <p class="small text-muted mb-0">Realistic exam simulation with auto-submit on time-out, live countdowns, and server-side scoring — no answer leaks possible.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"><i class="bi bi-graph-up-arrow"></i></div>
+          <div>
+            <h6 class="fw-bold mb-1">Performance Analytics</h6>
+            <p class="small text-muted mb-0">Chapter-wise breakdown of accuracy, speed, and weak areas. Track your improvement over every test attempt.</p>
+          </div>
+        </div>
+        <div class="timeline-item" style="padding-bottom:0;">
+          <div class="timeline-dot"><i class="bi bi-phone-vibrate-fill"></i></div>
+          <div>
+            <h6 class="fw-bold mb-1">OTP-Secured Access</h6>
+            <p class="small text-muted mb-0">Nepal phone number verification via Akash SMS. Device-based session control ensures account security and prevents unauthorized sharing.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="p-4 rounded-4 text-center h-100" style="background:linear-gradient(135deg,#e8f0fe,#c8d9f9);border:1px solid #b8cef7;">
+              <i class="bi bi-collection-play-fill text-primary fs-1 mb-2 d-block"></i>
+              <div class="fw-bold text-dark">Video Lectures</div>
+              <div class="small text-secondary">Structured, chapter-wise videos</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-4 rounded-4 text-center h-100" style="background:linear-gradient(135deg,#fde8e8,#fac8c8);border:1px solid #f8a8a8;">
+              <i class="bi bi-pencil-square text-danger fs-1 mb-2 d-block"></i>
+              <div class="fw-bold text-dark">Mock Tests</div>
+              <div class="small text-secondary">1000+ MCQ practice papers</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-4 rounded-4 text-center h-100" style="background:linear-gradient(135deg,#fff8e1,#fdeeba);border:1px solid #fad97a;">
+              <i class="bi bi-journal-text text-warning fs-1 mb-2 d-block"></i>
+              <div class="fw-bold text-dark">Study Notes</div>
+              <div class="small text-secondary">Chapter-wise formula sheets</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-4 rounded-4 text-center h-100" style="background:linear-gradient(135deg,#f0e8ff,#dac8f7);border:1px solid #c8a8ef;">
+              <i class="bi bi-trophy-fill text-purple fs-1 mb-2 d-block" style="color:#7c3aed;"></i>
+              <div class="fw-bold text-dark">Leaderboards</div>
+              <div class="small text-secondary">Compete with peers live</div>
+            </div>
+          </div>
+      
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT / CTA -->
+<section class="py-5" style="background:#f4f8ff;">
+  <div class="container">
+    <div class="contact-bar p-5 text-white text-center" style="">
+      <h2 class="fw-bold mb-2" style="font-size:1.8rem;">Ready to Start Your Preparation?</h2>
+      <p class="mb-4" style="opacity:.9;max-width:560px;margin-inline:auto;">
+        Join thousands of students already preparing with Saral Pathshala. Register today and access video lectures, mock tests, and result analytics instantly.
+      </p>
+      <div class="d-flex gap-3 justify-content-center flex-wrap mb-4">
+        <a href="{% url 'register' %}" class="btn btn-light btn-lg px-4 fw-semibold" style="border-radius:12px;color:#1a6bb5;">
+          <i class="bi bi-person-plus me-2"></i>Create Free Account
+        </a>
+        <a href="tel:015929494" class="btn btn-outline-light btn-lg px-4" style="border-radius:12px;">
+          <i class="bi bi-telephone me-2"></i>Call Us
+        </a>
+      </div>
+      <div class="d-flex gap-4 justify-content-center flex-wrap" style="font-size:0.9rem;opacity:.85;">
+        <span><i class="bi bi-geo-alt me-1"></i>Bagbazar, Kathmandu</span>
+        <span><i class="bi bi-telephone me-1"></i>01-5929494</span>
+        <span><i class="bi bi-telephone me-1"></i>9840186294</span>
+      </div>
+    </div>
+  </div>
+</section>
+
 {% endblock %}
