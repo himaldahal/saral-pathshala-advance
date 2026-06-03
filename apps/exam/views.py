@@ -19,6 +19,7 @@ from django.urls import reverse
 
 from .models import Exam, ExamAttempt, Question, QuestionAttempt
 from .utils import get_exam_data, invalidate_exam_cache, get_leaderboard
+from apps.pages.models import Course
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -376,101 +377,146 @@ def exam_result(request, slug):
 # ─────────────────────────────────────────────────────────────────────────────
 # JSON template download
 # ─────────────────────────────────────────────────────────────────────────────
-
 @login_required
 def download_template(request):
     if not (request.user.is_staff or request.user.is_superuser):
         raise Http404
 
+    # Build available courses list for reference
+    courses = list(
+        Course.objects.filter(is_active=True).values('slug', 'name').order_by('name')
+    )
+    courses_ref = {c['slug']: c['name'] for c in courses}
+    first_slug = courses[0]['slug'] if courses else 'your-course-slug-here'
+
     template = {
         "_instructions": (
-            "Fill this JSON and upload it to instantly set up an exam. "
-            "You can give this to Gemini/GPT to populate. "
-            "Remove '_instructions' before uploading."
+            "1. Replace 'course_slug' with one of the slugs listed in '_available_courses'.\n"
+            "2. Fill in the exam details and sections.\n"
+            "3. Give this file to Gemini/GPT to populate questions automatically.\n"
+            "4. Remove '_instructions' and '_available_courses' before uploading.\n"
+            "5. Dates must be ISO-8601 format: YYYY-MM-DDTHH:MM:SS"
         ),
-        "course_title": "COURSE NAME (must already exist in admin)",
+        "_available_courses": courses_ref,
+
+        # ── Top-level ──────────────────────────────────────────────────────
+        "course_slug": first_slug,
+
+        # ── Exam meta ──────────────────────────────────────────────────────
         "exam": {
-            "title":               "Exam Title",
-            "description":         "<p>Optional HTML description shown on exam detail page.</p>",
-            "instructions":        "<p>Rules and instructions shown before the student starts.</p>",
+            "title":               "Exam Title Here",
+            "description":         "<p>Optional HTML description shown on the exam detail page.</p>",
+            "instructions":        "<p>Rules and instructions shown to the student before they start.</p>",
+
+            # Scheduling
             "start_date":          "2024-06-01T10:00:00",
-            "end_date":            "2024-06-01T13:00:00",
-            "duration_minutes":    180,
-            "correct_marks":       1.0,
-            "negative_marks":      0.25,
-            "has_negative_marking":True,
-            "result_mode":         "after_end",
-            "result_publish_time": None,
-            "make_public_after":   False,
+            "end_date":            "2024-06-01T13:00:00",   # null = no deadline
+            "duration_minutes":    180,                      # null = unlimited
+
+            # Scoring defaults (can be overridden per-section or per-question)
+            "correct_marks":        1.0,
+            "negative_marks":       0.25,
+            "has_negative_marking": True,
+
+            # Visibility
+            "make_public":          False,   # True = always open (practice exam)
+            "make_public_after":    False,   # True = allow attempts after end_date
+            "is_active":            True,
+
+            # Results
+            # Options: "hidden" | "after_end" | "auto" | "manual"
+            "result_mode":          "after_end",
+            "result_publish_time":  None,    # Only used when result_mode = "auto"
         },
+
+        # ── Sections ───────────────────────────────────────────────────────
         "sections": [
             {
-                "title":              "Section I — Physics",
-                "description":        "",
-                "order":              1,
-                "override_scoring":   False,
-                "correct_marks":      None,
-                "negative_marks":     None,
+                "title":       "Section I — Physics",
+                "description": "",
+                "order":       1,
+
+                # Set override_scoring=true to use custom marks for this section
+                # instead of the exam-level defaults above.
+                "override_scoring":    False,
+                "correct_marks":       None,
+                "negative_marks":      None,
                 "has_negative_marking": None,
+
+                # ── Paragraphs (optional reading passages) ─────────────────
+                # Leave as [] if no passages are needed.
+                # Questions link to a paragraph via paragraph_order.
                 "paragraphs": [
                     {
                         "title":   "Passage 1",
-                        "content": "Read the following passage and answer Q1–Q2.\n<p>Passage text here. Supports $LaTeX$, <b>HTML</b>, <pre><code class=\"language-python\">print('hello')</code></pre></p>",
-                        "order":   1,
+                        "content": (
+                            "Read the following passage and answer Q1–Q2.\n"
+                            "<p>Passage text here. Supports $LaTeX$ inline math, "
+                            "<b>HTML</b>, and code blocks: "
+                            "<pre><code class=\"language-python\">print('hello')</code></pre></p>"
+                        ),
+                        "order": 1,
                     }
                 ],
+
+                # ── Questions ──────────────────────────────────────────────
                 "questions": [
                     {
-                        "question_text":    "What is Newton's second law? $F = ?$",
-                        "option_one":       "ma",
-                        "option_two":       "mv",
-                        "option_three":     "mg",
-                        "option_four":      "mc²",
-                        "correct_option":   "1",
-                        "marks":            1.0,
-                        "use_custom_marks": False,
-                        "paragraph_order":  1,
                         "order":            1,
+                        "question_text":    "What is Newton's second law? $F = ?$",
+                        "option_one":       "$ma$",
+                        "option_two":       "$mv$",
+                        "option_three":     "$mg$",
+                        "option_four":      "$mc^2$",
+                        "correct_option":   "1",         # "1" | "2" | "3" | "4"
                         "explanation":      "Newton's second law: $F = ma$.",
+                        "paragraph_order":  1,           # links to paragraph above; null if standalone
+                        "marks":            1.0,
+                        "use_custom_marks": False,       # True = use this question's marks value
                     },
                     {
-                        "question_text":    "A standalone question (no paragraph)",
+                        "order":            2,
+                        "question_text":    "A standalone question with no reading passage.",
                         "option_one":       "Option A",
                         "option_two":       "Option B",
                         "option_three":     "Option C",
                         "option_four":      "Option D",
                         "correct_option":   "2",
+                        "explanation":      "",
+                        "paragraph_order":  None,
                         "marks":            1.0,
                         "use_custom_marks": False,
-                        "paragraph_order":  None,
-                        "order":            2,
-                        "explanation":      "",
                     },
                 ],
             },
+
             {
-                "title":              "Section II — Chemistry (2-mark, IOE style)",
-                "description":        "",
-                "order":              2,
-                "override_scoring":   True,
-                "correct_marks":      2.0,
-                "negative_marks":     0.2,
+                "title":       "Section II — Chemistry (IOE-style 2-mark section)",
+                "description": "",
+                "order":       2,
+
+                # This section overrides exam-level scoring
+                "override_scoring":    True,
+                "correct_marks":       2.0,
+                "negative_marks":      0.2,
                 "has_negative_marking": True,
-                "paragraphs":         [],
+
+                "paragraphs": [],
+
                 "questions": [
                     {
+                        "order":            1,
                         "question_text":    "What is the atomic number of Carbon?",
                         "option_one":       "6",
                         "option_two":       "12",
                         "option_three":     "14",
                         "option_four":      "8",
                         "correct_option":   "1",
+                        "explanation":      "Carbon has atomic number 6 and mass number 12.",
+                        "paragraph_order":  None,
                         "marks":            2.0,
                         "use_custom_marks": False,
-                        "paragraph_order":  None,
-                        "order":            1,
-                        "explanation":      "Carbon has atomic number 6.",
-                    }
+                    },
                 ],
             },
         ],
@@ -480,8 +526,6 @@ def download_template(request):
     response = HttpResponse(content, content_type='application/json; charset=utf-8')
     response['Content-Disposition'] = 'attachment; filename="exam_template.json"'
     return response
-
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Import exam (staff only)
 # ─────────────────────────────────────────────────────────────────────────────

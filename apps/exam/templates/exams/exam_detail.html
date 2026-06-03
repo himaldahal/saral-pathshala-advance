@@ -180,7 +180,7 @@
       {% elif exam.is_accessible %}
         <form method="post" action="{% url 'exams:start_exam' exam.slug %}">
           {% csrf_token %}
-          <button type="submit" class="btn-start-exam shadow">
+          <button type="submit" class="btn-start-exam shadow text-dark">
             <i class="bi bi-play-fill me-2"></i>Start Exam Now
           </button>
         </form>

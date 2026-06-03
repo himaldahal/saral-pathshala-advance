@@ -1,4 +1,5 @@
 from pathlib import Path
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -18,7 +19,7 @@ MY_APPS = [
     'apps.exam',
 ]
 
-EXTERNAL_APPS = ['tinymce']
+EXTERNAL_APPS = ['tinymce','django_celery_beat']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -37,6 +38,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'sp.urls'
@@ -168,5 +170,24 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'auth.saralpathshala@gmail.com'
 # EMAIL_HOST_PASSWORD = '@Himal_9869049923'
 EMAIL_HOST_PASSWORD = 'xukr ggif byqa yaqk'
-DEFAULT_FROM_EMAIL = 'Saral Pathshala <saralpathshala.nepal@gmail.com>'
-SERVER_EMAIL = 'saralpathshala.nepal@gmail.com'
+DEFAULT_FROM_EMAIL = 'Saral Pathshala <auth.saralpathshala@gmail.com>'
+SERVER_EMAIL = 'auth.saralpathshala@gmail.com'
+
+# Redis as broker + result backend
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Kathmandu'
+
+CELERY_BEAT_SCHEDULE = {
+    'process-sms-queue': {
+        'task': 'apps.cauth.tasks.process_sms_queue',
+        'schedule': 60.0,  # every 60 seconds
+    },
+    'process-email-queue': {
+        'task': 'apps.cauth.tasks.process_email_queue',
+        'schedule': 60.0,
+    },
+}

@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='smsqueue',
             name='to_phone',
-            field=models.CharField(max_length=10, validators=[django.core.validators.RegexValidator(message='Phone must be 10 digits starting with 97 or 98 (e.g. 9841234567).', regex='^(97|98)\\d{8}$')]),
+            field=models.CharField(max_length=10, validators=[django.core.validators.RegexValidator(message='Phone must be 10 digits starting with 97 or 98 (e.g.9761499683).', regex='^(97|98)\\d{8}$')]),
         ),
         migrations.AlterField(
             model_name='user',
@@ -47,7 +47,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='user',
             name='phone',
-            field=models.CharField(blank=True, db_index=True, max_length=10, null=True, unique=True, validators=[django.core.validators.RegexValidator(message='Phone must be 10 digits starting with 97 or 98 (e.g. 9841234567).', regex='^(97|98)\\d{8}$')]),
+            field=models.CharField(blank=True, db_index=True, max_length=10, null=True, unique=True, validators=[django.core.validators.RegexValidator(message='Phone must be 10 digits starting with 97 or 98 (e.g.9761499683).', regex='^(97|98)\\d{8}$')]),
         ),
         migrations.AlterField(
             model_name='user',
