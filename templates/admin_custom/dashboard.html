@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Analytics Dashboard & CRM — Custom Admin{% endblock %}
+{% block title %}Admin Analytics Dashboard & CRM | Custom Admin{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -248,7 +248,7 @@
                     </span>
                   </td>
                   <td class="text-muted small" style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ req.message }}">
-                    {{ req.message|default:"—" }}
+                    {{ req.message|default:"|" }}
                   </td>
                   <td class="small text-muted">{{ req.created_at|date:"M d, Y, h:i A" }}</td>
                   <td class="text-center">
@@ -377,7 +377,7 @@
                         {{ stat.active_now }} Active
                       </span>
                     {% else %}
-                      <span class="text-muted small">—</span>
+                      <span class="text-muted small">|</span>
                     {% endif %}
                   </td>
                   <td class="text-center">
@@ -385,7 +385,7 @@
                       <span class="fw-bold text-primary">{{ stat.average_score }}</span>
                       <small class="text-muted d-block" style="font-size:0.75rem;">({{ stat.average_pct }}%)</small>
                     {% else %}
-                      <span class="text-muted small">—</span>
+                      <span class="text-muted small">|</span>
                     {% endif %}
                   </td>
                   <td class="text-center">
@@ -393,7 +393,7 @@
                       <small class="text-muted d-block"><b>Min:</b> {{ stat.min_score }}</small>
                       <small class="text-muted d-block"><b>Max:</b> {{ stat.max_score }}</small>
                     {% else %}
-                      <span class="text-muted small">—</span>
+                      <span class="text-muted small">|</span>
                     {% endif %}
                   </td>
                   <td>
@@ -481,7 +481,7 @@
                     <small class="text-muted"><i class="bi bi-building me-1"></i>{{ student.previous_institute|default:"No Previous Institute Info" }}</small>
                   </td>
                   <td>{{ student.email }}</td>
-                  <td>{{ student.phone|default:"—" }}</td>
+                  <td>{{ student.phone|default:"|" }}</td>
                   <td>
                     <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 small fw-bold">
                       {{ student.get_current_level_display|default:"General / Not Selected" }}
@@ -656,7 +656,7 @@
                     {% endif %}
                   </td>
                   <td>
-                    {{ u.phone|default:"—" }}
+                    {{ u.phone|default:"|" }}
                     {% if u.phone %}
                       {% if u.is_phone_verified %}
                         <span class="badge bg-success-subtle text-success border border-success-subtle ms-1" style="font-size: 0.65rem;">Verified</span>
@@ -747,11 +747,11 @@
                       <div class="fw-bold text-primary">{{ att.score }} <span class="text-muted small">/ {{ att.exam.total_marks }}</span></div>
                       <small class="text-muted" style="font-size:0.75rem;">(C: {{ att.correct_count }} | W: {{ att.wrong_count }})</small>
                     {% else %}
-                      <span class="text-muted small">—</span>
+                      <span class="text-muted small">|</span>
                     {% endif %}
                   </td>
                   <td class="small text-muted">{{ att.started_at|date:"M d, Y, h:i A" }}</td>
-                  <td class="small text-muted">{{ att.completed_at|date:"M d, Y, h:i A"|default:"—" }}</td>
+                  <td class="small text-muted">{{ att.completed_at|date:"M d, Y, h:i A"|default:"|" }}</td>
                   <td class="text-end">
                     <form method="POST" action="{% url 'admin_dashboard' %}" class="d-inline" onsubmit="return confirm('Are you sure you want to permanently delete this exam attempt? This will purge all answers and allow student to retake the exam from scratch.');">
                       {% csrf_token %}

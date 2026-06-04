@@ -34,7 +34,7 @@ class Command(BaseCommand):
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"Error executing process_mail_queue: {str(e)}"))
 
-        # 3. Cleanup — throttled via cache, runs every 5 minutes max
+        # 3. Cleanup | throttled via cache, runs every 5 minutes max
         last_run = cache.get(CLEANUP_CACHE_KEY)
         if last_run:
             self.stdout.write("Cleanup skipped (ran recently).")
@@ -82,7 +82,7 @@ class Command(BaseCommand):
             used_at__lt=used_cutoff
         ).delete()[0]
 
-        # ── Queue Logs — only SENT/FAILED, never touch PENDING ────────────────
+        # ── Queue Logs | only SENT/FAILED, never touch PENDING ────────────────
         deleted_sms_logs = SMSQueue.objects.filter(
             status__in=[QueueStatus.SENT, QueueStatus.FAILED, QueueStatus.CANCELLED],
             created_at__lt=expired_cutoff

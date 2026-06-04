@@ -12,9 +12,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from django.core.cache import cache
 from django.db.models import Prefetch
 
-EXAM_CACHE_TTL   = 300   # 5 min  — question/section data
-LIST_CACHE_TTL   = 60    # 1 min  — exam list
-RESULT_CACHE_TTL = 120   # 2 min  — leaderboard
+EXAM_CACHE_TTL   = 300   # 5 min  | question/section data
+LIST_CACHE_TTL   = 60    # 1 min  | exam list
+RESULT_CACHE_TTL = 120   # 2 min  | leaderboard
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -43,7 +43,7 @@ def _build_question_groups(questions: list, para_map: dict) -> list:
         {'paragraph': dict|None, 'questions': [question_dict, ...]}
     """
     groups: list = []
-    current_pid = object()          # sentinel — never equals None or a real id
+    current_pid = object()          # sentinel | never equals None or a real id
 
     for q in questions:
         pid = q['paragraph_id']

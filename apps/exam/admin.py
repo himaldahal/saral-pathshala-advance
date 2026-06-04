@@ -149,7 +149,7 @@ class SectionAdmin(admin.ModelAdmin):
 
     @admin.display(description='Neg Marks')
     def effective_negative(self, obj):
-        return obj.get_negative_marks() if obj.get_has_negative() else '—'
+        return obj.get_negative_marks() if obj.get_has_negative() else '|'
 
     @admin.display(description='Questions')
     def q_count(self, obj):

@@ -19,7 +19,7 @@ from .models import (
 # ─────────────────────────────────────────────
 # CUSTOM ADMIN BRANDING
 # ─────────────────────────────────────────────
-admin.site.site_header = "🎓 Saral Pathshala — Command Center"
+admin.site.site_header = "🎓 Saral Pathshala | Command Center"
 admin.site.site_title = "Saral Pathshala Command Center"
 admin.site.index_title = "Platform Administration & Systems Control"
 
@@ -268,7 +268,7 @@ class SubjectAdmin(AdminStyleMixin, admin.ModelAdmin):
             for c in obj.courses.all()
         ]
 
-        return mark_safe(' '.join(items)) if items else '—'
+        return mark_safe(' '.join(items)) if items else '|'
 
     courses_list.short_description = 'Courses'
 
@@ -429,7 +429,7 @@ class LectureAdmin(AdminStyleMixin, admin.ModelAdmin):
     subject_name.short_description = 'Subject'
 
     def duration_display(self, obj):
-        return obj.duration_display() or '—'
+        return obj.duration_display() or '|'
 
     duration_display.short_description = 'Duration'
 
@@ -438,7 +438,7 @@ class LectureAdmin(AdminStyleMixin, admin.ModelAdmin):
         vid = obj.youtube_video_id
 
         if not vid:
-            return '—'
+            return '|'
 
         thumb = f"https://img.youtube.com/vi/{vid}/default.jpg"
 
@@ -456,7 +456,7 @@ class LectureAdmin(AdminStyleMixin, admin.ModelAdmin):
         vid = obj.youtube_video_id
 
         if not vid:
-            return '—'
+            return '|'
 
         return format_html(
             '<code style="font-size:13px;">{}</code>',
@@ -468,7 +468,7 @@ class LectureAdmin(AdminStyleMixin, admin.ModelAdmin):
     def embed_preview(self, obj):
 
         if not obj.youtube_video_id:
-            return '—'
+            return '|'
 
         return format_html(
             '<div class="video-frame">'
@@ -534,7 +534,7 @@ class EnrollmentAdmin(AdminStyleMixin, admin.ModelAdmin):
         ).count()
 
         if not total:
-            return '—'
+            return '|'
 
         completed = LectureProgress.objects.filter(
             user=obj.user,
@@ -716,7 +716,7 @@ class CourseAdmin(AdminStyleMixin, admin.ModelAdmin):
     def thumbnail_preview(self, obj):
 
         if not obj.thumbnail:
-            return '—'
+            return '|'
 
         return format_html(
             '<img src="{}" '
@@ -730,7 +730,7 @@ class CourseAdmin(AdminStyleMixin, admin.ModelAdmin):
     def thumbnail_preview_large(self, obj):
 
         if not obj.thumbnail:
-            return '—'
+            return '|'
 
         return format_html(
             '<img src="{}" '

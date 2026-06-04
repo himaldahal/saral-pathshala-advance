@@ -8,10 +8,10 @@ from apps.pages.models import Course
 # EXAM
 class Exam(models.Model):
     RESULT_MODE_CHOICES = [
-        ('hidden',   'Hidden — Never show results'),
-        ('after_end','After End — Show once exam ends'),
-        ('auto',     'Scheduled — Show at specific date/time'),
-        ('manual',   'Manual — Admin toggles visibility'),
+        ('hidden',   'Hidden | Never show results'),
+        ('after_end','After End | Show once exam ends'),
+        ('auto',     'Scheduled | Show at specific date/time'),
+        ('manual',   'Manual | Admin toggles visibility'),
     ]
 
     course          = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='exams')
@@ -99,7 +99,7 @@ class Exam(models.Model):
             return self.has_ended()
         if mode == 'auto' and self.result_publish_time:
             return timezone.now() >= self.result_publish_time
-        # 'manual' — handled by admin toggling result_mode to 'after_end'
+        # 'manual' | handled by admin toggling result_mode to 'after_end'
         return False
 
     def total_questions(self):
@@ -149,7 +149,7 @@ class Section(models.Model):
         return self.exam.has_negative_marking
 
     def __str__(self):
-        return f"{self.title} — {self.exam.title}"
+        return f"{self.title} | {self.exam.title}"
 
 
 # PARAGRAPH  (passage / reading block)
@@ -158,7 +158,7 @@ class Paragraph(models.Model):
     section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='paragraphs')
     title   = models.CharField(max_length=255, blank=True,
                 help_text="Optional label, e.g. 'Passage 1'.")
-    content = models.TextField(help_text="HTML / LaTeX / code — rendered in exam view.")
+    content = models.TextField(help_text="HTML / LaTeX / code | rendered in exam view.")
     order   = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -283,7 +283,7 @@ class ExamAttempt(models.Model):
         self.calculate_score()
 
     def __str__(self):
-        return f"{self.student.email} — {self.exam.title}"
+        return f"{self.student.email} | {self.exam.title}"
 
 
 # QUESTION ATTEMPT
@@ -306,4 +306,4 @@ class QuestionAttempt(models.Model):
         return self.selected_option == self.question.correct_option
 
     def __str__(self):
-        return f"{self.exam_attempt.student.email} — Q{self.question.id}"
+        return f"{self.exam_attempt.student.email} | Q{self.question.id}"

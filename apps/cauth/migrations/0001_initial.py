@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 ('previous_institute', models.CharField(blank=True, help_text='Name of previously attended school/college.', max_length=200)),
                 ('current_level', models.CharField(blank=True, choices=[('plus_two', '+2 (Grade XI/XII)'), ('bachelors', 'Bachelors'), ('masters', 'Masters')], max_length=20, null=True)),
                 ('is_phone_verified', models.BooleanField(default=False, help_text='Students MUST have this True to log in.')),
-                ('is_email_verified', models.BooleanField(default=False, help_text='Optional — does not block login.')),
+                ('is_email_verified', models.BooleanField(default=False, help_text='Optional | does not block login.')),
                 ('is_active', models.BooleanField(default=True)),
                 ('is_staff', models.BooleanField(default=False)),
                 ('date_joined', models.DateTimeField(default=django.utils.timezone.now)),

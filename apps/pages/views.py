@@ -831,7 +831,7 @@ def admin_dashboard(request):
                 try:
                     from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'info@saralpathshala.com')
                     send_mail(
-                        subject="SMTP Diagnostic Test — Saral Pathshala Command Center",
+                        subject="SMTP Diagnostic Test | Saral Pathshala Command Center",
                         message="SMTP diagnostics are working perfectly. This is a plain text fallback.",
                         from_email=from_email,
                         recipient_list=[test_email],

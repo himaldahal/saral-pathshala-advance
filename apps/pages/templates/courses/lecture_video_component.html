@@ -21,7 +21,7 @@
     <div id="yt-{{ yt_video_id }}"></div>
   </div>
 
-  <!-- ── Top gradient — kills YT watermark ──────────────── -->
+  <!-- ── Top gradient | kills YT watermark ──────────────── -->
   <div style="position:absolute;top:0;left:0;right:0;height:80px;z-index:4;
               background:linear-gradient(to bottom,rgba(0,0,0,.55) 0%,transparent 100%);
               pointer-events:none;"></div>
@@ -248,17 +248,17 @@
       ctrl.style.pointerEvents = 'none';
     }
   });
-  /* touch: tap shows controls only — play/pause via buttons */
+  /* touch: tap shows controls only | play/pause via buttons */
   co.addEventListener('touchend', function (e) {
     e.preventDefault();
     if (parseFloat(ctrl.style.opacity) < 0.5) { showCtrl(); schedHide(); }
     else schedHide();
   });
 
-  /* Block right-click — hides "Open video in new tab" context menu */
+  /* Block right-click | hides "Open video in new tab" context menu */
   wrap.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
-  /* Block double-click — prevents YT native fullscreen trigger */
+  /* Block double-click | prevents YT native fullscreen trigger */
   co.addEventListener('dblclick', function (e) { e.preventDefault(); e.stopPropagation(); });
 
   /* ── Center flash indicator ── */
@@ -269,7 +269,7 @@
     setTimeout(function () { cf.style.opacity = '0'; }, 700);
   }
 
-  /* ── Play / pause — control buttons only, video area non-interactive ── */
+  /* ── Play / pause | control buttons only, video area non-interactive ── */
   function togglePlay() {
     if (!player) return;
     if (player.getPlayerState() === 1) { player.pauseVideo(); flash('bi-pause-fill'); }
@@ -448,7 +448,7 @@
     });
   }
 
-  /* Handle multiple includes — chain onYouTubeIframeAPIReady */
+  /* Handle multiple includes | chain onYouTubeIframeAPIReady */
   var prev = window.onYouTubeIframeAPIReady;
   window.onYouTubeIframeAPIReady = function () {
     if (prev) prev();

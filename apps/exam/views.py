@@ -145,7 +145,7 @@ def exam_attempt(request, slug):
     # ── Expiry + auto-submit logic ────────────────────────────────────────────
     # Determines whether the exam window has closed for this student.
     # If make_public_after is True the exam is still accessible after end_date,
-    # so we must NOT auto-submit — we just flag it as expired for the template.
+    # so we must NOT auto-submit | we just flag it as expired for the template.
     is_expired = False
 
     if not attempt.is_submitted:
@@ -160,11 +160,11 @@ def exam_attempt(request, slug):
 
         if timed_out:
             if exam.make_public_after:
-                # Exam is past its window but still publicly accessible —
+                # Exam is past its window but still publicly accessible |
                 # do NOT auto-submit; let the student finish and submit manually.
                 is_expired = True
             else:
-                # Normal expiry — auto-submit and redirect to results.
+                # Normal expiry | auto-submit and redirect to results.
                 attempt.submit()
                 invalidate_exam_cache(exam.pk)
                 cache.delete(f'exam_list_{request.user.pk}')
@@ -225,7 +225,7 @@ def exam_attempt(request, slug):
         'is_expired':    is_expired,   # True only for make_public_after past-deadline exams
     })
 # ─────────────────────────────────────────────────────────────────────────────
-# Save answer  (AJAX — called on every option click)
+# Save answer  (AJAX | called on every option click)
 # ─────────────────────────────────────────────────────────────────────────────
 
 @login_required
@@ -432,7 +432,7 @@ def download_template(request):
         # ── Sections ───────────────────────────────────────────────────────
         "sections": [
             {
-                "title":       "Section I — Physics",
+                "title":       "Section I | Physics",
                 "description": "",
                 "order":       1,
 
@@ -491,7 +491,7 @@ def download_template(request):
             },
 
             {
-                "title":       "Section II — Chemistry (IOE-style 2-mark section)",
+                "title":       "Section II | Chemistry (IOE-style 2-mark section)",
                 "description": "",
                 "order":       2,
 
@@ -567,7 +567,7 @@ def import_exam(request):
         exam = import_exam_from_json(data)
         messages.success(
             request,
-            f"✓ Exam '{exam.title}' imported — "
+            f"✓ Exam '{exam.title}' imported | "
             f"{exam.sections.count()} sections, {exam.questions.count()} questions."
         )
         return redirect('exams:exam_detail', slug=exam.slug)

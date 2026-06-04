@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(blank=True, help_text="Optional label, e.g. 'Passage 1'.", max_length=255)),
-                ('content', models.TextField(help_text='HTML / LaTeX / code — rendered in exam view.')),
+                ('content', models.TextField(help_text='HTML / LaTeX / code | rendered in exam view.')),
                 ('order', models.PositiveIntegerField(default=0)),
             ],
             options={
@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
                 ('correct_marks', models.FloatField(default=1.0, help_text='Marks per correct answer.')),
                 ('negative_marks', models.FloatField(default=0.0, help_text='Marks deducted per wrong answer (positive value).')),
                 ('has_negative_marking', models.BooleanField(default=False)),
-                ('result_mode', models.CharField(choices=[('hidden', 'Hidden — Never show results'), ('after_end', 'After End — Show once exam ends'), ('auto', 'Scheduled — Show at specific date/time'), ('manual', 'Manual — Admin toggles visibility')], default='after_end', max_length=20)),
+                ('result_mode', models.CharField(choices=[('hidden', 'Hidden | Never show results'), ('after_end', 'After End | Show once exam ends'), ('auto', 'Scheduled | Show at specific date/time'), ('manual', 'Manual | Admin toggles visibility')], default='after_end', max_length=20)),
                 ('result_publish_time', models.DateTimeField(blank=True, help_text="Only used when result_mode = 'auto'.", null=True)),
                 ('slug', models.SlugField(blank=True, max_length=500, unique=True)),
                 ('is_active', models.BooleanField(default=True)),

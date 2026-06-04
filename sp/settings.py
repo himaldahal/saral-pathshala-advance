@@ -9,8 +9,12 @@ SECRET_KEY = 'django-insecure-kfdpfxhoy55ivg**iu8qpu=%f5ndri^8d)0j^#du)(xq8%$_ub
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+IS_PRODUCTION = False
 
-ALLOWED_HOSTS = ['localhost','127.0.0.1']
+if IS_PRODUCTION:
+    ALLOWED_HOSTS = ['168.144.144.61','exam.saralpathshala.com', "cdn.saralpathshala.com"]
+else:
+    ALLOWED_HOSTS = ['localhost','127.0.0.1']
 
 # Application definition
 MY_APPS = [
@@ -64,15 +68,25 @@ WSGI_APPLICATION = 'sp.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        'timeout': 20,  # Set a timeout for database operations
+if not IS_PRODUCTION:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+            'timeout': 20,  # Set a timeout for database operations
+        }
     }
-}
-
+else: 
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "saralpathshala",
+            "USER": "saraluser",
+            "PASSWORD": "@Himal_2060",
+            "HOST": "127.0.0.1",
+            "PORT": "5432",
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -103,21 +117,22 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files
-MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+if IS_PRODUCTION:
+    MEDIA_ROOT = "/var/www/cdn/media"
+    MEDIA_URL = "http://cdn.saralpathshala.com/media/"
+else:
+    MEDIA_ROOT = BASE_DIR / 'media'
+    MEDIA_URL = '/media/'
 
-# Option A: In-memory (fast, single process)
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "exam-portal-cache",
-        "TIMEOUT": 300,
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
         "OPTIONS": {
-            "MAX_ENTRIES": 2000,
-        },
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
     }
 }
-
 # ─────────────────────────────────────────────────────────────────────────────
 # TINYMCE
 # ─────────────────────────────────────────────────────────────────────────────
@@ -184,10 +199,15 @@ CELERY_TIMEZONE = 'Asia/Kathmandu'
 CELERY_BEAT_SCHEDULE = {
     'process-sms-queue': {
         'task': 'apps.cauth.tasks.process_sms_queue',
-        'schedule': 60.0,  # every 60 seconds
+        'schedule': 10.0,  # every 60 seconds
     },
     'process-email-queue': {
         'task': 'apps.cauth.tasks.process_email_queue',
-        'schedule': 60.0,
+        'schedule': 10.0,
     },
 }
+
+if IS_PRODUCTION:
+    SECURE_SSL_REDIRECT = True
+else:
+    SECURE_SSL_REDIRECT = False

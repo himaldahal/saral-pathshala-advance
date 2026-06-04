@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ exam.title }}</title>
 
-{# ── Prism (code highlighting — matches TinyMCE codesample) ─── #}
+{# ── Prism (code highlighting | matches TinyMCE codesample) ─── #}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/toolbar/prism-toolbar.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-{# ── MathJax config — before the script ─────────────────────── #}
+{# ── MathJax config | before the script ─────────────────────── #}
 <script>
 window.MathJax = {
   tex: {
@@ -375,10 +375,10 @@ const SAVE_URL      = "{% url 'exams:save_answer' exam.slug %}";
 const SUBMIT_URL    = "{% url 'exams:submit_exam' exam.slug %}";
 const RESULT_URL    = "{% url 'exams:exam_result' exam.slug %}";
 
-// Answers already saved on server — parsed safely without double-escape bugs
+// Answers already saved on server | parsed safely without double-escape bugs
 const SERVER_ANSWERS = {{ answered_json|safe|default:"{}" }};
 
-// LocalStorage key — per user per exam so multiple students on same browser work
+// LocalStorage key | per user per exam so multiple students on same browser work
 const LS_KEY = `exam_${EXAM_SLUG}_u${USER_PK}`;
 
 /* ── PREMIUM FLOATING BOOTSTRAP WARNING ALERTS ───────────────────────── */
@@ -588,7 +588,7 @@ function setSaveIndicator(state) {
   if (state === 'saving')  { el.textContent = '● Saving…';  el.style.color = '#94a3b8'; }
   if (state === 'saved')   { el.textContent = '✓ Saved';    el.style.color = '#4ade80';
     saveIndicatorTimer = setTimeout(() => el.textContent = '', 2000); }
-  if (state === 'offline') { el.textContent = '↑ Offline — progress stored locally'; el.style.color = '#fbbf24'; }
+  if (state === 'offline') { el.textContent = '↑ Offline | progress stored locally'; el.style.color = '#fbbf24'; }
 }
 
 /* ── JUMP TO QUESTION ────────────────────────────────────────────────── */
@@ -618,7 +618,7 @@ function startTimer(endTs) {
   // ── KEY FIX ──────────────────────────────────────────────────────────────
   // If IS_EXPIRED is true the exam deadline has already passed, but the exam
   // remains accessible because make_public_after=True.  Show a static
-  // "Time's up" label and return immediately — never call doSubmit().
+  // "Time's up" label and return immediately | never call doSubmit().
   if (IS_EXPIRED) {
     el.textContent = "Time's up";
     el.className   = 'expired';

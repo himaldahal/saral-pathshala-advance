@@ -1,170 +1,1286 @@
 {% extends "base.html" %}
 
-{% block title %}Home - {{ site_settings.site_title }}{% endblock %}
+{% block title %}Saral Pathshala - #1 Entrance Preparation in Nepal | IOE, CEE, CSIT, CMAT, LL.B Coaching{% endblock %}
+
+{% block extra_css %}
+<!-- SEO Meta -->
+<meta name="description" content="Saral Pathshala (formerly Saral Shikshya), Bagbazar Kathmandu. Nepal's leading entrance exam prep for IOE, CEE, BSc CSIT, CMAT & BA LLB. Online + Physical classes, 50,000+ MCQs, live mock tests & video lectures.">
+<meta name="keywords" content="entrance preparation Nepal, IOE coaching Kathmandu, CEE preparation, BSc CSIT entrance, CMAT coaching, BA LLB entrance Nepal, Saral Pathshala, Saral Shikshya, Bagbazar coaching, online entrance prep Nepal">
+<meta property="og:title" content="Saral Pathshala | Nepal's #1 Entrance Exam Preparation Platform">
+<meta property="og:description" content="Join 10,000+ students preparing for IOE, CEE, CSIT, CMAT & LL.B at Saral Pathshala, Bagbazar. Physical & online classes, mock tests, video lectures.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Mulish:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
+<style>
+/* ── Base typography ── */
+.sp-display { font-family:'Sora',sans-serif; }
+.sp-body    { font-family:'Mulish',sans-serif; }
+
+/* ════════════════════════════════
+   HERO
+════════════════════════════════ */
+.hero {
+  background: linear-gradient(125deg, #0d3d62 0%, var(--blue-dk) 45%, #1a80b8 100%);
+  position: relative; overflow: hidden;
+  padding: 0;
+  min-height: 560px;
+  display: flex; align-items: stretch;
+}
+.hero::before {
+  content:''; position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse at 70% 40%, rgba(232,114,42,.20) 0%, transparent 55%),
+    radial-gradient(ellipse at 5% 85%,  rgba(255,255,255,.06) 0%, transparent 40%);
+  pointer-events:none; z-index:1;
+}
+.hero-ring {
+  position:absolute; border-radius:50%;
+  border:1px solid rgba(255,255,255,.09);
+  pointer-events:none; z-index:1;
+}
+.hero-ring-1 { width:500px;height:500px; top:-180px; right:-100px; }
+.hero-ring-2 { width:300px;height:300px; top:  20px; right:  80px; }
+.hero-ring-3 { width:200px;height:200px; bottom:-70px; left:-60px; }
+
+/* left copy column */
+.hero-copy {
+  position:relative; z-index:2;
+  padding: 72px 48px 72px 0;
+  display:flex; flex-direction:column; justify-content:center;
+}
+@media(max-width:991px){ .hero-copy{ padding:56px 0 48px; } }
+
+.hero-badge {
+  display:inline-flex; align-items:center; gap:7px;
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.25);
+  color:#fff;
+  font-size:.76rem; font-weight:700; letter-spacing:.05em;
+  padding:5px 15px; border-radius:var(--radius-pill);
+  backdrop-filter:blur(6px); width:fit-content;
+  margin-bottom:20px;
+}
+.hero-badge .live-dot {
+  width:7px;height:7px;border-radius:50%;
+  background:var(--orange); box-shadow:0 0 0 3px rgba(232,114,42,.3);
+  animation:pulseDot 2s infinite;
+}
+@keyframes pulseDot{0%,100%{box-shadow:0 0 0 3px rgba(232,114,42,.3);}50%{box-shadow:0 0 0 7px rgba(232,114,42,.1);}}
+
+.hero h1 {
+  font-family:'Sora',sans-serif; font-weight:800;
+  font-size:clamp(1.85rem,3.6vw,2.9rem);
+  color:#fff; line-height:1.18; margin-bottom:16px;
+}
+.hero h1 .accent { color:var(--orange); }
+
+.hero-sub {
+  font-family:'Mulish',sans-serif;
+  color:rgba(255,255,255,.80); font-size:1rem; line-height:1.75;
+  margin-bottom:28px; max-width:530px;
+}
+.hero-sub strong { color:#fff; }
+
+/* CTA buttons */
+.btn-hero-primary {
+  background:var(--orange); color:#fff; font-weight:700;
+  border:none; border-radius:var(--radius-pill);
+  padding:13px 28px; font-size:.94rem;
+  box-shadow:0 4px 18px rgba(232,114,42,.45);
+  transition:background .2s,transform .15s,box-shadow .2s;
+  display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+}
+.btn-hero-primary:hover{background:var(--orange-dk);color:#fff;transform:translateY(-2px);box-shadow:0 8px 28px rgba(232,114,42,.55);}
+
+.btn-hero-outline {
+  background:rgba(255,255,255,.12); color:#fff; font-weight:600;
+  border:1.5px solid rgba(255,255,255,.35);
+  border-radius:var(--radius-pill); padding:12px 26px; font-size:.94rem;
+  backdrop-filter:blur(4px);
+  transition:background .2s,transform .15s;
+  display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+}
+.btn-hero-outline:hover{background:rgba(255,255,255,.22);color:#fff;transform:translateY(-2px);}
+
+/* stat pills row */
+.hero-stats { display:flex; flex-wrap:wrap; gap:10px; margin-top:30px; }
+.hstat {
+  display:flex; align-items:center; gap:8px;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.20);
+  border-radius:var(--radius-pill);
+  padding:6px 14px; backdrop-filter:blur(6px);
+}
+.hstat strong { color:#fff; font-family:'Sora',sans-serif; font-size:.82rem; font-weight:700; display:block; }
+.hstat span   { color:rgba(255,255,255,.6); font-size:.68rem; }
+
+/* hero image column */
+.hero-img-col {
+  position:relative; z-index:2;
+  display:flex; align-items:flex-end; justify-content:center;
+  padding-top:32px;
+}
+.hero-img-col img {
+  max-height:480px; width:100%; object-fit:contain;
+  object-position:bottom center;
+  filter:drop-shadow(0 16px 40px rgba(0,0,0,.35));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.hero-img-placeholder {
+  max-height:460px; width:100%;
+  background:rgba(255,255,255,.07);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border:1px solid rgba(255,255,255,.15);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:12px; color:rgba(255,255,255,.4); font-family:'Sora',sans-serif;
+  font-size:3.5rem; min-height:340px;
+}
+.hero-img-placeholder p { font-size:.85rem; margin:0; }
+
+/* floating info card on image */
+.hero-float-card {
+  position:absolute; bottom:28px; left:-20px;
+  background:var(--surface); border-radius:var(--radius-md);
+  box-shadow:var(--shadow-lg);
+  padding:12px 16px; min-width:190px;
+  border:1px solid var(--border);
+  animation: floatBob 4s ease-in-out infinite;
+}
+@keyframes floatBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+.hero-float-card .fc-label { font-size:.68rem; font-weight:700; color:var(--ink-3); letter-spacing:.05em; margin-bottom:4px; }
+.hero-float-card .fc-value { font-family:'Sora',sans-serif; font-weight:800; font-size:1.3rem; color:var(--orange); }
+.hero-float-card .fc-sub   { font-size:.72rem; color:var(--ink-3); }
+
+.hero-float-card-2 {
+  position:absolute; top:32px; right:-10px;
+  background:var(--surface); border-radius:var(--radius-md);
+  box-shadow:var(--shadow-lg);
+  padding:10px 14px;
+  border:1px solid var(--border);
+  display:flex; align-items:center; gap:8px;
+  animation: floatBob 4s ease-in-out 2s infinite;
+}
+.hero-float-card-2 .fc2-icon{
+  width:34px;height:34px;border-radius:var(--radius-sm);
+  background:var(--blue-lt); color:var(--blue);
+  display:flex;align-items:center;justify-content:center; font-size:1.1rem;
+}
+.hero-float-card-2 strong { font-family:'Sora',sans-serif; font-weight:700; font-size:.82rem; color:var(--ink); display:block; }
+.hero-float-card-2 span   { font-size:.7rem; color:var(--ink-3); }
+
+/* ════════════════════════════════
+   TRUST BAR
+════════════════════════════════ */
+.trust-bar {
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:14px 0;
+}
+.trust-bar-inner {
+  display:flex; align-items:center; flex-wrap:wrap;
+  gap:0; overflow:hidden;
+}
+.trust-item {
+  display:flex; align-items:center; gap:7px;
+  padding:0 20px;
+  border-right:1px solid var(--border);
+  font-size:.8rem; color:var(--ink-2); font-weight:500; font-family:'Mulish',sans-serif;
+  white-space:nowrap;
+}
+.trust-item:last-child { border-right:none; }
+.trust-item i { color:var(--orange); font-size:.9rem; }
+
+/* ════════════════════════════════
+   SHARED SECTION STYLES
+════════════════════════════════ */
+.sp-section          { padding:64px 0; }
+.sp-section.bg-alt   { background:var(--bg); }
+.sp-section.bg-white { background:var(--surface); }
+
+.section-eyebrow {
+  display:inline-block;
+  font-size:.72rem; font-weight:700; letter-spacing:.07em;
+  padding:4px 13px; border-radius:var(--radius-pill);
+  margin-bottom:10px;
+}
+.section-eyebrow.orange { background:var(--orange-lt); color:var(--orange-dk); }
+.section-eyebrow.blue   { background:var(--blue-lt);   color:var(--blue-dk);   }
+
+.section-title {
+  font-family:'Sora',sans-serif; font-weight:800;
+  font-size:clamp(1.35rem,2.5vw,1.75rem); color:var(--ink); margin-bottom:6px; line-height:1.25;
+}
+.section-lead { font-family:'Mulish',sans-serif; color:var(--ink-3); font-size:.95rem; line-height:1.7; }
+
+.btn-sm-pill {
+  font-size:.78rem; font-weight:700; border-radius:var(--radius-pill);
+  padding:7px 18px; border:1.5px solid;
+  transition:background .18s,color .18s,transform .15s;
+  display:inline-flex; align-items:center; gap:5px; text-decoration:none;
+}
+.btn-sm-orange{ color:var(--orange);   border-color:var(--orange);   background:transparent; }
+.btn-sm-orange:hover{ background:var(--orange);   color:#fff; transform:translateY(-1px); }
+.btn-sm-blue  { color:var(--blue);     border-color:var(--blue);     background:transparent; }
+.btn-sm-blue:hover  { background:var(--blue);     color:#fff; transform:translateY(-1px); }
+
+/* ════════════════════════════════
+   FEATURES STRIP
+════════════════════════════════ */
+.features-strip {
+  background: linear-gradient(100deg, var(--blue-lt) 0%, #edf6fb 100%);
+  border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+  padding:48px 0;
+}
+.feat-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:22px;
+  text-align:center; height:100%;
+  transition: box-shadow .2s, transform .2s, border-color .2s;
+}
+.feat-card:hover { box-shadow:var(--shadow-md); transform:translateY(-3px); border-color:var(--border-dk); }
+.feat-icon {
+  width:56px;height:56px;border-radius:var(--radius-md);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem; margin:0 auto 14px;
+}
+.feat-icon.orange { background:var(--orange-lt); color:var(--orange); }
+.feat-icon.blue   { background:var(--blue-lt);   color:var(--blue); }
+.feat-icon.green  { background:var(--success-lt);color:var(--success); }
+.feat-icon.warn   { background:var(--warn-lt);   color:var(--warn); }
+.feat-icon.red    { background:var(--danger-lt); color:var(--danger); }
+.feat-card h3 { font-family:'Sora',sans-serif; font-weight:700; font-size:.95rem; color:var(--ink); margin-bottom:7px; }
+.feat-card p  { font-family:'Mulish',sans-serif; font-size:.82rem; color:var(--ink-3); line-height:1.6; margin:0; }
+
+/* ════════════════════════════════
+   EXAM CATEGORY CARDS
+════════════════════════════════ */
+.exam-cat-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:22px 20px;
+  display:flex; align-items:flex-start; gap:14px;
+  transition: box-shadow .2s, transform .2s, border-color .2s;
+  height:100%; text-decoration:none;
+}
+.exam-cat-card:hover { box-shadow:var(--shadow-md); transform:translateY(-3px); border-color:var(--border-dk); }
+.exam-cat-icon {
+  width:48px;height:48px; border-radius:var(--radius-md);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem; flex-shrink:0;
+}
+.exam-cat-icon.orange { background:var(--orange-lt); color:var(--orange); }
+.exam-cat-icon.blue   { background:var(--blue-lt);   color:var(--blue);   }
+.exam-cat-icon.green  { background:var(--success-lt);color:var(--success);}
+.exam-cat-icon.warn   { background:var(--warn-lt);   color:var(--warn);   }
+.exam-cat-icon.red    { background:var(--danger-lt); color:var(--danger); }
+.exam-cat-icon.purple { background:#f5f0fe;          color:#7c3aed;       }
+.exam-cat-body h4 { font-family:'Sora',sans-serif; font-weight:700; font-size:.92rem; color:var(--ink); margin-bottom:4px; }
+.exam-cat-body p  { font-size:.78rem; color:var(--ink-3); line-height:1.55; margin-bottom:8px; }
+.exam-cat-badge {
+  display:inline-block; font-size:.68rem; font-weight:700;
+  padding:2px 9px; border-radius:var(--radius-pill);
+  background:var(--blue-lt); color:var(--blue-dk);
+}
+
+/* ════════════════════════════════
+   COURSE CARDS
+════════════════════════════════ */
+.course-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); overflow:hidden;
+  transition:box-shadow .22s,transform .22s,border-color .22s;
+  height:100%; display:flex; flex-direction:column;
+}
+.course-card:hover { box-shadow:var(--shadow-md); border-color:var(--border-dk); transform:translateY(-3px); }
+.course-thumb { height:168px; object-fit:cover; width:100%; }
+.course-thumb-placeholder {
+  height:168px; display:flex;align-items:center;justify-content:center; font-size:2.2rem;
+}
+.course-thumb-placeholder.orange{ background:var(--orange-lt); color:var(--orange); }
+.course-thumb-placeholder.blue  { background:var(--blue-lt);   color:var(--blue);   }
+.course-body { padding:18px 20px; flex:1; display:flex; flex-direction:column; }
+.course-tag {
+  display:inline-block; font-size:.7rem; font-weight:700; letter-spacing:.05em;
+  padding:3px 10px; border-radius:var(--radius-pill);
+  background:var(--blue-lt); color:var(--blue-dk); margin-bottom:10px;
+}
+.course-title { font-family:'Sora',sans-serif; font-weight:700; font-size:.95rem; color:var(--ink); margin-bottom:7px; line-height:1.4; }
+.course-excerpt { font-size:.82rem; color:var(--ink-3); line-height:1.6; flex:1; margin-bottom:14px; }
+.course-footer {
+  display:flex; justify-content:space-between; align-items:center;
+  border-top:1px solid var(--border); padding-top:12px; margin-top:auto;
+}
+.course-meta { font-size:.74rem; color:var(--ink-3); display:flex; align-items:center; gap:4px; }
+
+/* ════════════════════════════════
+   EXAM / NOTICE LIST ITEMS
+════════════════════════════════ */
+.list-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-md); padding:14px 16px;
+  display:flex; justify-content:space-between; align-items:center; gap:12px;
+  transition:box-shadow .18s,border-color .18s,transform .18s;
+}
+.list-card:hover { box-shadow:var(--shadow-sm); border-color:var(--border-dk); transform:translateX(3px); }
+.list-icon {
+  width:38px;height:38px;border-radius:var(--radius-sm);
+  display:flex;align-items:center;justify-content:center; font-size:1rem; flex-shrink:0;
+}
+.list-icon.orange{ background:var(--orange-lt); color:var(--orange); }
+.list-icon.blue  { background:var(--blue-lt);   color:var(--blue);   }
+.list-icon.warn  { background:var(--warn-lt);   color:var(--warn);   }
+.list-icon.red   { background:var(--danger-lt); color:var(--danger); }
+.list-title { font-family:'Sora',sans-serif; font-weight:700; font-size:.87rem; color:var(--ink); margin-bottom:3px; }
+.list-meta  { font-size:.72rem; color:var(--ink-3); display:flex; flex-wrap:wrap; gap:10px; }
+.list-meta span { display:flex; align-items:center; gap:3px; }
+
+.empty-state {
+  background:var(--surface-2); border:1px dashed var(--border-dk);
+  border-radius:var(--radius-md); padding:36px 20px;
+  text-align:center; color:var(--ink-3);
+}
+.empty-state i { font-size:2rem; display:block; margin-bottom:8px; opacity:.5; }
+
+/* ════════════════════════════════
+   WHY CHOOSE US
+════════════════════════════════ */
+.why-card {
+  display:flex; gap:16px; align-items:flex-start;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:20px;
+  transition:box-shadow .2s,transform .2s;
+}
+.why-card:hover { box-shadow:var(--shadow-sm); transform:translateY(-2px); }
+.why-num {
+  font-family:'Sora',sans-serif; font-weight:800; font-size:2rem;
+  color:var(--orange); opacity:.25; line-height:1; flex-shrink:0; min-width:40px;
+}
+.why-card h4 { font-family:'Sora',sans-serif; font-weight:700; font-size:.92rem; color:var(--ink); margin-bottom:5px; }
+.why-card p  { font-size:.82rem; color:var(--ink-3); line-height:1.6; margin:0; }
+
+/* ════════════════════════════════
+   STUDY MODES
+════════════════════════════════ */
+.mode-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:28px 22px;
+  text-align:center; height:100%;
+  transition:box-shadow .2s,transform .2s;
+  position:relative; overflow:hidden;
+}
+.mode-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:4px;
+}
+.mode-card.physical::before { background:var(--orange); }
+.mode-card.online::before   { background:var(--blue); }
+.mode-card:hover { box-shadow:var(--shadow-md); transform:translateY(-3px); }
+.mode-icon {
+  width:64px;height:64px; border-radius:var(--radius-lg);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.7rem; margin:0 auto 16px;
+}
+.mode-icon.orange { background:var(--orange-lt); color:var(--orange); }
+.mode-icon.blue   { background:var(--blue-lt);   color:var(--blue); }
+.mode-card h3 { font-family:'Sora',sans-serif; font-weight:800; font-size:1.05rem; color:var(--ink); margin-bottom:8px; }
+.mode-card p  { font-size:.85rem; color:var(--ink-3); line-height:1.65; margin-bottom:16px; }
+.shift-badge {
+  display:inline-block; font-size:.7rem; font-weight:700;
+  padding:3px 10px; border-radius:var(--radius-pill);
+  margin:3px; cursor:default;
+}
+.shift-badge.orange { background:var(--orange-lt); color:var(--orange-dk); }
+.shift-badge.blue   { background:var(--blue-lt);   color:var(--blue-dk);   }
+
+/* ════════════════════════════════
+   TESTIMONIALS
+════════════════════════════════ */
+.testi-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:24px;
+  height:100%;
+}
+.testi-stars { color:var(--warn); font-size:.9rem; margin-bottom:10px; }
+.testi-text  { font-family:'Mulish',sans-serif; font-style:italic; font-size:.88rem; color:var(--ink-2); line-height:1.7; margin-bottom:16px; }
+.testi-avatar {
+  width:38px;height:38px;border-radius:50%;
+  background:var(--blue-lt); color:var(--blue);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Sora',sans-serif; font-weight:700; font-size:.85rem; flex-shrink:0;
+}
+.testi-name   { font-family:'Sora',sans-serif; font-weight:700; font-size:.85rem; color:var(--ink); }
+.testi-course { font-size:.72rem; color:var(--ink-3); }
+
+/* ════════════════════════════════
+   STATS COUNTER SECTION
+════════════════════════════════ */
+.stats-section {
+  background: linear-gradient(120deg, #0d3d62 0%, var(--blue-dk) 60%, #1a80b8 100%);
+  padding:56px 0; position:relative; overflow:hidden;
+}
+.stats-section::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(circle at 80% 50%, rgba(232,114,42,.18) 0%, transparent 55%);
+  pointer-events:none;
+}
+.stat-item { text-align:center; }
+.stat-num  {
+  font-family:'Sora',sans-serif; font-weight:800;
+  font-size:clamp(1.8rem,4vw,2.8rem); color:#fff; display:block; margin-bottom:4px;
+}
+.stat-num span { color:var(--orange); }
+.stat-label { font-family:'Mulish',sans-serif; font-size:.85rem; color:rgba(255,255,255,.7); }
+.stat-divider { width:1px; background:rgba(255,255,255,.15); align-self:stretch; }
+
+/* ════════════════════════════════
+   LOCATION/CONTACT SECTION
+════════════════════════════════ */
+.location-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:28px;
+}
+.contact-row {
+  display:flex; align-items:flex-start; gap:12px;
+  padding:12px 0; border-bottom:1px solid var(--border);
+}
+.contact-row:last-child { border-bottom:none; padding-bottom:0; }
+.contact-icon {
+  width:36px;height:36px;border-radius:var(--radius-sm);
+  display:flex;align-items:center;justify-content:center; font-size:.9rem; flex-shrink:0;
+}
+.contact-icon.orange { background:var(--orange-lt); color:var(--orange); }
+.contact-icon.blue   { background:var(--blue-lt);   color:var(--blue);   }
+.contact-label { font-size:.72rem; color:var(--ink-3); font-weight:600; letter-spacing:.04em; display:block; margin-bottom:2px; }
+.contact-value { font-family:'Sora',sans-serif; font-size:.88rem; color:var(--ink); font-weight:600; }
+
+/* ════════════════════════════════
+   CTA SECTION
+════════════════════════════════ */
+.cta-section {
+  background:linear-gradient(130deg,#0d3d62 0%,var(--blue-dk) 55%,#1a80b8 100%);
+  padding:72px 0; position:relative; overflow:hidden;
+}
+.cta-section::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(circle at 25% 60%, rgba(232,114,42,.22) 0%, transparent 55%);
+  pointer-events:none;
+}
+.cta-section::after {
+  content:''; position:absolute;
+  width:450px;height:450px; border-radius:50%;
+  border:1px solid rgba(255,255,255,.07);
+  right:-150px; bottom:-180px; pointer-events:none;
+}
+.cta-section h2 {
+  font-family:'Sora',sans-serif; font-weight:800;
+  font-size:clamp(1.6rem,3.5vw,2.3rem); color:#fff; margin-bottom:14px;
+}
+.cta-section h2 span { color:var(--orange); }
+.cta-section p { color:rgba(255,255,255,.75); font-size:.97rem; line-height:1.7; max-width:580px; margin:0 auto 30px; }
+
+.btn-cta-orange {
+  background:var(--orange); color:#fff; font-weight:700;
+  border:none; border-radius:var(--radius-pill);
+  padding:14px 32px; font-size:.95rem;
+  box-shadow:0 4px 20px rgba(232,114,42,.5);
+  transition:background .2s,transform .15s,box-shadow .2s;
+  display:inline-flex;align-items:center;gap:8px;text-decoration:none;
+}
+.btn-cta-orange:hover{background:var(--orange-dk);color:#fff;transform:translateY(-2px);box-shadow:0 8px 28px rgba(232,114,42,.55);}
+
+.btn-cta-outline {
+  background:rgba(255,255,255,.11); color:#fff; font-weight:600;
+  border:1.5px solid rgba(255,255,255,.32); border-radius:var(--radius-pill);
+  padding:13px 28px; font-size:.95rem; backdrop-filter:blur(4px);
+  transition:background .2s,transform .15s;
+  display:inline-flex;align-items:center;gap:8px;text-decoration:none;
+}
+.btn-cta-outline:hover{background:rgba(255,255,255,.2);color:#fff;transform:translateY(-2px);}
+
+
+/* SEO rich text section */
+.seo-rich {
+  background:var(--surface); border-top:1px solid var(--border); padding:56px 0;
+}
+.seo-rich h2 { font-family:'Sora',sans-serif; font-weight:800; font-size:1.3rem; color:var(--ink); margin-bottom:12px; }
+.seo-rich p  { font-family:'Mulish',sans-serif; font-size:.88rem; color:var(--ink-3); line-height:1.8; }
+
+/* animation */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.anim-up                { animation:fadeUp .5s cubic-bezier(.4,0,.2,1) both; }
+.anim-up-1{animation-delay:.05s;} .anim-up-2{animation-delay:.15s;}
+.anim-up-3{animation-delay:.25s;} .anim-up-4{animation-delay:.35s;}
+.anim-up-5{animation-delay:.45s;}
+</style>
+{% endblock %}
 
 {% block content %}
-<!-- Premium Hero Section -->
-<section class="py-5 bg-transparent border-bottom shadow-sm">
-  <div class="container py-lg-5">
-    <div class="row align-items-center g-5">
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section class="hero" aria-label="Saral Pathshala - Nepal's Best Entrance Preperation Partner ">
+  <div class="hero-ring hero-ring-1" aria-hidden="true"></div>
+  <div class="hero-ring hero-ring-2" aria-hidden="true"></div>
+  <div class="hero-ring hero-ring-3" aria-hidden="true"></div>
+
+  <div class="container py-5">
+    <div class="row align-items-end g-4 g-lg-5">
+
+      <!-- LEFT: Copy -->
       <div class="col-lg-6">
-        <span class="badge bg-soft text-primary border px-3 py-2 rounded-pill mb-3 small fw-bold"><i class="bi bi-rocket-takeoff-fill text-warning me-1"></i> Highly Focused Entrance Preparation</span>
-        <h1 class="display-4 fw-bold lh-sm mb-3 serif-title">Crack BSC.CSIT, CSIT, CEE & IOE Exams with Confidence</h1>
-        <p class="lead text-muted mb-4" style="font-size: 1.1rem;">
-          Welcome to <b>Saral Pathshala</b>. Learn from high-quality lectures, practice thousands of entry-level MCQs in exam simulations, and stay updated with live notices.
-        </p>
-        <div class="d-flex flex-wrap gap-3">
-          <a href="{% url 'course_list' %}" class="btn btn-brand-primary btn-lg px-4 shadow-sm"><i class="bi bi-book-half me-2"></i>Explore Courses</a>
-          <a href="{% url 'exams:exam_list' %}" class="btn btn-outline-dark btn-lg px-4 shadow-sm"><i class="bi bi-pencil-square me-2"></i>Take Mock Exams</a>
+        <div class="hero-copy anim-up anim-up-1">
+          <div class="hero-badge">
+            <span class="live-dot" aria-hidden="true"></span>
+            Formerly Saral Shikshya · Est. Bagbazar, KTM
+          </div>
+
+          <h1>
+            Nepal's Most Trusted<br>
+            <span class="accent">Entrance Preperation Partner</span><br>
+            - Online &amp; Physical
+          </h1>
+
+          <p class="hero-sub">
+            <strong>Saral Pathshala</strong> prepares you for <strong>IOE, CEE, BSc CSIT, CMAT</strong> &amp; <strong>B.A.LL.B</strong> entrances through expert video lectures, live mock exams &amp; structured study materials | from Bagbazar, Kathmandu.
+          </p>
+
+          <div class="d-flex flex-wrap gap-3 anim-up anim-up-3">
+            <a href="{% url 'course_list' %}" class="btn-hero-primary">
+              <i class="bi bi-play-circle-fill"></i> Start Learning Free
+            </a>
+            <a href="{% url 'exams:exam_list' %}" class="btn-hero-outline">
+              <i class="bi bi-pencil-square"></i> Take Mock Exam
+            </a>
+          </div>
+
+          <div class="hero-stats anim-up anim-up-4">
+            <div class="hstat">
+              <span style="font-size:1.1rem;" aria-hidden="true"><i class="bi bi-mortarboard-fill"></i></span>
+              <div><strong>10,000+</strong><span>Students</span></div>
+            </div>
+            <div class="hstat">
+              <span style="font-size:1.1rem;" aria-hidden="true"><i class="bi bi-pencil"></i></span>
+              <div><strong>50,000+</strong><span>MCQs</span></div>
+            </div>
+            <div class="hstat">
+              <span style="font-size:1.1rem;" aria-hidden="true"><i class="bi bi-trophy-fill"></i></span>
+              <div><strong>99%+</strong><span>Pass Rate</span></div>
+            </div>
+            <div class="hstat">
+              <span style="font-size:1.1rem;" aria-hidden="true"><i class="bi bi-geo-fill"></i></span>
+              <div><strong>Bagbazar</strong><span>Kathmandu</span></div>
+            </div>
+          </div>
         </div>
-     
       </div>
-      <div class="col-lg-6 text-center">
-        <div class="p-4 bg-light rounded-4 border shadow-sm position-relative overflow-hidden">
-          <div class="mesh-bg position-absolute top-0 start-0 w-100 h-100 opacity-25" style="background: radial-gradient(circle, rgba(45,137,200,0.2) 0%, transparent 60%);"></div>
-          <img src="/static/images/nav-logo.jpeg" alt="Saral Pathshala Dashboard Preview" class="img-fluid rounded-3 shadow-sm border border-light position-relative" style="max-height: 400px; object-fit: cover;" onerror="this.style.display='none';">
+
+      <!-- RIGHT: Hero image -->
+      <div class="col-lg-6 anim-up anim-up-2">
+        <div class="hero-img-col" style="position:relative;">
+          {% if site_settings.hero_image %}
+            <img src="{{ site_settings.hero_image.url }}" alt="Students studying at Saral Pathshala entrance coaching, Bagbazar Kathmandu" class="img-fluid" style="max-height:460px;width:100%;object-fit:cover;border-radius:var(--radius-lg) var(--radius-lg) 0 0;filter:drop-shadow(0 16px 40px rgba(0,0,0,.3));">
+          {% else %}
+            <img src="/static/images/hero.avif"
+                 alt="Students preparing for IOE CEE CSIT entrance exams at Saral Pathshala Bagbazar Kathmandu"
+                 class="img-fluid"
+                 style="max-height:460px;width:100%;object-fit:cover;border-radius:var(--radius-lg) var(--radius-lg) 0 0;filter:drop-shadow(0 16px 40px rgba(0,0,0,.3));"
+                 onerror="this.parentElement.innerHTML='<div class=\'hero-img-placeholder\'><i class=\'bi bi-mortarboard-fill\'></i><p>Saral Pathshala Students</p></div>'">
+          {% endif %}
+
+          <!-- floating cards on image -->
+          <div class="hero-float-card" aria-hidden="true">
+            <p class="fc-label">LIVE MOCK EXAMS</p>
+            <p class="fc-value">500+</p>
+            <p class="fc-sub">Tests completed today</p>
+          </div>
+
+          <div class="hero-float-card-2" aria-hidden="true">
+            <div class="fc2-icon"><i class="bi bi-patch-check-fill"></i></div>
+            <div>
+              <strong>Free Demo Classes</strong>
+              <span>Register &amp; join today</span>
+            </div>
+          </div>
         </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════ TRUST BAR ═══════════════════ -->
+<div class="trust-bar" role="complementary" aria-label="Credentials">
+  <div class="container">
+    <div class="trust-bar-inner">
+      <div class="trust-item"><i class="bi bi-geo-alt-fill"></i> Bagbazar, Kathmandu</div>
+      <div class="trust-item"><i class="bi bi-laptop"></i> Online &amp; Physical Classes</div>
+      <div class="trust-item"><i class="bi bi-clock-fill"></i> Morning · Afternoon · Evening Shifts</div>
+      <div class="trust-item"><i class="bi bi-book-fill"></i> e-PCM Handbook Available</div>
+      <div class="trust-item"><i class="bi bi-gift-fill"></i> Free Demo Classes</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════ EXAM CATEGORIES ═══════════════════ -->
+<section class="sp-section bg-alt" aria-labelledby="exams-heading">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-eyebrow orange">Entrance Exams We Cover</span>
+      <h2 class="section-title" id="exams-heading">Prepare for Every Major Nepal Entrance</h2>
+      <p class="section-lead mx-auto" style="max-width:600px;">
+        From Engineering to Medical, IT to Law | Saral Pathshala offers complete entrance preparation for all major competitive exams in Nepal.
+      </p>
+    </div>
+
+    <div class="row g-4" itemscope itemtype="https://schema.org/ItemList">
+      <div class="col-lg-4 col-md-6" itemprop="itemListElement">
+        <a href="{% url 'course_list' %}" class="exam-cat-card" aria-label="IOE Engineering Entrance Preparation">
+          <div class="exam-cat-icon orange"><i class="bi bi-gear-fill" aria-hidden="true"></i></div>
+          <div class="exam-cat-body">
+            <h4>IOE | Engineering</h4>
+            <p>Tribhuvan University Institute of Engineering entrance. Physics, Chemistry, Maths &amp; English with full past paper coverage.</p>
+            <span class="exam-cat-badge">BE · B.Arch</span>
+          </div>
+        </a>
+      </div>
+      <div class="col-lg-4 col-md-6" itemprop="itemListElement">
+        <a href="{% url 'course_list' %}" class="exam-cat-card" aria-label="CEE Medical Entrance Preparation">
+          <div class="exam-cat-icon red"><i class="bi bi-heart-pulse-fill" aria-hidden="true"></i></div>
+          <div class="exam-cat-body">
+            <h4>CEE | Medical</h4>
+            <p>MEC entrance for MBBS, BDS &amp; B.Pharma. Biology-heavy syllabus with concept-based video lectures and 10,000+ MCQs.</p>
+            <span class="exam-cat-badge">MBBS · BDS · B.Pharma</span>
+          </div>
+        </a>
+      </div>
+      <div class="col-lg-4 col-md-6" itemprop="itemListElement">
+        <a href="{% url 'course_list' %}" class="exam-cat-card" aria-label="BSc CSIT BCA BIT Entrance Preparation">
+          <div class="exam-cat-icon blue"><i class="bi bi-cpu-fill" aria-hidden="true"></i></div>
+          <div class="exam-cat-body">
+            <h4>BSc CSIT · BCA · BIT</h4>
+            <p>IT &amp; Computing entrance for TU-affiliated colleges. Mathematics, Logic &amp; English | structured for full syllabus mastery.</p>
+            <span class="exam-cat-badge">BSc CSIT · BCA · BIT</span>
+          </div>
+        </a>
+      </div>
+      <div class="col-lg-4 col-md-6" itemprop="itemListElement">
+        <a href="{% url 'course_list' %}" class="exam-cat-card" aria-label="CMAT KUUMAT Management Entrance">
+          <div class="exam-cat-icon green"><i class="bi bi-briefcase-fill" aria-hidden="true"></i></div>
+          <div class="exam-cat-body">
+            <h4>CMAT · KUUMAT | Management</h4>
+            <p>BBA &amp; BBS entrance preparation. Quantitative aptitude, verbal ability &amp; logical reasoning modules with timed tests.</p>
+            <span class="exam-cat-badge">BBA · BBS · MBA</span>
+          </div>
+        </a>
+      </div>
+      <div class="col-lg-4 col-md-6" itemprop="itemListElement">
+        <a href="{% url 'course_list' %}" class="exam-cat-card" aria-label="BA LLB Law Entrance Preparation">
+          <div class="exam-cat-icon purple"><i class="bi bi-bank2" aria-hidden="true"></i></div>
+          <div class="exam-cat-body">
+            <h4>B.A.LL.B | Law</h4>
+            <p>Kathmandu School of Law &amp; other law college entrances. Legal aptitude, English &amp; general knowledge preparation.</p>
+            <span class="exam-cat-badge">B.A.LL.B · LL.B</span>
+          </div>
+        </a>
+      </div>
+      <div class="col-lg-4 col-md-6" itemprop="itemListElement">
+        <a href="{% url 'exams:exam_list' %}" class="exam-cat-card" aria-label="Free Mock Tests and CBT Exams">
+          <div class="exam-cat-icon warn"><i class="bi bi-clipboard2-pulse-fill" aria-hidden="true"></i></div>
+          <div class="exam-cat-body">
+            <h4>Free Mock Tests (CBT)</h4>
+            <p>Real computer-based test simulations for all subjects. Instant score, detailed analytics &amp; percentile ranking.</p>
+            <span class="exam-cat-badge">Free · Live · CBT</span>
+          </div>
+        </a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Active Courses Section -->
-<section class="py-5 bg-white border-top border-bottom">
+
+<!-- ═══════════════════ FEATURES ═══════════════════ -->
+<div class="features-strip" role="complementary" aria-label="Platform Features">
+  <div class="container">
+    <div class="text-center mb-4">
+      <span class="section-eyebrow blue">Why Study at Saral Pathshala?</span>
+    </div>
+    <div class="row g-4">
+      <div class="col-6 col-md-4 col-lg-2-4">
+        <div class="feat-card">
+          <div class="feat-icon orange"><i class="bi bi-play-btn-fill" aria-hidden="true"></i></div>
+          <h3>Video Lectures</h3>
+          <p>Concept-based expert recordings, chapter by chapter, available 24/7</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2-4">
+        <div class="feat-card">
+          <div class="feat-icon blue"><i class="bi bi-clipboard2-data-fill" aria-hidden="true"></i></div>
+          <h3>CBT Mock Exams</h3>
+          <p>Real-time computer-based tests with instant scores &amp; rank</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2-4">
+        <div class="feat-card">
+          <div class="feat-icon green"><i class="bi bi-book-fill" aria-hidden="true"></i></div>
+          <h3>Saral e-PCM Book</h3>
+          <p>Dedicated preparation handbooks for Physics, Chemistry &amp; Math</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2-4">
+        <div class="feat-card">
+          <div class="feat-icon warn"><i class="bi bi-person-video3" aria-hidden="true"></i></div>
+          <h3>Live Classes</h3>
+          <p>Morning, Afternoon &amp; Evening batches | physical &amp; online both</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2-4">
+        <div class="feat-card">
+          <div class="feat-icon red"><i class="bi bi-gift-fill" aria-hidden="true"></i></div>
+          <h3>Free Demo</h3>
+          <p>Free demo classes &amp; complimentary mock tests for new registrants</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════ COURSES ═══════════════════ -->
+<section class="sp-section bg-white" aria-labelledby="courses-heading">
   <div class="container">
     <div class="d-flex justify-content-between align-items-end mb-4">
       <div>
-        <h2 class="serif-title mb-2">Our Entrance Courses</h2>
-        <p class="text-muted mb-0">Explore complete interactive lecture series and structured exam papers.</p>
+        <span class="section-eyebrow orange">📚 Our Courses</span>
+        <h2 class="section-title" id="courses-heading">Entrance Preparation Courses</h2>
+        <p class="section-lead">Structured lecture series with MCQs, mock tests &amp; progress tracking for every exam.</p>
       </div>
-      <a href="{% url 'course_list' %}" class="btn btn-sm btn-outline-dark px-3 rounded-pill"><i class="bi bi-arrow-right-circle me-1"></i>View All</a>
+      <a href="{% url 'course_list' %}" class="btn-sm-pill btn-sm-blue d-none d-md-inline-flex">
+        View All Courses <i class="bi bi-arrow-right"></i>
+      </a>
     </div>
-    
+
     <div class="row g-4">
       {% if courses %}
         {% for course in courses %}
           <div class="col-lg-4 col-md-6">
-            <div class="card h-100 border border-light shadow-sm rounded-4 overflow-hidden bg-white hover-shadow transition">
+            <article class="course-card" itemscope itemtype="https://schema.org/Course">
               {% if course.thumbnail %}
-                <img src="{{ course.thumbnail.url }}" class="card-img-top" alt="{{ course.name }}" style="height: 180px; object-fit: cover;">
+                <img src="{{ course.thumbnail.url }}" class="course-thumb" alt="{{ course.name }} entrance preparation at Saral Pathshala" itemprop="image">
               {% else %}
-                <div class="bg-primary text-white d-flex align-items-center justify-content-center" style="height: 180px;">
-                  <i class="bi bi-book-half fs-1"></i>
+                <div class="course-thumb-placeholder {% cycle 'orange' 'blue' 'orange' %}" role="img" aria-label="{{ course.name }}">
+                  <i class="bi bi-book-half" aria-hidden="true"></i>
                 </div>
               {% endif %}
-              <div class="card-body p-4">
-                <span class="badge bg-light text-dark border px-2 py-1 mb-2 small">{{ course.tags|default:"Entrance" }}</span>
-                <h5 class="card-title fw-bold mb-2">{{ course.name }}</h5>
-                <p class="card-text text-muted small mb-4">
-                  {{ course.seo_excerpt|default:"Detailed entrance examination preparation guide with lectures and exam questions." }}
+              <div class="course-body">
+                <span class="course-tag" itemprop="educationalCredentialAwarded">{{ course.tags|default:"Entrance Exam" }}</span>
+                <h3 class="course-title" itemprop="name">{{ course.name }}</h3>
+                <p class="course-excerpt" itemprop="description">
+                  {{ course.seo_excerpt|default:"Complete entrance preparation course with structured video lectures, thousands of MCQs, and live mock exams. Taught by expert faculty at Saral Pathshala, Bagbazar." }}
                 </p>
-                <div class="d-flex justify-content-between align-items-center">
-                  <span class="small text-muted"><i class="bi bi-collection-play me-1"></i>Lectures & MCQs</span>
-                  <a href="{% url 'course_detail' course.slug %}" class="btn btn-sm btn-outline-dark px-3 rounded-pill">View Details</a>
+                <div class="course-footer">
+                  <span class="course-meta">
+                    <i class="bi bi-collection-play" style="color:var(--blue);" aria-hidden="true"></i>
+                    Lectures &amp; MCQs
+                  </span>
+                  <a href="{% url 'course_detail' course.slug %}" class="btn-sm-pill btn-sm-orange" itemprop="url">
+                    View Course <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                  </a>
                 </div>
               </div>
-            </div>
+            </article>
           </div>
         {% endfor %}
       {% else %}
-        <div class="col-12 text-center py-5">
-          <i class="bi bi-journal-x fs-1 text-muted"></i>
-          <h5 class="mt-3">No courses active at the moment</h5>
+        <div class="col-12">
+          <div class="empty-state">
+            <i class="bi bi-journal-x" aria-hidden="true"></i>
+            <strong style="color:var(--ink-2);">Courses launching soon</strong>
+            <p class="mt-1 mb-0" style="font-size:.85rem;">New courses will appear here. Register to get notified.</p>
+          </div>
         </div>
       {% endif %}
+    </div>
+
+    <div class="text-center mt-4 d-md-none">
+      <a href="{% url 'course_list' %}" class="btn-sm-pill btn-sm-blue">View All Courses <i class="bi bi-arrow-right"></i></a>
     </div>
   </div>
 </section>
 
-<!-- Split Dynamic Column Section: Exams vs Notices -->
-<section class="py-5 bg-transparent border-top border-bottom">
+
+<!-- ═══════════════════ STATS ═══════════════════ -->
+<section class="stats-section" aria-label="Saral Pathshala Impact Numbers">
+  <div class="container position-relative">
+    <div class="row g-4 align-items-center">
+      <div class="col-6 col-md-3 stat-item">
+        <strong class="stat-num">10,000<span>+</span></strong>
+        <span class="stat-label">Students Enrolled</span>
+      </div>
+      <div class="d-none d-md-block col-auto stat-divider"></div>
+      <div class="col-6 col-md-3 stat-item">
+        <strong class="stat-num">90,000<span>+</span></strong>
+        <span class="stat-label">MCQs in Question Bank</span>
+      </div>
+      <div class="d-none d-md-block col-auto stat-divider"></div>
+      <div class="col-6 col-md-3 stat-item">
+        <strong class="stat-num">10000<span>+</span></strong>
+        <span class="stat-label">Live Mock Tests Hosted</span>
+      </div>
+      <div class="d-none d-md-block col-auto stat-divider"></div>
+      <div class="col-6 col-md-3 stat-item">
+        <strong class="stat-num">99<span>%</span></strong>
+        <span class="stat-label">Entrance Pass Rate</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════ STUDY MODES ═══════════════════ -->
+<section class="sp-section bg-alt" aria-labelledby="modes-heading">
   <div class="container">
-    <div class="row g-5">
-      <!-- Upcoming Public Exams -->
-      <div class="col-lg-6">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h3 class="serif-title mb-0"><i class="bi bi-pencil-square text-primary me-2"></i>Upcoming Exams</h3>
-          <a href="{% url 'exams:exam_list' %}" class="btn btn-sm btn-outline-dark px-3 rounded-pill">All Exams</a>
+    <div class="text-center mb-5">
+      <span class="section-eyebrow blue">How You Can Study</span>
+      <h2 class="section-title" id="modes-heading">Physical &amp; Online Classes | Your Choice</h2>
+      <p class="section-lead mx-auto" style="max-width:580px;">
+        Whether you're in Kathmandu or anywhere in Nepal, Saral Pathshala's flexible study modes ensure you never miss a class.
+      </p>
+    </div>
+    <div class="row g-4 justify-content-center">
+      <div class="col-md-5">
+        <div class="mode-card physical">
+          <div class="mode-icon orange"><i class="bi bi-building" aria-hidden="true"></i></div>
+          <h3>Physical Classes</h3>
+          <p>
+            Join our in-person batches at <strong>Bagbazar, Kathmandu</strong>. Learn in a focused classroom environment with direct teacher interaction, group study sessions, and access to printed study materials including the Saral e-PCM handbook.
+          </p>
+          <div>
+            <span class="shift-badge orange">🌅 Morning Shift</span>
+            <span class="shift-badge orange">☀️ Afternoon Shift</span>
+            <span class="shift-badge orange">🌙 Evening Shift</span>
+          </div>
+          <p style="font-size:.78rem;color:var(--ink-3);margin-top:12px;margin-bottom:0;">
+            <i class="bi bi-geo-alt-fill" style="color:var(--orange);" aria-hidden="true"></i>
+            Bagbazar, Kathmandu, Nepal
+          </p>
         </div>
-        
+      </div>
+      <div class="col-md-5">
+        <div class="mode-card online">
+          <div class="mode-icon blue"><i class="bi bi-laptop" aria-hidden="true"></i></div>
+          <h3>Online Classes</h3>
+          <p>
+            Study from anywhere in Nepal | or abroad. Access <strong>live online lectures</strong>, pre-recorded video lessons, digital study materials, and take computer-based mock tests from the comfort of your home, 24/7.
+          </p>
+          <div>
+            <span class="shift-badge blue">📱 Mobile Friendly</span>
+            <span class="shift-badge blue">🎥 Recorded Lectures</span>
+            <span class="shift-badge blue">🌐 Anywhere in Nepal</span>
+          </div>
+          <p style="font-size:.78rem;color:var(--ink-3);margin-top:12px;margin-bottom:0;">
+            <i class="bi bi-globe" style="color:var(--blue);" aria-hidden="true"></i>
+            Access via any device, anytime
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════ EXAMS + NOTICES ═══════════════════ -->
+<section class="sp-section bg-white" aria-labelledby="exams-notices-heading">
+  <div class="container">
+    <h2 class="visually-hidden" id="exams-notices-heading">Upcoming Exams and Recent Notices</h2>
+    <div class="row g-5">
+
+      <!-- Upcoming Exams -->
+      <div class="col-lg-6">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <span class="section-eyebrow orange" style="margin-bottom:4px;">Schedule</span>
+            <h3 class="section-title mb-0" style="font-size:1.15rem;">Upcoming Mock Exams</h3>
+          </div>
+          <a href="{% url 'exams:exam_list' %}" class="btn-sm-pill btn-sm-orange">All Exams <i class="bi bi-arrow-right"></i></a>
+        </div>
         <div class="d-flex flex-column gap-3">
           {% if upcoming_exams %}
             {% for exam in upcoming_exams %}
-              <div class="p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center hover-shadow transition">
-                <div>
-                  <h6 class="fw-bold text-dark mb-1">{{ exam.title }}</h6>
-                  <div class="small text-muted d-flex flex-wrap gap-3">
-                    <span><i class="bi bi-tag me-1"></i>{{ exam.course.name }}</span>
-                    <span><i class="bi bi-calendar-event me-1"></i>{{ exam.start_date|date:"M d, Y, h:i A" }}</span>
+              <div class="list-card" itemscope itemtype="https://schema.org/Event">
+                <div class="list-icon orange"><i class="bi bi-clipboard2-pulse" aria-hidden="true"></i></div>
+                <div class="flex-grow-1">
+                  <p class="list-title" itemprop="name">{{ exam.title }}</p>
+                  <div class="list-meta">
+                    <span><i class="bi bi-tag" aria-hidden="true"></i> {{ exam.course.name }}</span>
+                    <span itemprop="startDate"><i class="bi bi-calendar3" aria-hidden="true"></i> {{ exam.start_date|date:"M d, Y · h:i A" }}</span>
                   </div>
                 </div>
-                <div>
-                  <a href="{% url 'exams:exam_detail' exam.slug %}" class="btn btn-sm btn-brand-primary px-3 rounded-pill">Details</a>
-                </div>
+                <a href="{% url 'exams:exam_detail' exam.slug %}" class="btn-sm-pill btn-sm-orange flex-shrink-0" itemprop="url">Details</a>
               </div>
             {% endfor %}
           {% else %}
-            <div class="p-4 bg-light rounded-3 text-center text-muted">
-              <i class="bi bi-calendar-x fs-2 me-2 d-block mb-2"></i>
-              No public upcoming exams scheduled. Check back soon.
+            <div class="empty-state">
+              <i class="bi bi-calendar-x" aria-hidden="true"></i>
+              <strong style="color:var(--ink-2);">No upcoming exams scheduled</strong>
+              <p class="mt-1 mb-0" style="font-size:.82rem;">Check back soon | new mock exams are added regularly.</p>
             </div>
           {% endif %}
         </div>
       </div>
-      
-      <!-- Recent Result Notices -->
+
+      <!-- Notices -->
       <div class="col-lg-6">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h3 class="serif-title mb-0"><i class="bi bi-bell text-warning me-2"></i>Notices & Results</h3>
-          <a href="{% url 'notice_list' %}" class="btn btn-sm btn-outline-dark px-3 rounded-pill">All Notices</a>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <span class="section-eyebrow blue" style="margin-bottom:4px;">Updates</span>
+            <h3 class="section-title mb-0" style="font-size:1.15rem;">Notices &amp; Results</h3>
+          </div>
+          <a href="{% url 'notice_list' %}" class="btn-sm-pill btn-sm-blue">All Notices <i class="bi bi-arrow-right"></i></a>
         </div>
-        
         <div class="d-flex flex-column gap-3">
           {% if notices %}
             {% for notice in notices %}
-              <div class="p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center hover-shadow transition">
-                <div>
-                  <h6 class="fw-bold text-dark mb-1">{{ notice.title }}</h6>
-                  <div class="small text-muted d-flex gap-3">
-                    <span><i class="bi bi-clock me-1"></i>{{ notice.created_at|date:"M d, Y" }}</span>
+              <div class="list-card">
+                <div class="list-icon {% if notice.pdf_file %}red{% else %}warn{% endif %}">
+                  <i class="bi bi-{% if notice.pdf_file %}file-earmark-pdf{% else %}megaphone{% endif %}" aria-hidden="true"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <p class="list-title">{{ notice.title }}</p>
+                  <div class="list-meta">
+                    <span><i class="bi bi-clock" aria-hidden="true"></i> {{ notice.created_at|date:"M d, Y" }}</span>
                     {% if notice.pdf_file %}
-                      <span class="text-danger fw-semibold"><i class="bi bi-file-pdf me-1"></i>Result PDF Attached</span>
+                      <span style="color:var(--danger);font-weight:700;">
+                        <i class="bi bi-file-earmark-pdf-fill" aria-hidden="true"></i> PDF Attached
+                      </span>
                     {% endif %}
                   </div>
                 </div>
-                <div>
-                  <a href="{% url 'notice_detail' notice.slug %}" class="btn btn-sm btn-outline-dark px-3 rounded-pill">View</a>
-                </div>
+                <a href="{% url 'notice_detail' notice.slug %}" class="btn-sm-pill btn-sm-blue flex-shrink-0">View</a>
               </div>
             {% endfor %}
           {% else %}
-            <div class="p-4 bg-light rounded-3 text-center text-muted">
-              <i class="bi bi-chat-left-quote fs-2 me-2 d-block mb-2"></i>
-              No recent notifications or result publications.
+            <div class="empty-state">
+              <i class="bi bi-chat-left-quote" aria-hidden="true"></i>
+              <strong style="color:var(--ink-2);">No recent notices</strong>
+              <p class="mt-1 mb-0" style="font-size:.82rem;">Result publications and important updates will appear here.</p>
             </div>
           {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════ WHY CHOOSE US ═══════════════════ -->
+<section class="sp-section bg-alt" aria-labelledby="why-heading">
+  <div class="container">
+    <div class="row g-5 align-items-center">
+      <div class="col-lg-4">
+        <span class="section-eyebrow orange">Why Students Choose Us</span>
+        <h2 class="section-title" id="why-heading">What Makes Saral Pathshala Different</h2>
+        <p class="section-lead">
+          Thousands of students from all over Nepal trust Saral Pathshala (formerly Saral Shikshya) as their go-to entrance preparation institute | both in person and online.
+        </p>
+        <a href="{% url 'register' %}" class="btn-sm-pill btn-sm-orange mt-3">
+          Register Free <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+      <div class="col-lg-8">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="why-card">
+              <span class="why-num">01</span>
+              <div>
+                <h4>Expert Faculty</h4>
+                <p>Experienced teachers with deep subject expertise for IOE, CEE, CSIT, CMAT and LL.B entrances. Regular doubt sessions included.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="why-card">
+              <span class="why-num">02</span>
+              <div>
+                <h4>50,000+ MCQ Bank</h4>
+                <p>Nepal's largest entrance MCQ database | all subject-wise, chapter-wise and difficulty-tagged for targeted preparation.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="why-card">
+              <span class="why-num">03</span>
+              <div>
+                <h4>Real CBT Simulation</h4>
+                <p>Mock exams that mirror the actual computer-based test interface | train under real exam conditions with a timer &amp; instant feedback.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="why-card">
+              <span class="why-num">04</span>
+              <div>
+                <h4>Saral e-PCM Handbook</h4>
+                <p>Our in-house Physics, Chemistry &amp; Math preparation book | concise, exam-focused, and trusted by toppers across Nepal.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="why-card">
+              <span class="why-num">05</span>
+              <div>
+                <h4>Free Demo &amp; Trial</h4>
+                <p>Every new student gets free demo classes and complimentary mock tests before enrolling | no commitment required.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="why-card">
+              <span class="why-num">06</span>
+              <div>
+                <h4>Progress Dashboard</h4>
+                <p>Visual performance analytics, accuracy tracking, and weak chapter identification so you study smarter, not just harder.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Call To Action Section -->
-<section class="py-5 bg-dark text-white text-center shadow-lg position-relative overflow-hidden">
-  <div class="mesh-bg position-absolute top-0 start-0 w-100 h-100 opacity-25" style="background: radial-gradient(circle at center, var(--brand-primary) 0%, transparent 60%);"></div>
-  <div class="container py-4 position-relative">
-    <h2 class="serif-title display-5 mb-3 text-warning">Ready to Accelerate Your Prep?</h2>
-    <p class="lead mb-4 mx-auto" style="max-width: 600px;">
-      Register now for instant access to free public mock tests, entrance details, and student dashboard updates.
-    </p>
-    <div class="d-flex justify-content-center gap-3">
-      {% if not user.is_authenticated %}
-        <a href="{% url 'register' %}" class="btn btn-brand-secondary btn-lg px-4 shadow-sm"><i class="bi bi-person-plus-fill me-2"></i>Sign Up Now</a>
-        <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg px-4"><i class="bi bi-box-arrow-in-right me-2"></i>Login</a>
-      {% else %}
-        <a href="{% url 'dashboard' %}" class="btn btn-brand-primary btn-lg px-4 shadow-sm"><i class="bi bi-speedometer2 me-2"></i>My Dashboard</a>
-      {% endif %}
+
+<!-- ═══════════════════ TESTIMONIALS ═══════════════════ -->
+<section class="sp-section bg-white" aria-labelledby="testi-heading">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="section-eyebrow blue">Student Stories</span>
+      <h2 class="section-title" id="testi-heading">What Our Students Say</h2>
+      <p class="section-lead mx-auto" style="max-width:540px;">
+        Thousands of students have cracked IOE, CEE, CSIT &amp; more with Saral Pathshala. Here's what they share.
+      </p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4" itemscope itemtype="https://schema.org/Review">
+        <div class="testi-card">
+          <div class="testi-stars" aria-label="5 out of 5 stars">★★★★★</div>
+          <p class="testi-text" itemprop="reviewBody">"Saral Pathshala's mock exams are the closest thing to the actual IOE exam. The MCQ bank is massive and the video lectures explain every concept clearly. I cracked IOE in my first attempt!"</p>
+          <div class="d-flex align-items-center gap-10">
+            <div class="testi-avatar" aria-hidden="true">RP</div>
+            <div style="margin-left:10px;">
+              <p class="testi-name" itemprop="author">Rajan Poudel</p>
+              <p class="testi-course">IOE Entrance | Pulchowk Campus</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4" itemscope itemtype="https://schema.org/Review">
+        <div class="testi-card">
+          <div class="testi-stars" aria-label="5 out of 5 stars">★★★★★</div>
+          <p class="testi-text" itemprop="reviewBody">"I was preparing from outside Kathmandu and the online classes were a lifesaver. The recorded lectures, live tests and notices kept me completely on track. I passed CEE on my second attempt!"</p>
+          <div class="d-flex align-items-center gap-10">
+            <div class="testi-avatar" style="background:var(--orange-lt);color:var(--orange);" aria-hidden="true">SM</div>
+            <div style="margin-left:10px;">
+              <p class="testi-name" itemprop="author">Sima Maharjan</p>
+              <p class="testi-course">CEE Medical Entrance | MBBS</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4" itemscope itemtype="https://schema.org/Review">
+        <div class="testi-card">
+          <div class="testi-stars" aria-label="5 out of 5 stars">★★★★★</div>
+          <p class="testi-text" itemprop="reviewBody">"The CSIT preparation at Saral Pathshala is unmatched. The question bank is huge and the practice tests are timed exactly like the real exam. Highly recommend to anyone aiming for BSc CSIT."</p>
+          <div class="d-flex align-items-center gap-10">
+            <div class="testi-avatar" style="background:var(--success-lt);color:var(--success);" aria-hidden="true">BK</div>
+            <div style="margin-left:10px;">
+              <p class="testi-name" itemprop="author">Bijay Khatri</p>
+              <p class="testi-course">BSc CSIT Entrance | TU</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
+
+
+<!-- ═══════════════════ LOCATION + CONTACT ═══════════════════ -->
+<section class="sp-section bg-alt" aria-labelledby="contact-heading">
+  <div class="container">
+    <div class="row g-5 align-items-start">
+      <div class="col-lg-5">
+        <span class="section-eyebrow orange">Find Us</span>
+        <h2 class="section-title" id="contact-heading">Visit Saral Pathshala, Bagbazar</h2>
+        <p class="section-lead mb-4">
+          Located in the heart of Kathmandu at <strong>Bagbazar</strong>, easily accessible by public transport. Walk-in inquiries and free demo sessions are welcome.
+        </p>
+        <div class="location-card" itemscope itemtype="https://schema.org/Organization">
+          <meta itemprop="name" content="Saral Pathshala">
+          <meta itemprop="alternateName" content="Saral Shikshya">
+          <div class="contact-row">
+            <div class="contact-icon orange"><i class="bi bi-geo-alt-fill" aria-hidden="true"></i></div>
+            <div>
+              <span class="contact-label">ADDRESS</span>
+              <span class="contact-value" itemprop="address">Bagbazar, Kathmandu, Nepal</span>
+            </div>
+          </div>
+          <div class="contact-row">
+            <div class="contact-icon blue"><i class="bi bi-clock-fill" aria-hidden="true"></i></div>
+            <div>
+              <span class="contact-label">OFFICE HOURS</span>
+              <span class="contact-value">Sun – Fri: 6:00 AM – 8:00 PM</span>
+            </div>
+          </div>
+          <div class="contact-row">
+            <div class="contact-icon orange"><i class="bi bi-calendar2-check-fill" aria-hidden="true"></i></div>
+            <div>
+              <span class="contact-label">CLASS SHIFTS</span>
+              <span class="contact-value">Morning · Afternoon · Evening</span>
+            </div>
+          </div>
+          <div class="contact-row">
+            <div class="contact-icon blue"><i class="bi bi-globe" aria-hidden="true"></i></div>
+            <div>
+              <span class="contact-label">ONLINE ACCESS</span>
+              <span class="contact-value">Available 24/7 | all devices</span>
+            </div>
+          </div>
+          <div class="contact-row">
+            <div class="contact-icon orange"><i class="bi bi-gift-fill" aria-hidden="true"></i></div>
+            <div>
+              <span class="contact-label">FREE SERVICES</span>
+              <span class="contact-value">Demo Classes · Complimentary Mock Tests</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-7">
+        <!-- Map embed placeholder | replace with actual Google Maps iframe -->
+        <div style="border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow-md);">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.338!2d85.3162!3d27.7063!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb190a74baaaab%3A0xef5e7e8f54a5df87!2sBagbazar%2C%20Kathmandu%2044600!5e0!3m2!1sen!2snp!4v1234567890"
+            width="100%" height="320" style="border:0;display:block;" allowfullscreen="" loading="lazy"
+            title="Saral Pathshala location at Bagbazar, Kathmandu"
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+        <p style="font-size:.78rem;color:var(--ink-3);margin-top:8px;text-align:center;">
+          <i class="bi bi-geo-alt-fill" style="color:var(--orange);" aria-hidden="true"></i>
+          Saral Pathshala | Bagbazar, Kathmandu, Nepal
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════ SEO RICH TEXT ═══════════════════ -->
+<section class="seo-rich" aria-label="About Saral Pathshala">
+  <div class="container">
+    <div class="row g-5">
+      <div class="col-lg-4">
+        <h2>About Saral Pathshala</h2>
+        <p>
+          <strong>Saral Pathshala</strong> (formerly known as <strong>Saral Shikshya</strong>) is one of Nepal's most prominent entrance exam preparation institutes, based in <strong>Bagbazar, Kathmandu</strong>. With years of experience preparing students for competitive university entrances, the institute combines expert faculty, innovative technology, and structured study materials to help every student succeed.
+        </p>
+      </div>
+      <div class="col-lg-4">
+        <h2>Exams We Cover</h2>
+        <p>
+          Saral Pathshala provides expert coaching for all major Nepal university entrance exams: <strong>IOE (Engineering)</strong>, <strong>CEE (Medical/MBBS/BDS)</strong>, <strong>BSc CSIT / BCA / BIT</strong> (IT &amp; Computing), <strong>CMAT / KUUMAT</strong> (Management), and <strong>B.A.LL.B</strong> (Law). Both physical classroom and online modes are available with morning, afternoon, and evening shifts.
+        </p>
+      </div>
+      <div class="col-lg-4">
+        <h2>Online Entrance Prep Nepal</h2>
+        <p>
+          Our online platform offers <strong>concept-based video lectures</strong>, a <strong>50,000+ MCQ bank</strong>, <strong>live computer-based mock tests</strong>, and detailed performance analytics | accessible from any device, anywhere in Nepal. New students receive <strong>free demo classes</strong> and <strong>complimentary mock tests</strong> upon registration.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════ CTA ═══════════════════ -->
+<section class="cta-section" aria-label="Call to Action | Join Saral Pathshala">
+  <div class="container position-relative text-center">
+    <span class="section-eyebrow" style="background:rgba(232,114,42,.2);color:var(--orange);border:1px solid rgba(232,114,42,.3);margin-bottom:20px;display:inline-block;">
+      🚀 Start Your Preparation Today
+    </span>
+    <h2>
+      Join Nepal's #1 Entrance<br>
+      <span>Preparation Platform</span>
+    </h2>
+    <p class="sp-body mx-auto">
+      Register now for instant access to free mock tests, video lectures, live notices, and your personal student dashboard. Physical &amp; online classes available at Saral Pathshala, Bagbazar, Kathmandu.
+    </p>
+
+    <div class="d-flex justify-content-center gap-3 flex-wrap mb-5">
+      {% if not user.is_authenticated %}
+        <a href="{% url 'register' %}" class="btn-cta-orange">
+          <i class="bi bi-person-plus-fill"></i> Create Free Account
+        </a>
+        <a href="{% url 'login' %}" class="btn-cta-outline">
+          <i class="bi bi-box-arrow-in-right"></i> Sign In
+        </a>
+      {% else %}
+        <a href="{% url 'dashboard' %}" class="btn-cta-orange">
+          <i class="bi bi-speedometer2"></i> Go to My Dashboard
+        </a>
+        <a href="{% url 'exams:exam_list' %}" class="btn-cta-outline">
+          <i class="bi bi-pencil-square"></i> Start a Mock Exam
+        </a>
+      {% endif %}
+    </div>
+
+    <!-- trust row -->
+    <div class="d-flex justify-content-center flex-wrap gap-4" style="opacity:.6;">
+      <span style="color:#fff;font-size:.78rem;display:flex;align-items:center;gap:6px;"><i class="bi bi-shield-check-fill" style="color:var(--orange);" aria-hidden="true"></i> Secure &amp; Private</span>
+      <span style="color:#fff;font-size:.78rem;display:flex;align-items:center;gap:6px;"><i class="bi bi-check-circle-fill" style="color:var(--orange);" aria-hidden="true"></i> Free to Join</span>
+      <span style="color:#fff;font-size:.78rem;display:flex;align-items:center;gap:6px;"><i class="bi bi-lightning-charge-fill" style="color:var(--orange);" aria-hidden="true"></i> Instant Access</span>
+      <span style="color:#fff;font-size:.78rem;display:flex;align-items:center;gap:6px;"><i class="bi bi-phone-fill" style="color:var(--orange);" aria-hidden="true"></i> Mobile Friendly</span>
+      <span style="color:#fff;font-size:.78rem;display:flex;align-items:center;gap:6px;"><i class="bi bi-geo-alt-fill" style="color:var(--orange);" aria-hidden="true"></i> Bagbazar, Kathmandu</span>
+    </div>
+  </div>
+</section>
+
+<!-- Structured Data: LocalBusiness -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Saral Pathshala",
+  "alternateName": "Saral Shikshya",
+  "url": "{{ request.scheme }}://{{ request.get_host }}/",
+  "description": "Nepal's leading entrance exam preparation institute for IOE, CEE, BSc CSIT, CMAT and BA LLB. Physical and online classes from Bagbazar, Kathmandu.",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Bagbazar",
+    "addressLocality": "Kathmandu",
+    "addressRegion": "Bagmati",
+    "postalCode": "44600",
+    "addressCountry": "NP"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "27.7063",
+    "longitude": "85.3162"
+  },
+  "openingHours": "Su-Fr 06:00-20:00",
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Entrance Preparation Courses",
+    "itemListElement": [
+      {"@type": "Offer", "itemOffered": {"@type": "Course", "name": "IOE Engineering Entrance Preparation"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Course", "name": "CEE Medical Entrance Preparation"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Course", "name": "BSc CSIT Entrance Preparation"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Course", "name": "CMAT Management Entrance Preparation"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Course", "name": "BA LLB Law Entrance Preparation"}}
+    ]
+  }
+}
+</script>
+
 {% endblock %}

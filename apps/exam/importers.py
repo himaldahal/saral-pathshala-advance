@@ -5,7 +5,7 @@ Import a full exam structure from a validated JSON dict.
 All DB writes happen inside a single atomic transaction so the DB stays
 consistent even on partial failure.
 
-JSON must contain `course_slug` matching an existing Course.slug — no course
+JSON must contain `course_slug` matching an existing Course.slug | no course
 is ever created by the importer.
 """
 from __future__ import annotations
@@ -26,7 +26,7 @@ def import_exam_from_json(data: dict) -> Exam:
     """
     data.pop('_instructions', None)  # strip docs key if present
 
-    # ── Course (lookup only — never created) ──────────────────────────────────
+    # ── Course (lookup only | never created) ──────────────────────────────────
     course_slug = (data.get('course_slug') or '').strip()
     if not course_slug:
         available = list(Course.objects.filter(is_active=True).values_list('slug', 'name'))

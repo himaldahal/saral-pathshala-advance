@@ -1,295 +1,463 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  
-  <!-- SEO Meta Tags -->
+
   <title>{% block title %}{{ site_settings.site_title }}{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}{{ site_settings.site_description }}{% endblock %}">
-  <meta name="keywords" content="{% block meta_keywords %}{{ site_settings.meta_keywords }}{% endblock %}">
-  <meta name="author" content="{{ site_settings.site_name }}">
-  <link rel="canonical" href="{{ request.build_absolute_uri }}">
-  
-  <!-- Favicon -->
+  <meta name="keywords"    content="{% block meta_keywords %}{{ site_settings.meta_keywords }}{% endblock %}">
+  <meta name="author"      content="{{ site_settings.site_name }}">
+  <link rel="canonical"    href="{{ request.build_absolute_uri }}">
+
   {% if site_settings.favicon %}
     <link rel="icon" type="image/png" href="{{ site_settings.favicon.url }}">
   {% else %}
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg">
   {% endif %}
 
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Instrument+Serif:ital,wght@0,400;0,600;1,400&family=Geist+Mono:wght@400;600&display=swap" rel="stylesheet">
-  
-  <!-- Bootstrap 5 & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  
-  <!-- JQuery -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-  <!-- Custom Core Design Styles -->
   <style>
+    /* ── Brand Tokens (from logo) ──────────────────────────── */
     :root {
-      /* Five Primary Aesthetics Tokens (Locked Premium Light Theme) */
-      --color-bg: #f8fafc; /* Crisp energetic slate-white */
-      --color-surface: #ffffff; /* Pure white card/panel background */
-      --color-border: rgba(15, 23, 42, 0.08); /* Crisp subtle border */
-      --color-text: #0f172a; /* Deep Slate 900 for high-contrast */
-      --color-muted: #64748b; /* Slate 500 for clean subtext */
-      --color-accent: #3b82f6; /* Royal brand blue */
-      --color-accent-hover: #2563eb;
-      --color-accent-dim: rgba(59, 130, 246, 0.06);
-      
-      --color-accent-orange: #f97316; /* Electric accent orange */
-      --color-accent-orange-hover: #ea580c;
+      /* Orange | primary brand */
+      --orange:        #E8722A;
+      --orange-dk:     #cf5f1a;
+      --orange-lt:     #fef3ec;
+      --orange-mid:    #f08445;
 
-      --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
-      --font-serif: 'Instrument Serif', Georgia, serif;
-      --font-mono: 'Geist Mono', monospace;
+      /* Blue | secondary brand */
+      --blue:          #2E86C1;
+      --blue-dk:       #1f6fa3;
+      --blue-lt:       #eaf4fb;
+      --blue-mid:      #4799cc;
+
+      /* Page neutrals */
+      --bg:            #f7f9fc;
+      --surface:       #ffffff;
+      --surface-2:     #f0f4f8;
+      --border:        #dde3ec;
+      --border-dk:     #c5cfe0;
+
+      /* Text */
+      --ink:           #111827;
+      --ink-2:         #374151;
+      --ink-3:         #6b7280;
+
+      /* Semantic */
+      --success:       #15803d;
+      --success-lt:    #f0fdf4;
+      --danger:        #dc2626;
+      --danger-lt:     #fef2f2;
+      --warn:          #d97706;
+      --warn-lt:       #fffbeb;
+
+      /* Topbar uses brand blue */
+      --topbar-bg:     #1e6fa3;
+
+      --shadow-sm:  0 1px 4px rgba(30,80,140,0.07);
+      --shadow-md:  0 3px 14px rgba(30,80,140,0.10);
+      --shadow-lg:  0 8px 30px rgba(30,80,140,0.14);
+
+      --radius-sm:  6px;
+      --radius-md:  10px;
+      --radius-lg:  16px;
+      --radius-pill:999px;
+      --nav-h:      66px;
+      --ease:       cubic-bezier(.4,0,.2,1);
     }
 
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
     body {
-      font-family: var(--font-sans);
-      background-color: var(--color-bg);
-      background-image: 
-        radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.04) 0%, transparent 40%),
-        radial-gradient(circle at 90% 80%, rgba(249, 115, 22, 0.04) 0%, transparent 40%);
-      color: var(--color-text);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      background: var(--bg);
+      color: var(--ink);
       display: flex;
       flex-direction: column;
       min-height: 100vh;
-      transition: background-color 0.25s ease, color 0.25s ease;
       -webkit-font-smoothing: antialiased;
     }
+    main { flex: 1; }
 
-    /* Typography */
-    h1, h2, h3, h4, h5, h6 {
+    h1,h2,h3,h4,h5,h6 {
+      font-family: 'Nunito', system-ui, sans-serif;
       font-weight: 700;
-      color: var(--color-text);
-      letter-spacing: -0.02em;
+      letter-spacing: -.02em;
+      color: var(--ink);
+      line-height: 1.2;
     }
-    
-    .serif-title {
-      font-family: var(--font-serif);
+
+    /* ── Topbar ─────────────────────────────────────────────── */
+    .sp-topbar {
+      background: var(--topbar-bg);
+      color: rgba(255,255,255,.82);
+      font-size: .78rem;
       font-weight: 500;
-    }
-
-    /* Navbar styling */
-    .navbar {
-      background-color: var(--color-surface) !important;
-      border-bottom: 1px solid var(--color-border);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
-      transition: all 0.25s ease;
-    }
-    
-    .navbar-brand img {
-      max-height: 40px;
-      max-width: 180px;
-      object-fit: contain;
-      width: auto;
-    }
-
-    .nav-link {
-      font-weight: 500;
-      color: var(--color-muted) !important;
-      transition: color 0.2s ease;
-    }
-
-    .nav-link:hover, .nav-link.active {
-      color: var(--color-accent) !important;
-    }
-
-    /* Sticky WhatsApp Button */
-    .whatsapp-float {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      background-color: #25D366;
-      color: white;
-      border-radius: 50px;
-      text-align: center;
-      font-size: 30px;
-      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
-      z-index: 9999;
-      width: 56px;
-      height: 56px;
+      height: 34px;
       display: flex;
       align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      transition: all 0.25s ease;
+    }
+    .sp-topbar .container { display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+    .sp-topbar-left { display:flex; align-items:center; gap:1.5rem; }
+    .sp-topbar-left span,
+    .sp-topbar-right span { display:flex; align-items:center; gap:5px; }
+    .sp-topbar i { color: #ffc08a; font-size:.75rem; }
+
+    /* ── Navbar ─────────────────────────────────────────────── */
+    .sp-nav {
+      position: sticky;
+      top: 0;
+      z-index: 1030;
+      height: var(--nav-h);
+      background: rgba(255,255,255,.97);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      transition: box-shadow .2s var(--ease);
+    }
+    .sp-nav.scrolled { box-shadow: var(--shadow-md); }
+    .sp-nav > .container { height:100%; display:flex; align-items:center; gap:1.5rem; }
+
+    /* Brand */
+    .sp-brand { display:flex; align-items:center; text-decoration:none; flex-shrink:0; }
+    .sp-brand-logo { height:42px; width:auto; object-fit:contain; }
+    /* fallback wordmark */
+    .sp-brand-wm {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      letter-spacing: -.03em;
+      white-space: nowrap;
+    }
+    .sp-brand-wm .wm-saral    { color: var(--orange); }
+    .sp-brand-wm .wm-path     { color: var(--blue); }
+
+    /* Nav links */
+    .sp-links {
+      display:flex; align-items:center; gap:2px;
+      list-style:none; margin:0; padding:0;
+      flex:1; justify-content:center;
+    }
+    .sp-links a {
+      display:block;
+      font-size:.875rem; font-weight:600;
+      color: var(--ink-2);
+      text-decoration:none;
+      padding:6px 14px;
+      border-radius:var(--radius-pill);
+      transition: color .15s, background .15s;
+      white-space:nowrap;
+    }
+    .sp-links a:hover       { color:var(--blue);    background:var(--blue-lt); }
+    .sp-links a.active      { color:var(--blue);    background:var(--blue-lt); font-weight:700; }
+
+    /* Actions */
+    .sp-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+
+    /* Hamburger */
+    .sp-toggler {
+      display:none; align-items:center; justify-content:center;
+      background:none; border:1.5px solid var(--border-dk);
+      border-radius:var(--radius-sm);
+      padding:6px 9px; cursor:pointer;
+      color:var(--ink); font-size:1.15rem;
+      transition:background .15s;
+      margin-left:auto;
+    }
+    .sp-toggler:hover { background:var(--surface-2); }
+
+    /* ── Buttons ─────────────────────────────────────────────── */
+    /* Orange CTA | primary action */
+    .btn-sp-orange {
+      background: var(--orange);
+      color: #fff !important;
+      font-family:'Inter',sans-serif; font-weight:700; font-size:.825rem;
+      border:none; border-radius:var(--radius-pill);
+      padding:9px 22px; cursor:pointer;
+      text-decoration:none; display:inline-flex; align-items:center; gap:6px;
+      white-space:nowrap; line-height:1;
+      transition: background .15s, box-shadow .15s, transform .15s;
+    }
+    .btn-sp-orange:hover {
+      background:var(--orange-dk); color:#fff !important;
+      box-shadow:0 4px 14px rgba(232,114,42,.35);
+      transform:translateY(-1px);
     }
 
-    .whatsapp-float:hover {
-      background-color: #128C7E;
-      color: white;
-      transform: scale(1.08);
+    /* Blue | secondary CTA */
+    .btn-sp-blue {
+      background: var(--blue);
+      color: #fff !important;
+      font-family:'Inter',sans-serif; font-weight:700; font-size:.825rem;
+      border:none; border-radius:var(--radius-pill);
+      padding:9px 22px; cursor:pointer;
+      text-decoration:none; display:inline-flex; align-items:center; gap:6px;
+      white-space:nowrap; line-height:1;
+      transition: background .15s, box-shadow .15s, transform .15s;
+    }
+    .btn-sp-blue:hover {
+      background:var(--blue-dk); color:#fff !important;
+      box-shadow:0 4px 14px rgba(46,134,193,.35);
+      transform:translateY(-1px);
     }
 
-    /* Floating upcoming exams calendar button */
-    .sidebar-float-btn {
-      position: fixed;
-      bottom: 100px;
-      right: 30px;
-      background-color: var(--color-accent);
-      color: white;
-      border-radius: 50px;
-      text-align: center;
-      font-size: 22px;
-      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
-      z-index: 9999;
-      width: 56px;
-      height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      transition: all 0.25s ease;
-      border: none;
+    /* Blue outline | login */
+    .btn-sp-outline {
+      background:transparent;
+      color:var(--blue) !important;
+      font-family:'Inter',sans-serif; font-weight:600; font-size:.825rem;
+      border:1.5px solid var(--blue);
+      border-radius:var(--radius-pill);
+      padding:8px 20px; cursor:pointer;
+      text-decoration:none; display:inline-flex; align-items:center; gap:6px;
+      white-space:nowrap; line-height:1;
+      transition: all .15s;
+    }
+    .btn-sp-outline:hover { background:var(--blue-lt); color:var(--blue) !important; }
+
+    /* Danger ghost | logout */
+    .btn-sp-danger {
+      background:transparent;
+      color:var(--danger) !important;
+      font-family:'Inter',sans-serif; font-weight:600; font-size:.825rem;
+      border:1.5px solid rgba(220,38,38,.3);
+      border-radius:var(--radius-pill);
+      padding:8px 18px; cursor:pointer;
+      text-decoration:none; display:inline-flex; align-items:center; gap:6px;
+      white-space:nowrap; line-height:1;
+      transition: all .15s;
+    }
+    .btn-sp-danger:hover { background:var(--danger-lt); border-color:var(--danger); }
+
+    /* Small modifier */
+    .btn-sp-sm { font-size:.77rem !important; padding:5px 14px !important; }
+
+    /* ── Mobile Drawer ───────────────────────────────────────── */
+    .sp-drawer {
+      display:none; flex-direction:column;
+      position:fixed; top:var(--nav-h); left:0; right:0; bottom:0;
+      background:var(--surface);
+      z-index:1029;
+      padding:1.25rem 1rem 2rem;
+      overflow-y:auto;
+      transform:translateX(100%);
+      transition:transform .28s var(--ease);
+      border-top:1px solid var(--border);
+    }
+    .sp-drawer.open { transform:translateX(0); }
+
+    .sp-drawer-links { list-style:none; padding:0; margin:0 0 1.25rem; display:flex; flex-direction:column; gap:2px; }
+    .sp-drawer-links a {
+      display:flex; align-items:center; gap:10px;
+      font-size:.95rem; font-weight:600;
+      color:var(--ink-2); text-decoration:none;
+      padding:11px 14px; border-radius:var(--radius-md);
+      transition:all .15s;
+    }
+    .sp-drawer-links a i { font-size:1.05rem; width:20px; text-align:center; color:var(--ink-3); }
+    .sp-drawer-links a:hover,
+    .sp-drawer-links a.active { background:var(--blue-lt); color:var(--blue); }
+    .sp-drawer-links a:hover i,
+    .sp-drawer-links a.active i { color:var(--blue); }
+
+    .sp-drawer-actions { display:flex; flex-direction:column; gap:9px; padding-top:1rem; border-top:1px solid var(--border); }
+    .sp-drawer-actions a { width:100%; justify-content:center; font-size:.9rem !important; padding:11px 20px !important; }
+
+    /* ── Flash Messages ──────────────────────────────────────── */
+    .sp-flash { padding:.75rem 0 0; }
+    .sp-flash-item {
+      display:flex; align-items:flex-start; gap:11px;
+      padding:12px 16px; border-radius:var(--radius-md);
+      border:1px solid transparent;
+      font-size:.875rem; font-weight:500;
+      margin-bottom:8px; position:relative;
+      animation:sp-slide .25s var(--ease);
+    }
+    @keyframes sp-slide { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+    .sp-flash-item i.icon { font-size:1rem; margin-top:1px; flex-shrink:0; }
+    .sp-flash-item.success { background:var(--success-lt); border-color:#bbf7d0; color:var(--success); }
+    .sp-flash-item.error,
+    .sp-flash-item.danger  { background:var(--danger-lt);  border-color:#fecaca; color:var(--danger); }
+    .sp-flash-item.info    { background:var(--blue-lt);    border-color:#bfdbfe; color:var(--blue-dk); }
+    .sp-flash-item.warning { background:var(--warn-lt);    border-color:#fed7aa; color:var(--warn); }
+    .sp-close-btn {
+      position:absolute; top:10px; right:12px;
+      background:none; border:none; cursor:pointer;
+      opacity:.4; font-size:.85rem; color:inherit;
+      line-height:1; padding:2px; transition:opacity .15s;
+    }
+    .sp-close-btn:hover { opacity:1; }
+
+    /* ── Floats ──────────────────────────────────────────────── */
+    .sp-float {
+      position:fixed; width:50px; height:50px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.3rem; z-index:9000; cursor:pointer; border:none;
+      transition:transform .2s var(--ease), box-shadow .2s var(--ease);
+    }
+    .sp-float:hover { transform:scale(1.1); }
+
+    .sp-float-wa {
+      background:#25D366; color:#fff;
+      bottom:26px; right:26px;
+      text-decoration:none;
+      box-shadow:0 4px 14px rgba(37,211,102,.4);
+    }
+    .sp-float-wa:hover { color:#fff; box-shadow:0 6px 20px rgba(37,211,102,.5); }
+
+    .sp-float-exam {
+      background:var(--orange); color:#fff;
+      bottom:88px; right:26px;
+      box-shadow:0 4px 14px rgba(232,114,42,.4);
+    }
+    .sp-float-exam:hover { box-shadow:0 6px 20px rgba(232,114,42,.5); }
+
+    /* ── Offcanvas Sidebar ───────────────────────────────────── */
+    .sp-offcanvas { width:min(370px,95vw) !important; }
+    .sp-offcanvas .offcanvas-header {
+      background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dk) 100%);
+      padding:1.1rem 1.4rem;
+    }
+    .sp-offcanvas .offcanvas-title {
+      font-family:'Nunito',sans-serif; font-weight:700;
+      font-size:1rem; color:#fff;
+      display:flex; align-items:center; gap:8px;
+    }
+    .sp-offcanvas .offcanvas-title i { color:#ffc08a; }
+    .sp-offcanvas .offcanvas-body { background:var(--bg); padding:1.1rem; }
+
+    /* Exam card */
+    .ec {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius-lg); padding:.9rem 1rem;
+      transition:box-shadow .2s, transform .2s;
+      border-left:3px solid var(--orange);
+    }
+    .ec:hover { box-shadow:var(--shadow-md); transform:translateY(-1px); }
+    .ec-badge {
+      display:inline-block; background:var(--blue-lt); color:var(--blue);
+      font-size:.7rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+      padding:3px 9px; border-radius:var(--radius-pill); margin-bottom:7px;
+    }
+    .ec-title { font-size:.875rem; font-weight:700; color:var(--ink); line-height:1.35; margin-bottom:5px; font-family:'Nunito',sans-serif; }
+    .ec-meta  { font-size:.75rem; color:var(--ink-3); display:flex; align-items:center; gap:5px; margin-bottom:10px; }
+    .ec-meta i { color:var(--orange); font-size:.72rem; }
+    .ec-foot  { display:flex; justify-content:space-between; align-items:center; padding-top:9px; border-top:1px solid var(--border); }
+    .ec-qs    { font-size:.73rem; color:var(--ink-3); display:flex; align-items:center; gap:4px; }
+
+    /* ── Footer ─────────────────────────────────────────────── */
+    .sp-footer {
+      background:#0d1b2e;
+      color:rgba(255,255,255,.6);
+      padding:4rem 0 2rem;
+      margin-top:5rem;
     }
 
-    .sidebar-float-btn:hover {
-      background-color: var(--color-accent-hover);
-      color: white;
-      transform: scale(1.08);
+    /* Orange accent bar at top of footer */
+    .sp-footer::before {
+      content:'';
+      display:block;
+      height:3px;
+      background:linear-gradient(90deg, var(--orange) 0%, var(--blue) 100%);
+      margin-bottom:4rem;
+      margin-top:-4rem;
     }
 
-    /* Footer styling */
-    footer {
-      background-color: var(--color-surface);
-      border-top: 1px solid var(--color-border);
-      color: var(--color-text);
-      transition: all 0.25s ease;
+    .sp-footer-logo {
+      display:flex; align-items:center; gap:10px;
+      text-decoration:none; margin-bottom:.7rem;
     }
-    
-    .footer-heading {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin-bottom: 1.5rem;
-      position: relative;
-    }
+    .sp-footer-logo img { height:38px; width:auto; object-fit:contain; filter:brightness(0) invert(1); opacity:.9; }
+    .sp-footer-logo-wm { font-family:'Nunito',sans-serif; font-weight:800; font-size:1.3rem; letter-spacing:-.03em; }
+    .sp-footer-logo-wm .lo { color:var(--orange-mid); }
+    .sp-footer-logo-wm .lb { color:var(--blue-mid); }
 
-    .footer-heading::after {
-      content: '';
-      position: absolute;
-      left: 0;
-      bottom: -6px;
-      height: 2px;
-      width: 40px;
-      background-color: var(--color-accent-orange);
-      border-radius: 2px;
-    }
+    .sp-footer-desc { font-size:.85rem; line-height:1.75; color:rgba(255,255,255,.48); max-width:300px; }
 
-    .social-btn {
-      width: 36px;
-      height: 36px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      background-color: var(--color-bg);
-      color: var(--color-text);
-      transition: all 0.2s ease;
-      font-size: 1rem;
-      border: 1px solid var(--color-border);
+    .sp-social { display:flex; gap:7px; flex-wrap:wrap; margin-top:1.2rem; }
+    .sp-social a {
+      width:32px; height:32px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(255,255,255,.07); color:rgba(255,255,255,.55);
+      font-size:.875rem; text-decoration:none;
+      border:1px solid rgba(255,255,255,.1);
+      transition:all .15s;
     }
+    .sp-social a:hover { background:var(--orange); color:#fff; border-color:var(--orange); transform:translateY(-2px); }
 
-    .social-btn:hover {
-      background-color: var(--color-accent);
-      color: white;
-      transform: translateY(-2px);
+    .sp-ftr-head { font-family:'Inter',sans-serif; font-size:.72rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,.3); margin-bottom:1.1rem; }
+    .sp-ftr-links { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:7px; }
+    .sp-ftr-links a {
+      font-size:.85rem; color:rgba(255,255,255,.55);
+      text-decoration:none; transition:color .15s, padding-left .15s; display:block;
     }
+    .sp-ftr-links a:hover { color:#fff; padding-left:5px; }
 
-    .footer-links a {
-      color: var(--color-muted);
-      text-decoration: none;
-      transition: all 0.2s ease;
-    }
+    .sp-ftr-contact-row { display:flex; align-items:flex-start; gap:9px; font-size:.85rem; color:rgba(255,255,255,.55); margin-bottom:11px; }
+    .sp-ftr-contact-row i { color:var(--orange-mid); font-size:.85rem; margin-top:2px; flex-shrink:0; }
 
-    .footer-links a:hover {
-      color: var(--color-accent);
-      padding-left: 4px;
-    }
+    .sp-ftr-hr { border-color:rgba(255,255,255,.08); margin:2.5rem 0 1.5rem; }
+    .sp-ftr-bottom { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.6rem; font-size:.78rem; color:rgba(255,255,255,.3); }
+    .sp-ftr-bottom b { color:rgba(255,255,255,.65); }
 
-    /* Global styling widgets */
-    .btn-brand-primary {
-      background-color: var(--color-accent);
-      color: #ffffff !important;
-      border: none;
-      font-weight: 600;
-      transition: all 0.2s ease;
-    }
-
-    .btn-brand-primary:hover {
-      background-color: var(--color-accent-hover);
-      color: #ffffff !important;
-    }
-
-    .btn-brand-secondary {
-      background-color: var(--color-accent-orange);
-      color: #ffffff !important;
-      border: none;
-      font-weight: 600;
-      transition: all 0.2s ease;
-    }
-
-    .btn-brand-secondary:hover {
-      background-color: var(--color-accent-orange-hover);
-      color: #ffffff !important;
-    }
-
-    /* Dark theme compatibility overloads */
+    /* ── Bootstrap overrides ─────────────────────────────────── */
     .card, .offcanvas, .modal-content, .list-group-item {
-      background-color: var(--color-surface) !important;
-      border-color: var(--color-border) !important;
-      color: var(--color-text) !important;
+      background-color:var(--surface) !important;
+      border-color:var(--border) !important;
+      color:var(--ink) !important;
     }
-    
-    .table-light {
-      --bs-table-bg: var(--color-bg) !important;
-      --bs-table-color: var(--color-text) !important;
-    }
-    
-    .bg-light {
-      background-color: var(--color-bg) !important;
-    }
-    
-    .text-dark {
-      color: var(--color-text) !important;
-    }
-    
-    .text-muted, .small.text-muted {
-      color: var(--color-muted) !important;
-    }
-    
-    .border-light {
-      border-color: var(--color-border) !important;
-    }
-    
     .form-control, .form-select {
-      background-color: var(--color-surface);
-      border-color: var(--color-border);
-      color: var(--color-text);
+      background:var(--surface); border-color:var(--border-dk);
+      color:var(--ink); border-radius:var(--radius-sm);
+      font-family:'Inter',sans-serif; font-size:.9rem;
     }
-    
     .form-control:focus, .form-select:focus {
-      background-color: var(--color-surface);
-      color: var(--color-text);
-      border-color: var(--color-accent);
-      box-shadow: 0 0 0 3px var(--color-accent-dim);
+      background:var(--surface); color:var(--ink);
+      border-color:var(--blue);
+      box-shadow:0 0 0 3px rgba(46,134,193,.15);
     }
+    .text-muted, .small.text-muted { color:var(--ink-3) !important; }
+    .bg-light     { background:var(--bg) !important; }
+    .text-dark    { color:var(--ink) !important; }
+    .border-light { border-color:var(--border) !important; }
+    .text-warning { color:var(--orange) !important; }
 
-    main {
-      flex: 1;
+    /* Globally expose btn aliases for child templates */
+    .btn-brand-primary   { @extend .btn-sp-orange; }
+    .btn-brand-secondary { @extend .btn-sp-blue; }
+
+    /* ── Responsive ──────────────────────────────────────────── */
+    @media (max-width:991px) {
+      .sp-topbar  { display:none !important; }
+      .sp-links   { display:none !important; }
+      .sp-actions { display:none !important; }
+      .sp-toggler { display:flex; }
+      .sp-drawer  { display:flex; }
+    }
+    @media (max-width:575px) {
+      :root { --nav-h:58px; }
+      .sp-float { width:44px; height:44px; font-size:1.15rem; }
+      .sp-float-wa   { bottom:18px; right:18px; }
+      .sp-float-exam { bottom:74px; right:18px; }
+      .sp-footer { padding:2.5rem 0 1.5rem; margin-top:3rem; }
+      .sp-footer::before { margin-bottom:2.5rem; margin-top:-2.5rem; }
     }
   </style>
 
   {% block extra_css %}{% endblock %}
 
-  <!-- Google Analytics Tracking Integration -->
   {% if site_settings.google_analytics_id and site_settings.google_analytics_id != "G-XXXXXXXXXX" %}
     <script async src="https://www.googletagmanager.com/gtag/js?id={{ site_settings.google_analytics_id }}"></script>
     <script>
@@ -302,239 +470,247 @@
 </head>
 <body>
 
-  <!-- Top Contact Header -->
-  <div class="bg-dark text-white py-2 d-none d-md-block shadow-sm" style="font-size: 0.85rem;">
-    <div class="container d-flex justify-content-between align-items-center">
-      <div class="d-flex align-items-center gap-4">
-        <span><i class="bi bi-telephone-fill text-warning me-2"></i>{{ site_settings.contact_phone }}</span>
-        <span><i class="bi bi-envelope-fill text-warning me-2"></i>{{ site_settings.contact_email }}</span>
-        <span><i class="bi bi-geo-alt-fill text-warning me-2"></i>{{ site_settings.contact_address }}</span>
+  <!-- Topbar -->
+  <div class="sp-topbar d-none d-lg-flex">
+    <div class="container">
+      <div class="sp-topbar-left">
+        <span><i class="bi bi-telephone-fill"></i>{{ site_settings.contact_phone }}</span>
+        <span><i class="bi bi-envelope-fill"></i>{{ site_settings.contact_email }}</span>
       </div>
-      <div>
-        <span><i class="bi bi-lightbulb-fill text-warning me-1"></i> Nepal's Premier Entrance Perperation Institute</span>
-      </div>
+      <span><i class="bi bi-geo-alt-fill"></i>{{ site_settings.contact_address }}</span>
     </div>
   </div>
 
-  <!-- Main Navbar -->
-  <nav class="navbar navbar-expand-lg sticky-top shadow-sm">
+  <!-- Navbar -->
+  <nav class="sp-nav" id="mainNav">
     <div class="container">
-      <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
+
+      <a class="sp-brand" href="{% url 'home' %}">
         {% if site_settings.logo %}
-          <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.site_name }}">
+          <img class="sp-brand-logo" src="{{ site_settings.logo.url }}" alt="{{ site_settings.site_name }}">
         {% else %}
-          <img src="/static/images/logo.svg" alt="Saral Pathshala" onerror="this.src='/static/images/nav-logo.jpeg';">
+          <img class="sp-brand-logo" src="/static/images/nav-logo.jpeg" alt="Saral Pathshala"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <span class="sp-brand-wm" style="display:none;">
+            <span class="wm-saral">SARAL </span><span class="wm-path">PATHSHALA</span>
+          </span>
         {% endif %}
-        <span class="fw-bold fs-4 serif-title text-dark">{{ site_settings.site_name }}</span>
       </a>
-      
-      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      
-      <div class="collapse navbar-collapse" id="mainNavbar">
-        <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1 gap-lg-3">
-          <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">Home</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link {% if 'courses' in request.path or 'course/' in request.path %}active{% endif %}" href="{% url 'course_list' %}">Courses</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link {% if 'exams' in request.path %}active{% endif %}" href="{% url 'exams:exam_list' %}">Exams</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link {% if 'notices' in request.path %}active{% endif %}" href="{% url 'notice_list' %}">Notices</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}" href="{% url 'about' %}">About Us</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}" href="{% url 'contact' %}">Contact</a>
-          </li>
-        </ul>
-        
-        <div class="d-flex align-items-center gap-2 gap-sm-3">
-          {% if user.is_authenticated %}
-            <a href="{% url 'dashboard' %}" class="btn btn-brand-primary btn-sm px-3 rounded-pill shadow-sm"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
-            <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm px-3 rounded-pill shadow-sm"><i class="bi bi-box-arrow-right me-1"></i>Logout</a>
-          {% else %}
-            <a href="{% url 'login' %}" class="btn btn-outline-dark btn-sm px-3 rounded-pill shadow-sm"><i class="bi bi-box-arrow-in-right me-1"></i>Login</a>
-            <a href="{% url 'register' %}" class="btn btn-brand-secondary btn-sm px-3 rounded-pill shadow-sm"><i class="bi bi-person-plus me-1"></i>Register</a>
-          {% endif %}
-        </div>
+
+      <ul class="sp-links">
+        <li><a href="{% url 'home' %}"            class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a></li>
+        <li><a href="{% url 'course_list' %}"     class="{% if 'course' in request.path %}active{% endif %}">Courses</a></li>
+        <li><a href="{% url 'exams:exam_list' %}" class="{% if 'exams'  in request.path %}active{% endif %}">Exams</a></li>
+        <li><a href="{% url 'notice_list' %}"     class="{% if 'notice' in request.path %}active{% endif %}">Notices</a></li>
+        <li><a href="{% url 'about' %}"           class="{% if request.resolver_match.url_name == 'about'   %}active{% endif %}">About</a></li>
+        <li><a href="{% url 'contact' %}"         class="{% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a></li>
+      </ul>
+
+      <div class="sp-actions">
+        {% if user.is_authenticated %}
+          <a href="{% url 'dashboard' %}" class="btn-sp-blue"><i class="bi bi-speedometer2"></i>Dashboard</a>
+          <a href="{% url 'logout' %}"    class="btn-sp-danger"><i class="bi bi-box-arrow-right"></i>Logout</a>
+        {% else %}
+          <a href="{% url 'login' %}"    class="btn-sp-outline"><i class="bi bi-box-arrow-in-right"></i>Login</a>
+          <a href="{% url 'register' %}" class="btn-sp-orange"><i class="bi bi-person-plus"></i>Register Free</a>
+        {% endif %}
       </div>
+
+      <button class="sp-toggler" id="spToggler" aria-label="Toggle menu" aria-expanded="false">
+        <i class="bi bi-list" id="spTogglerIcon"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Drawer -->
+  <nav class="sp-drawer" id="spDrawer" aria-label="Mobile navigation">
+    <ul class="sp-drawer-links">
+      <li><a href="{% url 'home' %}"            class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}"><i class="bi bi-house-door"></i>Home</a></li>
+      <li><a href="{% url 'course_list' %}"     class="{% if 'course' in request.path %}active{% endif %}"><i class="bi bi-book"></i>Courses</a></li>
+      <li><a href="{% url 'exams:exam_list' %}" class="{% if 'exams'  in request.path %}active{% endif %}"><i class="bi bi-pencil-square"></i>Exams</a></li>
+      <li><a href="{% url 'notice_list' %}"     class="{% if 'notice' in request.path %}active{% endif %}"><i class="bi bi-bell"></i>Notices</a></li>
+      <li><a href="{% url 'about' %}"           class="{% if request.resolver_match.url_name == 'about'   %}active{% endif %}"><i class="bi bi-info-circle"></i>About</a></li>
+      <li><a href="{% url 'contact' %}"         class="{% if request.resolver_match.url_name == 'contact' %}active{% endif %}"><i class="bi bi-envelope"></i>Contact</a></li>
+    </ul>
+    <div class="sp-drawer-actions">
+      {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}" class="btn-sp-blue"><i class="bi bi-speedometer2"></i>Dashboard</a>
+        <a href="{% url 'logout' %}"    class="btn-sp-danger"><i class="bi bi-box-arrow-right"></i>Logout</a>
+      {% else %}
+        <a href="{% url 'login' %}"    class="btn-sp-outline"><i class="bi bi-box-arrow-in-right"></i>Login</a>
+        <a href="{% url 'register' %}" class="btn-sp-orange"><i class="bi bi-person-plus"></i>Register Free</a>
+      {% endif %}
     </div>
   </nav>
 
   <!-- Flash Messages -->
   {% if messages %}
-    <div class="container mt-3">
-      {% for message in messages %}
-        <div class="alert alert-{{ message.tags|default:'secondary' }} alert-dismissible fade show shadow-sm border-0 d-flex align-items-center" role="alert">
-          <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill text-success{% elif message.tags == 'error' %}bi-exclamation-triangle-fill text-danger{% else %}bi-info-circle-fill text-info{% endif %} fs-5 me-3"></i>
-          <div>{{ message }}</div>
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      {% endfor %}
+    <div class="container">
+      <div class="sp-flash">
+        {% for message in messages %}
+          {% with t=message.tags|default:'info' %}
+          <div class="sp-flash-item {{ t }}" role="alert">
+            <i class="icon bi
+              {% if t == 'success' %}bi-check-circle-fill
+              {% elif t == 'error' or t == 'danger' %}bi-exclamation-triangle-fill
+              {% elif t == 'warning' %}bi-exclamation-circle-fill
+              {% else %}bi-info-circle-fill{% endif %}"></i>
+            <span>{{ message }}</span>
+            <button class="sp-close-btn" onclick="this.closest('.sp-flash-item').remove()" aria-label="Close">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+          {% endwith %}
+        {% endfor %}
+      </div>
     </div>
   {% endif %}
 
-  <!-- Core Content Block -->
-  <main>
-    {% block content %}{% endblock %}
-  </main>
+  <!-- Main Content -->
+  <main>{% block content %}{% endblock %}</main>
 
-  <!-- Sticky WhatsApp Floating Lead -->
+  <!-- WhatsApp Float -->
   {% if site_settings.whatsapp_number %}
-    <a href="https://wa.me/977{{ site_settings.whatsapp_number }}" class="whatsapp-float shadow-lg" target="_blank" title="Chat with support on WhatsApp">
+    <a href="https://wa.me/977{{ site_settings.whatsapp_number }}"
+       class="sp-float sp-float-wa" target="_blank" rel="noopener" title="Chat on WhatsApp">
       <i class="bi bi-whatsapp"></i>
     </a>
   {% endif %}
 
-  <!-- Floating Upcoming Exams Toggle Button -->
-  <button class="sidebar-float-btn shadow-lg" type="button" data-bs-toggle="offcanvas" data-bs-target="#upcomingExamsSidebar" aria-controls="upcomingExamsSidebar" title="View Upcoming Exams">
+  <!-- Exam Float -->
+  <button class="sp-float sp-float-exam"
+          type="button" data-bs-toggle="offcanvas"
+          data-bs-target="#examSidebar" title="Upcoming Exams">
     <i class="bi bi-calendar3"></i>
   </button>
 
-  <!-- Collapsible Sidebar (Offcanvas) for Upcoming Exams -->
-  <div class="offcanvas offcanvas-end border-start shadow" tabindex="-1" id="upcomingExamsSidebar" aria-labelledby="upcomingExamsSidebarLabel" style="width: 360px; z-index: 100000;">
-    <div class="offcanvas-header bg-dark text-white p-4">
-      <h5 class="offcanvas-title fw-bold serif-title d-flex align-items-center gap-2" id="upcomingExamsSidebarLabel">
-        <i class="bi bi-calendar-event text-warning"></i> Upcoming Exams
+  <!-- Exam Offcanvas -->
+  <div class="offcanvas offcanvas-end sp-offcanvas"
+       tabindex="-1" id="examSidebar"
+       aria-labelledby="examSidebarLabel" style="z-index:100000;">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title" id="examSidebarLabel">
+        <i class="bi bi-calendar-event"></i>Upcoming Exams
       </h5>
       <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
-    <div class="offcanvas-body p-4 bg-light">
+    <div class="offcanvas-body">
       {% if upcoming_exams_sidebar %}
         <div class="d-flex flex-column gap-3">
           {% for exam in upcoming_exams_sidebar %}
-            <div class="card border border-light shadow-sm rounded-3 overflow-hidden bg-white hover-shadow transition">
-              <div class="card-body p-3">
-                <span class="badge bg-soft text-primary border px-2 py-0.5 rounded-pill small mb-2" style="font-size: 0.72rem; background-color: #e8f0fe;">
-                  {{ exam.course.name }}
-                </span>
-                <h6 class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">{{ exam.title }}</h6>
-                <p class="text-muted small mb-2" style="font-size: 0.78rem;">
-                  <i class="bi bi-clock-fill text-warning me-1"></i> Starts: {{ exam.start_date|date:"M d, h:i A" }}
-                </p>
-                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-light">
-                  <span class="small text-muted" style="font-size: 0.75rem;">
-                    <i class="bi bi-question-circle me-1"></i>{{ exam.total_questions }} Qs
-                  </span>
-                  <a href="{% url 'exams:exam_detail' exam.slug %}" class="btn btn-sm btn-brand-primary py-1 px-2.5 rounded-pill" style="font-size: 0.75rem;">Details</a>
-                </div>
+            <div class="ec">
+              <span class="ec-badge">{{ exam.course.name }}</span>
+              <div class="ec-title">{{ exam.title }}</div>
+              <div class="ec-meta"><i class="bi bi-clock-fill"></i>{{ exam.start_date|date:"M d, h:i A" }}</div>
+              <div class="ec-foot">
+                <span class="ec-qs"><i class="bi bi-question-circle"></i>{{ exam.total_questions }} Qs</span>
+                <a href="{% url 'exams:exam_detail' exam.slug %}" class="btn-sp-orange btn-sp-sm">Details</a>
               </div>
             </div>
           {% endfor %}
         </div>
       {% else %}
-        <div class="text-center py-5 text-muted">
-          <i class="bi bi-calendar-x display-6 mb-2 d-block"></i>
-          <span>No upcoming exams scheduled.</span>
+        <div class="text-center py-5" style="color:var(--ink-3);">
+          <i class="bi bi-calendar-x" style="font-size:2.2rem;display:block;margin-bottom:.75rem;opacity:.35;"></i>
+          <p class="mb-0" style="font-size:.875rem;">No upcoming exams right now.</p>
         </div>
       {% endif %}
     </div>
   </div>
 
-  <!-- Premium Lightweight Footer -->
-  <footer class="py-5 mt-5">
+  <!-- Footer -->
+  <footer class="sp-footer">
     <div class="container">
-      <div class="row g-4 mb-4">
+      <div class="row g-4 g-lg-5">
+
         <div class="col-lg-4 col-md-6">
-          <div class="d-flex align-items-center gap-2 mb-3">
-            <i class="bi bi-braces-asterisk text-warning fs-3"></i>
-            <span class="fw-bold fs-4 serif-title">{{ site_settings.site_name }}</span>
-          </div>
-          <p class="text-muted small mb-4">
-            Providing modern, advanced MCQ-based online exam preparation and high-quality course lectures. Prepare dynamically for BSC.CSIT, CSIT, CEE, IOE, and other major entry exams in Nepal.
-          </p>
-          <div class="d-flex gap-2">
-            {% if site_settings.social_facebook %}
-              <a href="{{ site_settings.social_facebook }}" class="social-btn" target="_blank" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+          <a class="sp-footer-logo" href="{% url 'home' %}">
+            {% if site_settings.logo %}
+              <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.site_name }}">
+            {% else %}
+              <img src="{% static 'nav-logo.jpeg' %}" alt="Saral Pathshala"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+              <span class="sp-footer-logo-wm" style="display:none;">
+                <span class="lo">SARAL </span><span class="lb">PATHSHALA</span>
+              </span>
             {% endif %}
-            {% if site_settings.social_twitter %}
-              <a href="{{ site_settings.social_twitter }}" class="social-btn" target="_blank" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
-            {% endif %}
-            {% if site_settings.social_instagram %}
-              <a href="{{ site_settings.social_instagram }}" class="social-btn" target="_blank" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
-            {% endif %}
-            {% if site_settings.social_tiktok %}
-              <a href="{{ site_settings.social_tiktok }}" class="social-btn" target="_blank" aria-label="TikTok"><i class="bi bi-tiktok"></i></a>
-            {% endif %}
-            {% if site_settings.social_linkedin %}
-              <a href="{{ site_settings.social_linkedin }}" class="social-btn" target="_blank" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
-            {% endif %}
-            {% if site_settings.social_threads %}
-              <a href="{{ site_settings.social_threads }}" class="social-btn" target="_blank" aria-label="Threads"><i class="bi bi-threads"></i></a>
-            {% endif %}
+          </a>
+          <p class="sp-footer-desc">Modern MCQ-based exam prep and video lecture platform for BSc.CSIT, BCA, IOE, CEE, and all major entrance exams in Nepal.</p>
+          <div class="sp-social">
+            {% if site_settings.social_facebook  %}<a href="{{ site_settings.social_facebook  }}" target="_blank" aria-label="Facebook" ><i class="bi bi-facebook"></i></a>{% endif %}
+            {% if site_settings.social_twitter   %}<a href="{{ site_settings.social_twitter   }}" target="_blank" aria-label="Twitter"  ><i class="bi bi-twitter-x"></i></a>{% endif %}
+            {% if site_settings.social_instagram %}<a href="{{ site_settings.social_instagram }}" target="_blank" aria-label="Instagram"><i class="bi bi-instagram"></i></a>{% endif %}
+            {% if site_settings.social_tiktok    %}<a href="{{ site_settings.social_tiktok    }}" target="_blank" aria-label="TikTok"   ><i class="bi bi-tiktok"></i></a>{% endif %}
+            {% if site_settings.social_linkedin  %}<a href="{{ site_settings.social_linkedin  }}" target="_blank" aria-label="LinkedIn" ><i class="bi bi-linkedin"></i></a>{% endif %}
+            {% if site_settings.social_threads   %}<a href="{{ site_settings.social_threads   }}" target="_blank" aria-label="Threads"  ><i class="bi bi-threads"></i></a>{% endif %}
           </div>
         </div>
-        
-        <div class="col-lg-2 col-md-6 footer-links">
-          <h6 class="footer-heading">Quick Links</h6>
-          <ul class="list-unstyled d-flex flex-column gap-2 small">
-            
+
+        <div class="col-lg-2 col-6">
+          <p class="sp-ftr-head">Quick Links</p>
+          <ul class="sp-ftr-links">
             <li><a href="{% url 'home' %}">Home</a></li>
-            
             <li><a href="{% url 'course_list' %}">Courses</a></li>
             <li><a href="{% url 'exams:exam_list' %}">Online Exams</a></li>
-            <li><a href="{% url 'notice_list' %}">Recent Notices</a></li>
+            <li><a href="{% url 'notice_list' %}">Notices</a></li>
           </ul>
         </div>
-        
-        <div class="col-lg-2 col-md-6 footer-links">
-          <h6 class="footer-heading">Support</h6>
-          <ul class="list-unstyled d-flex flex-column gap-2 small">
+
+        <div class="col-lg-2 col-6">
+          <p class="sp-ftr-head">Support</p>
+          <ul class="sp-ftr-links">
             <li><a href="{% url 'about' %}">About Us</a></li>
-            <li><a href="{% url 'contact' %}">Contact Us</a></li>
+            <li><a href="{% url 'contact' %}">Contact</a></li>
             <li><a href="{% url 'sitemap_xml' %}" target="_blank">XML Sitemap</a></li>
           </ul>
         </div>
-        
+
         <div class="col-lg-4 col-md-6">
-          <h6 class="footer-heading">Contact Details</h6>
-          <ul class="list-unstyled d-flex flex-column gap-3 small text-muted">
-            <li class="d-flex align-items-start gap-2">
-              <i class="bi bi-geo-alt-fill text-warning mt-1"></i>
-              <span>{{ site_settings.contact_address }}</span>
-            </li>
-            <li class="d-flex align-items-start gap-2">
-              <i class="bi bi-telephone-fill text-warning mt-1"></i>
-              <span>{{ site_settings.contact_phone }}</span>
-            </li>
-            <li class="d-flex align-items-start gap-2">
-              <i class="bi bi-envelope-fill text-warning mt-1"></i>
-              <span>{{ site_settings.contact_email }}</span>
-            </li>
-            {% if site_settings.whatsapp_number %}
-              <li class="d-flex align-items-start gap-2">
-                <i class="bi bi-whatsapp text-success mt-1"></i>
-                <span>Direct WhatsApp: <b>+977 {{ site_settings.whatsapp_number }}</b></span>
-              </li>
-            {% endif %}
-          </ul>
+          <p class="sp-ftr-head">Contact</p>
+          <div class="sp-ftr-contact-row"><i class="bi bi-geo-alt-fill"></i><span>{{ site_settings.contact_address }}</span></div>
+          <div class="sp-ftr-contact-row"><i class="bi bi-telephone-fill"></i><span>{{ site_settings.contact_phone }}</span></div>
+          <div class="sp-ftr-contact-row"><i class="bi bi-envelope-fill"></i><span>{{ site_settings.contact_email }}</span></div>
+          {% if site_settings.whatsapp_number %}
+            <div class="sp-ftr-contact-row"><i class="bi bi-whatsapp" style="color:#4ade80;"></i><span>+977 {{ site_settings.whatsapp_number }}</span></div>
+          {% endif %}
         </div>
+
       </div>
-      
-      <hr class="border-color my-4">
-      
-      <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-        <p class="text-muted small mb-0">
-          © {% now "Y" %} <b>{{ site_settings.site_name }}</b>. Built for high performance entrance learning.
-        </p>
-        <p class="text-muted small mb-0">
-          All standard exam prep content is copyrighted by Saral Pathshala.
-        </p>
+      <hr class="sp-ftr-hr">
+      <div class="sp-ftr-bottom">
+        <span>© {% now "Y" %} <b>{{ site_settings.site_name }}</b>. All rights reserved.</span>
+        <span>Built for Nepal's entrance exam community.</span>
       </div>
     </div>
   </footer>
 
-  <!-- Bootstrap JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  
+  <script>
+    const nav = document.getElementById('mainNav');
+    window.addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 8), {passive:true});
 
-  
+    const toggler     = document.getElementById('spToggler');
+    const drawer      = document.getElementById('spDrawer');
+    const togglerIcon = document.getElementById('spTogglerIcon');
+
+    function closeDrawer() {
+      drawer.classList.remove('open');
+      toggler.setAttribute('aria-expanded','false');
+      togglerIcon.className = 'bi bi-list';
+      document.body.style.overflow = '';
+    }
+    toggler.addEventListener('click', () => {
+      const open = drawer.classList.toggle('open');
+      toggler.setAttribute('aria-expanded', open);
+      togglerIcon.className = open ? 'bi bi-x-lg' : 'bi bi-list';
+      document.body.style.overflow = open ? 'hidden' : '';
+    });
+    drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', closeDrawer));
+    document.addEventListener('click', e => {
+      if (drawer.classList.contains('open') && !drawer.contains(e.target) && !toggler.contains(e.target)) closeDrawer();
+    });
+  </script>
+
   {% block extra_js %}{% endblock %}
 </body>
 </html>

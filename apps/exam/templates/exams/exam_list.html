@@ -242,15 +242,12 @@
   <!-- Two Tabs Header -->
   <ul class="nav nav-pills mb-4 justify-content-center" id="examTabs" role="tablist">
     <li class="nav-item" role="presentation">
-      <button class="nav-link active tab-pill-button" id="my-course-tab" data-bs-toggle="pill" data-bs-target="#my-course-pane" type="button" role="tab" aria-controls="my-course-pane" aria-selected="true">
-        <i class="bi bi-star-fill me-2 text-warning"></i>My Course Exams
-        {% if interested_course %}
-          ({{ interested_course.name }})
-        {% endif %}
+      <button class=" active tab-pill-button btn-dark" id="my-course-tab" data-bs-toggle="pill" data-bs-target="#my-course-pane" type="button" role="tab" aria-controls="my-course-pane" aria-selected="true">
+        <i class="bi bi-star-fill me-2 text-warning"></i>My Course Exams{% if interested_course %}({{ interested_course.name }}){% endif %}
       </button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link tab-pill-button" id="all-course-tab" data-bs-toggle="pill" data-bs-target="#all-course-pane" type="button" role="tab" aria-controls="all-course-pane" aria-selected="false">
+      <button class="btn-warning tab-pill-button" id="all-course-tab" data-bs-toggle="pill" data-bs-target="#all-course-pane" type="button" role="tab" aria-controls="all-course-pane" aria-selected="false">
         <i class="bi bi-grid-fill me-2"></i>All Other Courses
       </button>
     </li>
@@ -424,7 +421,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
           
           // Replace countdown display with a green text
-          container.innerHTML = '<span class="text-success small fw-bold"><i class="bi bi-patch-check-fill me-1"></i>Started — Live now!</span>';
+          container.innerHTML = '<span class="text-success small fw-bold"><i class="bi bi-patch-check-fill me-1"></i>Started | Live now!</span>';
           
           // Enable or show the Give Exam action button
           const actionContainer = container.closest('.card-clean-exam').querySelector('.exam-action-container');
