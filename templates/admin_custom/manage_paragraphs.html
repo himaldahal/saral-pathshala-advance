@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Passages - {{ section.title }} | Custom Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  body {
+    background-color: #f8fafc;
+  }
+  .card-paragraphs {
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01), 0 2px 4px -1px rgba(0,0,0,0.01);
+    padding: 2rem;
+  }
+  input[type="text"], input[type="number"], select, textarea {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #1e293b;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+  }
+  input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+    border-color: var(--blue-mid);
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(46, 134, 193, 0.15);
+  }
+</style>
+{{ form.media }}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <!-- Back Link -->
+  <div class="mb-4">
+    <a href="{% url 'admin_manage_sections' section.exam.pk %}" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+      <i class="bi bi-arrow-left me-1"></i> Back to Sections
+    </a>
+  </div>
+
+  <!-- Header -->
+  <div class="mb-4">
+    <span class="badge bg-soft text-primary border px-3 py-1.5 rounded-pill mb-2 small fw-bold"><i class="bi bi-file-text-fill me-1"></i> Passages & Paragraphs Composer</span>
+    <h1 class="serif-title mb-1">Reading Passages for Section: {{ section.title }}</h1>
+    <p class="text-muted">Exam: <b>{{ section.exam.title }}</b></p>
+  </div>
+
+  <div class="row g-4">
+    
+    <!-- Left Column: Paragraphs List -->
+    <div class="col-lg-6">
+      <div class="card-paragraphs">
+        <h5 class="fw-bold text-dark mb-4"><i class="bi bi-blockquote-left text-primary me-2"></i>Existing Passages</h5>
+        
+        <div class="table-responsive">
+          <table class="table align-middle table-hover">
+            <thead class="table-light">
+              <tr>
+                <th class="border-0" style="width: 70px;">Order</th>
+                <th class="border-0">Title & Content Preview</th>
+                <th class="border-0 text-end" style="width: 110px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for para in paragraphs %}
+                <tr class="{% if edit_paragraph and edit_paragraph.id == para.id %}table-warning{% endif %}">
+                  <td class="text-center fw-bold">{{ para.order }}</td>
+                  <td>
+                    <div class="fw-bold text-dark">{{ para.title|default:"Untitled Passage" }}</div>
+                    <div class="small text-muted text-truncate" style="max-width: 320px;">
+                      {{ para.content|striptags }}
+                    </div>
+                  </td>
+                  <td class="text-end">
+                    <div class="d-inline-flex gap-1.5">
+                      <a href="?edit_paragraph={{ para.pk }}" class="btn btn-sm btn-outline-warning rounded-pill" title="Edit Passage">
+                        <i class="bi bi-pencil-fill"></i>
+                      </a>
+                      <a href="{% url 'admin_delete_paragraph' section.pk para.pk %}" class="btn btn-sm btn-outline-danger rounded-pill" title="Delete Passage" onclick="return confirm('Are you sure you want to delete this passage? Any questions associated with this passage will have their passage link cleared.');">
+                        <i class="bi bi-trash-fill"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="3" class="text-center py-5 text-muted">
+                    <i class="bi bi-blockquote-left display-6 mb-2 d-block"></i> No reading passages configured in this section yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Add/Edit Paragraph Form -->
+    <div class="col-lg-6">
+      <div class="card-paragraphs">
+        <h5 class="fw-bold text-dark mb-4">
+          <i class="bi {% if edit_paragraph %}bi-pencil-square text-warning{% else %}bi-plus-circle text-success{% endif %} me-2"></i>
+          {% if edit_paragraph %}Edit Passage: {{ edit_paragraph.title|default:"Passage" }}{% else %}Add New Passage{% endif %}
+        </h5>
+
+        <form method="POST" action="">
+          {% csrf_token %}
+          
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-muted small" for="id_title">Passage Label / Title</label>
+            {{ form.title }}
+            <div class="form-text small text-muted">Optional label (e.g. 'Passage 1').</div>
+            {% if form.title.errors %}
+              <div class="text-danger small mt-1">{{ form.title.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-muted small" for="id_content">Passage Text Content</label>
+            {{ form.content }}
+            {% if form.content.errors %}
+              <div class="text-danger small mt-1">{{ form.content.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-muted small" for="id_order">Display Order</label>
+            {{ form.order }}
+            {% if form.order.errors %}
+              <div class="text-danger small mt-1">{{ form.order.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Buttons -->
+          <div class="d-flex gap-2 justify-content-end">
+            {% if edit_paragraph %}
+              <a href="?" class="btn btn-sm btn-outline-danger rounded-pill px-3">Cancel Edit</a>
+            {% endif %}
+            <button type="submit" class="btn btn-sm btn-success rounded-pill px-4 shadow-sm">
+              <i class="bi bi-save me-1"></i> {% if edit_paragraph %}Update Passage{% else %}Save Passage{% endif %}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

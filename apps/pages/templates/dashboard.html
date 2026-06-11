@@ -1,433 +1,325 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Dashboard — {{ user.get_short_name }} | LMS{% endblock %}
+
+{% block meta %}
+<meta name="description" content="Track your learning progress, enrolled courses, and exam performance on your personal dashboard.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Dashboard — {{ user.get_short_name }}">
+<meta property="og:description" content="Your learning progress and course activity.">
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
+{% endblock %}
 
 {% block extra_css %}
 <style>
-  :root{
-    --border:#ebedf0;
-    --soft:#f7f8fa;
-    --text:#111827;
-    --muted:#6b7280;
-  }
+*,*::before,*::after{box-sizing:border-box}
 
-  body{
-    background:#f5f7fb;
-  }
+:root{
+--ink:#0f1117;
+--ink-2:#6b7280;
+--ink-3:#9ca3af;
+--surface:#ffffff;
+--bg:#f4f5f7;
+--border:rgba(0,0,0,.07);
+--border-md:rgba(0,0,0,.12);
+--accent:#2563eb;
+--accent-bg:#eff4ff;
+--radius-sm:10px;
+--radius-md:16px;
+--radius-lg:22px;
+--success:#16a34a;
+--danger:#dc2626;
+}
 
-  .dashboard{
-    padding:2rem 0 4rem;
-  }
+body{background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
 
-  .hero-card,
-  .card-clean{
-    background:#fff;
-    border:1px solid var(--border);
-    border-radius:24px;
-    box-shadow:0 10px 30px rgba(0,0,0,.03);
-  }
+.dash{padding:2rem 0 5rem}
 
-  .hero-card{
-    padding:2rem;
-  }
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
 
-  .avatar{
-    width:64px;
-    height:64px;
-    border-radius:20px;
-    background:#111827;
-    color:#fff;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-weight:600;
-    font-size:1.3rem;
-    flex-shrink:0;
-  }
+.card-pad{padding:1.75rem}
 
-  .muted{
-    color:var(--muted);
-  }
+.hero{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2rem 2rem 1.75rem}
 
-  .stats-grid{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:1rem;
-  }
+.avatar{width:52px;height:52px;border-radius:var(--radius-sm);background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:1.15rem;flex-shrink:0;letter-spacing:-.5px}
 
-  .stats-card{
-    background:#fff;
-    border:1px solid var(--border);
-    border-radius:22px;
-    padding:1.4rem;
-  }
+.username{font-size:1.35rem;font-weight:700;letter-spacing:-.4px;margin:0}
 
-  .stats-icon{
-    width:48px;
-    height:48px;
-    border-radius:14px;
-    background:var(--soft);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:1.1rem;
-  }
+.sub{font-size:.875rem;color:var(--ink-2);margin:.25rem 0 0}
 
-  .stats-number{
-    font-size:1.8rem;
-    font-weight:700;
-    line-height:1;
-  }
+.pill{display:inline-flex;align-items:center;gap:.3rem;background:#f3f4f6;border:1px solid var(--border);border-radius:999px;padding:.3rem .75rem;font-size:.75rem;font-weight:500;color:var(--ink)}
 
-  .stats-label{
-    color:var(--muted);
-    font-size:.9rem;
-  }
+.progress-big{font-size:2.25rem;font-weight:800;letter-spacing:-1px;line-height:1}
 
-  .section-title{
-    font-size:1rem;
-    font-weight:600;
-    margin:0;
-  }
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.875rem}
 
-  .course-card{
-    border-bottom:1px solid #f1f2f4;
-    padding:1.4rem 1.5rem;
-  }
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:1.25rem 1.35rem}
 
-  .course-card:last-child{
-    border-bottom:none;
-  }
+.stat-num{font-size:1.9rem;font-weight:800;letter-spacing:-.8px;line-height:1;margin:.5rem 0 0}
 
-  .course-thumb{
-    width:82px;
-    height:82px;
-    object-fit:cover;
-    border-radius:18px;
-    background:#f1f3f5;
-    flex-shrink:0;
-  }
+.stat-label{font-size:.8rem;font-weight:500;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em}
 
-  .course-title{
-    font-size:1.05rem;
-    font-weight:600;
-    color:var(--text);
-  }
+.stat-icon{width:40px;height:40px;border-radius:var(--radius-sm);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--ink-2)}
 
-  .meta{
-    color:var(--muted);
-    font-size:.88rem;
-  }
+.section-head{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:1px solid var(--border)}
 
-  .progress{
-    height:10px;
-    border-radius:999px;
-    background:#edf1f5;
-  }
+.section-title{font-size:.9rem;font-weight:700;margin:0;letter-spacing:-.1px}
 
-  .progress-bar{
-    border-radius:999px;
-    background:#111827;
-  }
+.course-row{display:flex;gap:1rem;align-items:flex-start;padding:1.25rem 1.5rem;border-bottom:1px solid var(--border)}
 
-  .badge-soft{
-    background:#f3f4f6;
-    border-radius:999px;
-    padding:.45rem .8rem;
-    font-size:.78rem;
-    color:#111827;
-    font-weight:500;
-  }
+.course-row:last-child{border-bottom:none}
 
-  .profile-list{
-    padding:1.5rem;
-  }
+.thumb{width:76px;height:76px;border-radius:var(--radius-sm);object-fit:cover;background:var(--bg);flex-shrink:0}
 
-  .profile-item{
-    padding:1rem 0;
-    border-bottom:1px solid #f1f2f4;
-  }
+.course-title{font-size:.95rem;font-weight:600;margin:0 0 .35rem;color:var(--ink);line-height:1.3}
 
-  .profile-item:last-child{
-    border-bottom:none;
-    padding-bottom:0;
-  }
+.meta-row{display:flex;flex-wrap:wrap;gap:.5rem .9rem;font-size:.8rem;color:var(--ink-2);margin-bottom:.75rem}
 
-  .profile-label{
-    font-size:.82rem;
-    color:var(--muted);
-    margin-bottom:.2rem;
-  }
+.progress{height:6px;background:#e5e7eb;border-radius:999px;overflow:hidden}
 
-  .profile-value{
-    font-weight:500;
-  }
+.progress-fill{height:100%;background:var(--ink);border-radius:999px;transition:width .3s}
 
-  .activity-item{
-    padding:1rem 1.5rem;
-    border-bottom:1px solid #f1f2f4;
-  }
+.pct-row{display:flex;justify-content:space-between;margin-top:.4rem;font-size:.75rem;color:var(--ink-3)}
 
-  .activity-item:last-child{
-    border-bottom:none;
-  }
+.btn-continue{display:inline-flex;align-items:center;gap:.35rem;font-size:.82rem;font-weight:600;padding:.5rem 1.1rem;border-radius:999px;background:var(--ink);color:#fff;text-decoration:none;white-space:nowrap;transition:background .15s}
 
-  .empty{
-    padding:4rem 2rem;
-    text-align:center;
-  }
+.btn-continue:hover{background:#1f2937;color:#fff}
 
-  .empty-icon{
-    width:80px;
-    height:80px;
-    border-radius:24px;
-    background:#f3f4f6;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    margin:auto auto 1rem;
-    font-size:2rem;
-    color:#6b7280;
-  }
+.btn-sm{font-size:.8rem;font-weight:500;padding:.4rem .9rem;border-radius:999px;text-decoration:none;transition:all .15s}
 
-  @media(max-width:991px){
-    .stats-grid{
-      grid-template-columns:repeat(2,1fr);
-    }
-  }
+.btn-outline{background:transparent;border:1px solid var(--border-md);color:var(--ink)}
 
-  @media(max-width:767px){
+.btn-outline:hover{background:var(--bg);color:var(--ink)}
 
-    .dashboard{
-      padding-top:1rem;
-    }
+.btn-primary{background:var(--accent);border:1px solid var(--accent);color:#fff}
 
-    .hero-card{
-      padding:1.4rem;
-    }
+.btn-primary:hover{background:#1d4ed8;color:#fff}
 
-    .stats-grid{
-      grid-template-columns:1fr;
-    }
+.btn-danger-outline{background:transparent;border:1px solid #fca5a5;color:var(--danger)}
 
-    .course-thumb{
-      width:70px;
-      height:70px;
-    }
-  }
+.btn-danger-outline:hover{background:#fef2f2}
+
+.badge-count{background:var(--accent-bg);color:var(--accent);border:1px solid rgba(37,99,235,.15);border-radius:999px;padding:.2rem .7rem;font-size:.73rem;font-weight:700}
+
+.activity-row{padding:1rem 1.5rem;border-bottom:1px solid var(--border)}
+
+.activity-row:last-child{border-bottom:none}
+
+.act-title{font-size:.875rem;font-weight:500;margin:0 0 .2rem}
+
+.act-sub{font-size:.78rem;color:var(--ink-2)}
+
+.act-meta{text-align:right;font-size:.78rem;color:var(--ink-3);white-space:nowrap}
+
+.profile-field{margin-bottom:1.1rem}
+
+.field-label{display:block;font-size:.75rem;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem}
+
+.field-input{width:100%;padding:.55rem .8rem;font-size:.875rem;border:1px solid var(--border-md);border-radius:var(--radius-sm);background:var(--surface);color:var(--ink);outline:none;transition:border-color .15s}
+
+.field-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+
+.field-input:disabled{background:var(--bg);color:var(--ink-2);cursor:not-allowed}
+
+select.field-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .75rem center;padding-right:2rem}
+
+.field-hint{font-size:.72rem;color:var(--ink-3);margin-top:.3rem}
+
+.field-hint.warn{color:#d97706}
+
+.verified-input{display:flex;align-items:center;gap:0}
+
+.verified-input input{border-right:none;border-radius:var(--radius-sm) 0 0 var(--radius-sm);flex:1}
+
+.verified-badge{display:flex;align-items:center;padding:0 .75rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:0 var(--radius-sm) var(--radius-sm) 0;color:var(--success);font-size:.75rem;height:36px;white-space:nowrap}
+
+.save-btn{width:100%;padding:.65rem;font-size:.875rem;font-weight:600;border:none;border-radius:var(--radius-sm);background:var(--ink);color:#fff;cursor:pointer;transition:background .15s;margin-top:.5rem}
+
+.save-btn:hover{background:#1f2937}
+
+.verify-banner{background:#fffbeb;border:1px solid #fde68a;border-radius:var(--radius-sm);padding:1rem;margin-bottom:1.25rem;text-align:center}
+
+.verify-banner p{font-size:.8rem;color:#92400e;margin:.35rem 0 .75rem;line-height:1.4}
+
+.verify-btn{display:block;width:100%;padding:.5rem;font-size:.8rem;font-weight:600;background:#f59e0b;color:#fff;border:none;border-radius:999px;cursor:pointer;transition:background .15s}
+
+.verify-btn:hover{background:#d97706}
+
+.empty-state{padding:3.5rem 2rem;text-align:center}
+
+.empty-icon{width:64px;height:64px;border-radius:var(--radius-md);background:var(--bg);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.5rem;color:var(--ink-3)}
+
+.empty-state h5{font-weight:600;margin:0 0 .5rem}
+
+.empty-state p{font-size:.875rem;color:var(--ink-2);margin:0 0 1.25rem}
+
+.chart-wrap{padding:1.5rem;position:relative;height:280px}
+
+.table-wrap{overflow-x:auto}
+
+table.exam-table{width:100%;border-collapse:collapse;font-size:.85rem;min-width:600px}
+
+table.exam-table th{padding:.75rem 1rem;text-align:left;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2);background:#f9fafb;border-bottom:1px solid var(--border)}
+
+table.exam-table td{padding:.9rem 1rem;border-bottom:1px solid var(--border);vertical-align:middle}
+
+table.exam-table tr:last-child td{border-bottom:none}
+
+table.exam-table tr:hover td{background:#fafafa}
+
+.exam-name{font-weight:600;font-size:.875rem;margin:0 0 .15rem}
+
+.exam-course{font-size:.75rem;color:var(--ink-2)}
+
+.score-badge{display:inline-flex;align-items:center;gap:.25rem;padding:.2rem .55rem;border-radius:999px;font-size:.72rem;font-weight:700}
+
+.score-correct{background:#f0fdf4;color:var(--success);border:1px solid #bbf7d0}
+
+.score-wrong{background:#fef2f2;color:var(--danger);border:1px solid #fecaca}
+
+.marks{font-weight:700;color:var(--accent)}
+
+.actions{display:flex;gap:.4rem;justify-content:flex-end}
+
+@media(max-width:991px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+
+@media(max-width:767px){
+.dash{padding:1rem 0 4rem}
+.hero{padding:1.25rem}
+.stat-grid{grid-template-columns:repeat(2,1fr);gap:.75rem}
+.card-pad{padding:1.25rem}
+.username{font-size:1.1rem}
+.progress-big{font-size:1.75rem}
+.course-row{flex-direction:column}
+.thumb{width:100%;height:160px;border-radius:var(--radius-sm)}
+.actions{flex-wrap:wrap}
+table.exam-table{font-size:.8rem}
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container dashboard">
+<main id="main-content" class="container dash" aria-label="Student dashboard">
 
-  <!-- HERO -->
-  <div class="hero-card mb-4">
-
+  <div class="hero mb-4" role="region" aria-label="Welcome summary">
     <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-4">
-
       <div class="d-flex align-items-center gap-3">
-
-        <div class="avatar">
-          {{ user.get_short_name|slice:":1"|upper }}
-        </div>
-
+        <div class="avatar" aria-hidden="true">{{ user.get_short_name|slice:":1"|upper }}</div>
         <div>
-          <h3 class="fw-bold mb-1">
-            Welcome back, {{ user.get_short_name }}
-          </h3>
-
-          <div class="muted">
-            Continue learning from where you left off.
-          </div>
-
+          <h1 class="username">Welcome back, {{ user.get_short_name }}</h1>
+          <p class="sub">Pick up where you left off.</p>
           <div class="d-flex flex-wrap gap-2 mt-3">
-
             {% if user.is_phone_verified %}
-            <span class="badge-soft">
-              <i class="bi bi-patch-check-fill me-1"></i>
-              Phone Verified
-            </span>
+            <span class="pill"><i class="bi bi-patch-check-fill text-success" aria-hidden="true"></i> Phone verified</span>
             {% endif %}
-
             {% if user.is_email_verified %}
-            <span class="badge-soft">
-              <i class="bi bi-envelope-check me-1"></i>
-              Email Verified
-            </span>
+            <span class="pill"><i class="bi bi-envelope-check text-success" aria-hidden="true"></i> Email verified</span>
             {% endif %}
-
             {% if user.current_level %}
-            <span class="badge-soft text-capitalize">
-              <i class="bi bi-mortarboard me-1"></i>
-              {{ user.current_level|cut:"_" }}
-            </span>
+            <span class="pill"><i class="bi bi-mortarboard" aria-hidden="true"></i> {{ user.current_level|cut:"_" }}</span>
             {% endif %}
-
           </div>
         </div>
-
       </div>
-
       <div class="text-lg-end">
-        <div class="muted small mb-1">
-          Overall Progress
-        </div>
-
-        <div class="display-6 fw-bold">
-          {{ overall_progress }}%
-        </div>
-
-        <div class="muted small">
-          {{ completed_lectures }}/{{ total_lectures }} lectures completed
-        </div>
+        <div class="field-label mb-1">Overall progress</div>
+        <div class="progress-big" aria-label="{{ overall_progress }} percent complete">{{ overall_progress }}%</div>
+        <div class="act-sub mt-1">{{ completed_lectures }} / {{ total_lectures }} lectures done</div>
       </div>
-
     </div>
-
   </div>
 
-  <!-- STATS -->
-  <div class="stats-grid mb-4">
-
-    <div class="stats-card">
+  <div class="stat-grid mb-4" role="region" aria-label="Key statistics">
+    <div class="stat">
       <div class="d-flex justify-content-between align-items-start">
         <div>
-          <div class="stats-label mb-2">
-            Courses
-          </div>
-
-          <div class="stats-number">
-            {{ total_courses }}
-          </div>
+          <div class="stat-label">Courses</div>
+          <div class="stat-num" aria-label="{{ total_courses }} courses">{{ total_courses }}</div>
         </div>
-
-        <div class="stats-icon">
-          <i class="bi bi-book"></i>
-        </div>
+        <div class="stat-icon" aria-hidden="true"><i class="bi bi-book"></i></div>
       </div>
     </div>
-
-    <div class="stats-card">
+    <div class="stat">
       <div class="d-flex justify-content-between align-items-start">
         <div>
-          <div class="stats-label mb-2">
-            Subjects
-          </div>
-
-          <div class="stats-number">
-            {{ total_subjects }}
-          </div>
+          <div class="stat-label">Subjects</div>
+          <div class="stat-num" aria-label="{{ total_subjects }} subjects">{{ total_subjects }}</div>
         </div>
-
-        <div class="stats-icon">
-          <i class="bi bi-grid"></i>
-        </div>
+        <div class="stat-icon" aria-hidden="true"><i class="bi bi-grid"></i></div>
       </div>
     </div>
-
-    <div class="stats-card">
+    <div class="stat">
       <div class="d-flex justify-content-between align-items-start">
         <div>
-          <div class="stats-label mb-2">
-            Lectures
-          </div>
-
-          <div class="stats-number">
-            {{ total_lectures }}
-          </div>
+          <div class="stat-label">Lectures</div>
+          <div class="stat-num" aria-label="{{ total_lectures }} lectures">{{ total_lectures }}</div>
         </div>
-
-        <div class="stats-icon">
-          <i class="bi bi-play-circle"></i>
-        </div>
+        <div class="stat-icon" aria-hidden="true"><i class="bi bi-play-circle"></i></div>
       </div>
     </div>
-
-    <div class="stats-card">
+    <div class="stat">
       <div class="d-flex justify-content-between align-items-start">
         <div>
-          <div class="stats-label mb-2">
-            Completed
-          </div>
-
-          <div class="stats-number">
-            {{ completed_lectures }}
-          </div>
+          <div class="stat-label">Completed</div>
+          <div class="stat-num" aria-label="{{ completed_lectures }} completed">{{ completed_lectures }}</div>
         </div>
-
-        <div class="stats-icon">
-          <i class="bi bi-check-circle"></i>
-        </div>
+        <div class="stat-icon" aria-hidden="true"><i class="bi bi-check-circle"></i></div>
       </div>
     </div>
-
   </div>
 
   <div class="row g-4">
 
-    <!-- LEFT -->
     <div class="col-lg-8">
 
-      <!-- Mock Exam Performance Analytics Chart -->
-      <!-- Mock Exam Performance Analytics Chart & History -->
       {% if has_attempts %}
-      <div class="card-clean p-4 mb-4 bg-white">
-        <h5 class="section-title mb-4">
-          <i class="bi bi-bar-chart-line-fill text-primary me-2"></i>
-          Mock Exam Progress & Performance
-        </h5>
-        <div style="position: relative; height: 300px; width: 100%;">
-          <canvas id="studentPerformanceChart"></canvas>
+      <div class="card mb-4" role="region" aria-label="Mock exam performance chart">
+        <div class="section-head">
+          <h2 class="section-title"><i class="bi bi-bar-chart-line me-2" aria-hidden="true"></i>Exam progress</h2>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="studentPerformanceChart" role="img" aria-label="Line chart showing your exam scores vs class average"></canvas>
         </div>
       </div>
 
-      <div class="card-clean overflow-hidden mb-4 bg-white">
-        <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
-          <h5 class="section-title">
-            <i class="bi bi-award-fill text-primary me-2"></i>
-            Mock Exams Attempt History
-          </h5>
-          <span class="badge bg-soft text-primary border rounded-pill px-3 py-1 fw-bold small" style="font-size: 0.75rem; background-color: #e8f0fe;">{{ attempts.count }} Exams Taken</span>
+      <div class="card mb-4" role="region" aria-label="Mock exam attempt history">
+        <div class="section-head">
+          <h2 class="section-title"><i class="bi bi-award me-2" aria-hidden="true"></i>Attempt history</h2>
+          <span class="badge-count">{{ attempts.count }} taken</span>
         </div>
-        
-        <div class="table-responsive">
-          <table class="table align-middle table-hover mb-0" style="font-size: 0.9rem;">
-            <thead class="table-light">
+        <div class="table-wrap">
+          <table class="exam-table" aria-label="Exam attempt history">
+            <thead>
               <tr>
-                <th class="border-0 px-4">Exam Name</th>
-                <th class="border-0 text-center">Questions</th>
-                <th class="border-0 text-center">Correct/Wrong</th>
-                <th class="border-0 text-center">Marks Obtained</th>
-                <th class="border-0 text-center">Completion Date</th>
-                <th class="border-0 text-end px-4">Actions</th>
+                <th scope="col">Exam</th>
+                <th scope="col">Questions</th>
+                <th scope="col">Result</th>
+                <th scope="col">Marks</th>
+                <th scope="col">Date</th>
+                <th scope="col"><span class="visually-hidden">Actions</span></th>
               </tr>
             </thead>
-            <tbody class="border-top-0">
+            <tbody>
               {% for att in attempts %}
-                <tr>
-                  <td class="px-4">
-                    <div class="fw-bold text-dark">{{ att.exam.title }}</div>
-                    <small class="text-muted"><i class="bi bi-tag me-1"></i>{{ att.exam.course.name }}</small>
-                  </td>
-                  <td class="text-center fw-medium">{{ att.exam.total_questions }} Qs</td>
-                  <td class="text-center">
-                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 rounded-pill small fw-bold"><i class="bi bi-check-circle-fill me-1"></i>{{ att.correct_count }}</span>
-                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0.5 rounded-pill small fw-bold"><i class="bi bi-x-circle-fill me-1"></i>{{ att.wrong_count }}</span>
-                  </td>
-                  <td class="text-center fw-bold text-primary">{{ att.score }} / {{ att.exam.total_marks }}</td>
-                  <td class="text-center text-muted small">{{ att.completed_at|date:"M d, Y" }}</td>
-                  <td class="text-end px-4">
-                    <div class="d-flex justify-content-end gap-2">
-                      <a href="{% url 'exams:exam_result' att.exam.slug %}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 small">
-                        <i class="bi bi-eye-fill me-1"></i> Review
-                      </a>
-                      <a href="{% url 'exams:delete_attempt' att.exam.slug %}" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1" onclick="return confirm('Are you sure you want to delete this attempt? This will permanently wipe your score records.');" title="Delete Attempt">
-                        <i class="bi bi-trash3-fill"></i>
-                      </a>
-                    </div>
-                  </td>
-                </tr>
+              <tr>
+                <td>
+                  <p class="exam-name">{{ att.exam.title }}</p>
+                  <p class="exam-course">{{ att.exam.course.name }}</p>
+                </td>
+                <td>{{ att.exam.total_questions }}</td>
+                <td>
+                  <span class="score-badge score-correct" aria-label="{{ att.correct_count }} correct"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> {{ att.correct_count }}</span>
+                  <span class="score-badge score-wrong" aria-label="{{ att.wrong_count }} wrong"><i class="bi bi-x-circle-fill" aria-hidden="true"></i> {{ att.wrong_count }}</span>
+                </td>
+                <td><span class="marks">{{ att.score }} / {{ att.exam.total_marks }}</span></td>
+                <td class="act-sub">{{ att.completed_at|date:"d M Y" }}</td>
+                <td>
+                  <div class="actions">
+                    <a href="{% url 'exams:exam_result' att.exam.slug %}" class="btn-sm btn-outline" aria-label="Review {{ att.exam.title }}">Review</a>
+                    <a href="{% url 'exams:delete_attempt' att.exam.slug %}" class="btn-sm btn-danger-outline" onclick="return confirm('Delete this attempt permanently?');" aria-label="Delete attempt for {{ att.exam.title }}"><i class="bi bi-trash3" aria-hidden="true"></i></a>
+                  </div>
+                </td>
+              </tr>
               {% endfor %}
             </tbody>
           </table>
@@ -435,340 +327,197 @@
       </div>
       {% endif %}
 
-      <div class="card-clean overflow-hidden">
-
-        <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
-          <h5 class="section-title">
-            <i class="bi bi-journal-text me-2"></i>
-            Enrolled Courses
-          </h5>
-
-          <a href="{% url 'course_list' %}"
-             class="btn btn-sm btn-light border">
-            Browse Courses
-          </a>
+      <div class="card" role="region" aria-label="Enrolled courses">
+        <div class="section-head">
+          <h2 class="section-title"><i class="bi bi-journal-text me-2" aria-hidden="true"></i>Enrolled courses</h2>
+          <a href="{% url 'course_list' %}" class="btn-sm btn-outline">Browse all</a>
         </div>
 
         {% if enrollment_data %}
-
           {% for item in enrollment_data %}
-          <div class="course-card">
-
-            <div class="d-flex flex-column flex-md-row gap-3 justify-content-between">
-
-              <div class="d-flex gap-3">
-
-                {% if item.course.thumbnail %}
-                <img src="{{ item.course.thumbnail.url }}"
-                     class="course-thumb"
-                     alt="{{ item.course.name }}">
-                {% endif %}
-
-                <div class="flex-grow-1">
-
-                  <div class="course-title mb-2">
-                    {{ item.course.name }}
-                  </div>
-
-                  <div class="meta d-flex flex-wrap gap-3 mb-3">
-
-                    <span>
-                      <i class="bi bi-grid me-1"></i>
-                      {{ item.subject_count }} Subjects
-                    </span>
-
-                    <span>
-                      <i class="bi bi-play-circle me-1"></i>
-                      {{ item.lecture_count }} Lectures
-                    </span>
-
-                    <span>
-                      <i class="bi bi-check2-circle me-1"></i>
-                      {{ item.completed_count }} Completed
-                    </span>
-
-                  </div>
-
-                  <div class="progress mb-2">
-                    <div class="progress-bar"
-                         style="width:{{ item.progress_percent }}%">
-                    </div>
-                  </div>
-
-                  <div class="d-flex justify-content-between align-items-center">
-                    <small class="muted">
-                      {{ item.progress_percent }}% completed
-                    </small>
-
-                    <small class="muted">
-                      Joined {{ item.enrollment.enrolled_at|timesince }} ago
-                    </small>
-                  </div>
-
-                </div>
-
+          <article class="course-row">
+            {% if item.course.thumbnail %}
+            <img src="{{ item.course.thumbnail.url }}" class="thumb" alt="{{ item.course.name }} thumbnail" loading="lazy" width="76" height="76">
+            {% endif %}
+            <div class="flex-grow-1 min-w-0">
+              <h3 class="course-title">{{ item.course.name }}</h3>
+              <div class="meta-row">
+                <span><i class="bi bi-grid me-1" aria-hidden="true"></i>{{ item.subject_count }} subjects</span>
+                <span><i class="bi bi-play-circle me-1" aria-hidden="true"></i>{{ item.lecture_count }} lectures</span>
+                <span><i class="bi bi-check2-circle me-1" aria-hidden="true"></i>{{ item.completed_count }} done</span>
               </div>
-
-              <div class="d-flex align-items-center">
-
-                {% if item.next_lecture %}
-                <a href="{{ item.next_lecture.get_absolute_url }}"
-                   class="btn btn-brand-primary px-4">
-                  Continue
-                </a>
-                {% else %}
-                <span class="badge-soft">
-                  Completed
-                </span>
-                {% endif %}
-
+              <div class="progress" role="progressbar" aria-valuenow="{{ item.progress_percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="{{ item.progress_percent }}% complete">
+                <div class="progress-fill" style="width:{{ item.progress_percent }}%"></div>
               </div>
-
+              <div class="pct-row">
+                <span>{{ item.progress_percent }}% complete</span>
+                <span>Joined {{ item.enrollment.enrolled_at|timesince }} ago</span>
+              </div>
             </div>
-
-          </div>
+            <div class="d-flex align-items-center flex-shrink-0">
+              {% if item.next_lecture %}
+              <a href="{{ item.next_lecture.get_absolute_url }}" class="btn-continue">Continue <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+              {% else %}
+              <span class="pill"><i class="bi bi-check-circle-fill text-success me-1" aria-hidden="true"></i>Completed</span>
+              {% endif %}
+            </div>
+          </article>
           {% endfor %}
-
         {% else %}
-
-          <div class="empty">
-
-            <div class="empty-icon">
-              <i class="bi bi-journal-x"></i>
-            </div>
-
-            <h5 class="fw-semibold mb-2">
-              No enrolled courses
-            </h5>
-
-            <p class="text-muted mb-4">
-              Start learning by enrolling in a course.
-            </p>
-
-            <a href="{% url 'course_list' %}"
-               class="btn btn-brand-primary px-4">
-              Explore Courses
-            </a>
-
+          <div class="empty-state">
+            <div class="empty-icon" aria-hidden="true"><i class="bi bi-journal-x"></i></div>
+            <h3>No courses yet</h3>
+            <p>Start learning by enrolling in a course below.</p>
+            <a href="{% url 'course_list' %}" class="btn-continue">Explore courses</a>
           </div>
-
         {% endif %}
-
       </div>
 
-      <!-- RECENT ACTIVITY -->
-      <div class="card-clean overflow-hidden mt-4">
-
-        <div class="p-4 border-bottom">
-          <h5 class="section-title">
-            <i class="bi bi-clock-history me-2"></i>
-            Recent Activity
-          </h5>
+      <div class="card mt-4" role="region" aria-label="Recent activity">
+        <div class="section-head">
+          <h2 class="section-title"><i class="bi bi-clock-history me-2" aria-hidden="true"></i>Recent activity</h2>
         </div>
-
         {% if recent_progress %}
-
           {% for progress in recent_progress %}
-          <div class="activity-item">
-
-            <div class="d-flex justify-content-between gap-3">
-
+          <div class="activity-row">
+            <div class="d-flex justify-content-between gap-3 align-items-start">
               <div>
-                <div class="fw-medium mb-1">
-                  {{ progress.lecture.title }}
-                </div>
-
-                <div class="muted small">
-                  {{ progress.lecture.section.subject.name }}
-                </div>
+                <p class="act-title">{{ progress.lecture.title }}</p>
+                <p class="act-sub">{{ progress.lecture.section.subject.name }}</p>
               </div>
-
-              <div class="text-end">
-                {% if progress.completed %}
-                <div class="small fw-medium">
-                  Completed
-                </div>
-                {% endif %}
-
-                <div class="muted small">
-                  {{ progress.watched_at|timesince }} ago
-                </div>
+              <div class="act-meta flex-shrink-0">
+                {% if progress.completed %}<div class="mb-1" style="color:var(--success);font-weight:600;font-size:.75rem">Completed</div>{% endif %}
+                <div>{{ progress.watched_at|timesince }} ago</div>
               </div>
-
             </div>
-
           </div>
           {% endfor %}
-
         {% else %}
-
-          <div class="p-4 text-center text-muted">
-            No recent activity found.
-          </div>
-
+          <div class="p-4 text-center act-sub">No activity yet.</div>
         {% endif %}
-
       </div>
 
     </div>
 
-    <!-- RIGHT -->
     <div class="col-lg-4">
-
-      <div class="card-clean">
-
-        <div class="p-4 border-bottom">
-          <h5 class="section-title">
-            <i class="bi bi-person-circle me-2"></i>
-            Profile
-          </h5>
+      <div class="card" role="region" aria-label="Profile settings">
+        <div class="section-head">
+          <h2 class="section-title"><i class="bi bi-person-circle me-2" aria-hidden="true"></i>Profile</h2>
         </div>
+        <div class="card-pad">
 
-        <div class="profile-list p-4">
-          <!-- Verification Dispatcher Panel for Unverified Accounts -->
           {% if not user.is_email_verified %}
-            <div class="card border border-warning border-opacity-25 rounded-3 mb-4 text-center p-3" style="background-color: rgba(249, 115, 22, 0.03);">
-              <div class="small mb-1 text-warning fw-semibold"><i class="bi bi-shield-exclamation me-1"></i>Secure Your Account</div>
-              <p class="text-muted mb-3" style="font-size: 0.75rem; line-height: 1.35;">Your email address is unverified. Please verify it to enable secure recovery features and receive results.</p>
-              <form method="POST" action="{% url 'dashboard' %}">
-                {% csrf_token %}
-                <input type="hidden" name="request_verification" value="1">
-                <button type="submit" class="btn btn-sm btn-brand-secondary w-100 rounded-pill"><i class="bi bi-envelope-check-fill me-1"></i>Send Verification Link</button>
-              </form>
-            </div>
+          <div class="verify-banner" role="alert" aria-live="polite">
+            <strong style="font-size:.8rem;color:#92400e"><i class="bi bi-shield-exclamation me-1" aria-hidden="true"></i>Verify your email</strong>
+            <p>Unverified accounts can't receive results or recover access.</p>
+            <form method="POST" action="{% url 'dashboard' %}">
+              {% csrf_token %}
+              <input type="hidden" name="request_verification" value="1">
+              <button type="submit" class="verify-btn">Send verification link</button>
+            </form>
+          </div>
           {% endif %}
 
-          <form method="POST" action="{% url 'dashboard' %}" class="needs-validation" novalidate>
+          <form method="POST" action="{% url 'dashboard' %}" novalidate aria-label="Update profile">
             {% csrf_token %}
             <input type="hidden" name="update_profile" value="1">
-            
-            <div class="mb-3">
-              <label class="form-label small text-muted fw-semibold" for="full_name"><i class="bi bi-person me-1"></i>Full Name</label>
-              <input type="text" class="form-control form-control-sm shadow-sm" id="full_name" name="full_name" value="{{ user.full_name }}" required>
+
+            <div class="profile-field">
+              <label class="field-label" for="full_name">Full name</label>
+              <input type="text" class="field-input" id="full_name" name="full_name" value="{{ user.full_name }}" required autocomplete="name">
             </div>
-            
-            <div class="mb-3">
-              <label class="form-label small text-muted fw-semibold" for="email"><i class="bi bi-envelope me-1"></i>Email Address</label>
+
+            <div class="profile-field">
+              <label class="field-label" for="email">Email address</label>
               {% if user.is_email_verified %}
-                <div class="input-group input-group-sm">
-                  <input type="email" class="form-control bg-light border-0 shadow-sm text-success fw-bold" id="email" value="{{ user.email }}" disabled readonly style="cursor: not-allowed;">
-                  <span class="input-group-text bg-success border-0 text-white small" title="Email is verified"><i class="bi bi-patch-check-fill"></i></span>
+                <div class="verified-input">
+                  <input type="email" class="field-input" id="email" value="{{ user.email }}" disabled readonly aria-describedby="email-hint">
+                  <div class="verified-badge" aria-hidden="true"><i class="bi bi-patch-check-fill me-1"></i>Verified</div>
                 </div>
-                <div class="form-text small text-muted" style="font-size: 0.72rem;"><i class="bi bi-lock me-1"></i>Verified email is locked for security.</div>
+                <p class="field-hint" id="email-hint"><i class="bi bi-lock me-1" aria-hidden="true"></i>Locked — verified emails can't be changed.</p>
               {% else %}
-                <input type="email" class="form-control form-control-sm shadow-sm border-warning" id="email" name="email" value="{{ user.email }}" required>
-                <div class="form-text small text-warning" style="font-size: 0.72rem;"><i class="bi bi-exclamation-circle me-1"></i>Email is unverified.</div>
+                <input type="email" class="field-input" id="email" name="email" value="{{ user.email }}" required autocomplete="email" aria-describedby="email-hint">
+                <p class="field-hint warn" id="email-hint"><i class="bi bi-exclamation-circle me-1" aria-hidden="true"></i>Unverified.</p>
               {% endif %}
             </div>
-            
-            <div class="mb-3">
-              <label class="form-label small text-muted fw-semibold" for="phone"><i class="bi bi-telephone me-1"></i>Phone (Locked)</label>
-              <input type="text" class="form-control form-control-sm bg-light border-0 shadow-sm" id="phone" value="{{ user.phone|default:'Not Added' }}" disabled readonly style="cursor: not-allowed;">
-              <div class="form-text small text-muted" style="font-size: 0.72rem;"><i class="bi bi-lock me-1"></i>Phone number is permanently locked.</div>
+
+            <div class="profile-field">
+              <label class="field-label" for="phone">Phone number</label>
+              <input type="text" class="field-input" id="phone" value="{{ user.phone|default:'Not added' }}" disabled readonly aria-describedby="phone-hint" autocomplete="tel">
+              <p class="field-hint" id="phone-hint"><i class="bi bi-lock me-1" aria-hidden="true"></i>Permanently locked.</p>
             </div>
-            
-            <div class="mb-3">
-              <label class="form-label small text-muted fw-semibold" for="current_level"><i class="bi bi-mortarboard me-1"></i>Education Level</label>
-              <select class="form-select form-select-sm shadow-sm" id="current_level" name="current_level">
-                <option value="">-- Select Education Level --</option>
+
+            <div class="profile-field">
+              <label class="field-label" for="current_level">Education level</label>
+              <select class="field-input" id="current_level" name="current_level">
+                <option value="">Select level</option>
                 {% for val, label in student_levels %}
                   <option value="{{ val }}" {% if user.current_level == val %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
               </select>
             </div>
 
-            <div class="mb-3">
-              <label class="form-label small text-muted fw-semibold" for="interested_course"><i class="bi bi-award me-1"></i>Interested Course</label>
-              <select class="form-select form-select-sm shadow-sm" id="interested_course" name="interested_course">
-                <option value="">-- Select Interested Course --</option>
+            <div class="profile-field">
+              <label class="field-label" for="interested_course">Interested course</label>
+              <select class="field-input" id="interested_course" name="interested_course">
+                <option value="">Select course</option>
                 {% for course in active_courses %}
                   <option value="{{ course.slug }}" {% if user.interested_course.slug == course.slug %}selected{% endif %}>{{ course.name }}</option>
                 {% endfor %}
               </select>
             </div>
 
-            <div class="mb-3">
-              <label class="form-label small text-muted fw-semibold" for="previous_institute"><i class="bi bi-building me-1"></i>Previous Institute</label>
-              <input type="text" class="form-control form-control-sm shadow-sm" id="previous_institute" name="previous_institute" value="{{ user.previous_institute|default:'' }}" placeholder="e.g. St. Xavier's College">
+            <div class="profile-field">
+              <label class="field-label" for="previous_institute">Previous institute</label>
+              <input type="text" class="field-input" id="previous_institute" name="previous_institute" value="{{ user.previous_institute|default:'' }}" placeholder="e.g. St. Xavier's College" autocomplete="organization">
             </div>
 
-            <div class="mb-4">
-              <label class="form-label small text-muted fw-semibold"><i class="bi bi-calendar3 me-1"></i>Date Joined (ReadOnly)</label>
-              <input type="text" class="form-control form-control-sm bg-light border-0 shadow-sm" value="{{ user.date_joined|date:'F d, Y' }}" disabled readonly style="cursor: not-allowed;">
+            <div class="profile-field">
+              <label class="field-label">Date joined</label>
+              <input type="text" class="field-input" value="{{ user.date_joined|date:'d F Y' }}" disabled readonly aria-label="Joined on {{ user.date_joined|date:'d F Y' }}">
             </div>
 
-            <button type="submit" class="btn btn-sm btn-brand-primary w-100 shadow-sm"><i class="bi bi-save me-1"></i> Save Changes</button>
+            <button type="submit" class="save-btn"><i class="bi bi-save me-1" aria-hidden="true"></i>Save changes</button>
           </form>
+
         </div>
-
       </div>
-
     </div>
 
   </div>
 
-</div>
+</main>
 
 {% if has_attempts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const labels = {{ chart_labels_json|safe }};
-    const scores = {{ chart_scores_json|safe }};
-    const averages = {{ chart_averages_json|safe }};
-
-    if (labels && labels.length > 0) {
-        const ctx = document.getElementById('studentPerformanceChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'My Score (%)',
-                        data: scores,
-                        borderColor: '#2D89C8',
-                        backgroundColor: 'rgba(45, 137, 200, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.3,
-                        fill: true,
-                        pointBackgroundColor: '#2D89C8',
-                        pointRadius: 5
-                    },
-                    {
-                        label: 'Class Average (%)',
-                        data: averages,
-                        borderColor: '#E67E22',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        tension: 0.3,
-                        pointBackgroundColor: '#E67E22',
-                        pointRadius: 4
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: 'Score Percentage (%)'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        position: 'top'
-                    }
-                }
-            }
-        });
+document.addEventListener('DOMContentLoaded',function(){
+  const labels={{ chart_labels_json|safe }};
+  const scores={{ chart_scores_json|safe }};
+  const averages={{ chart_averages_json|safe }};
+  if(!labels||!labels.length)return;
+  new Chart(document.getElementById('studentPerformanceChart').getContext('2d'),{
+    type:'line',
+    data:{
+      labels:labels,
+      datasets:[
+        {label:'My score (%)',data:scores,borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.08)',borderWidth:2.5,tension:.35,fill:true,pointBackgroundColor:'#2563eb',pointRadius:4,pointHoverRadius:6},
+        {label:'Class average (%)',data:averages,borderColor:'#f59e0b',backgroundColor:'transparent',borderWidth:2,borderDash:[5,4],tension:.35,pointBackgroundColor:'#f59e0b',pointRadius:3,pointHoverRadius:5}
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      scales:{
+        y:{beginAtZero:true,max:100,grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:11},color:'#9ca3af'},title:{display:true,text:'Score (%)',font:{size:11},color:'#9ca3af'}},
+        x:{grid:{display:false},ticks:{font:{size:11},color:'#9ca3af'}}
+      },
+      plugins:{
+        legend:{position:'top',labels:{font:{size:12},usePointStyle:true,pointStyleWidth:8,boxHeight:6}},
+        tooltip:{backgroundColor:'#fff',titleColor:'#0f1117',bodyColor:'#6b7280',borderColor:'rgba(0,0,0,.1)',borderWidth:1,padding:10,cornerRadius:8}
+      }
     }
+  });
 });
 </script>
 {% endif %}

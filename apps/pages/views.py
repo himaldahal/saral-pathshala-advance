@@ -52,11 +52,7 @@ def contact(request):
         cache.set('contact_courses_all', courses, 600)
     return render(request, 'contact.html', {'courses': courses})
 
-
-# =========================================================
 # COURSE VIEWS
-# =========================================================
-
 def course_list(request):
     courses = cache.get('course_list_all')
     if not courses:
@@ -135,8 +131,7 @@ def enroll_instantly(request, slug):
     
     # Check if request already exists
     already_requested = CourseEnrollmentRequest.objects.filter(
-        email=request.user.email,
-        course=course
+        email=request.user.email
     ).exists()
     
     if not already_requested:
@@ -861,6 +856,70 @@ def admin_dashboard(request):
                     messages.error(request, f"SMTP Connection Test Failed! Please check your settings.py configuration. Error Details: {str(e)}")
             return redirect('admin_dashboard')
 
+        # 10) Instant Outbound Dispatcher (Quick message sender)
+        elif "send_instant_message" in request.POST:
+            recipient_type = request.POST.get('recipient_type')
+            msg_type = request.POST.get('msg_type')
+            message_body = request.POST.get('message_body', '').strip()
+            
+            if not message_body:
+                messages.warning(request, "Message body cannot be empty.")
+            else:
+                targets = []
+                if recipient_type == 'specific_student':
+                    student_id = request.POST.get('specific_student')
+                    student = get_object_or_404(User, pk=student_id)
+                    targets.append(student)
+                elif recipient_type == 'all_students':
+                    targets = list(User.objects.filter(is_staff=False, is_superuser=False, is_active=True))
+                
+                if msg_type == 'email':
+                    email_subject = request.POST.get('email_subject', 'Saral Pathshala Broadcast').strip()
+                    created_count = 0
+                    if recipient_type == 'manual_entry':
+                        manual_email = request.POST.get('manual_email', '').strip()
+                        if manual_email:
+                            MailQueue.objects.create(
+                                to_email=manual_email,
+                                to_name="Guest/User",
+                                subject=email_subject,
+                                content=message_body
+                            )
+                            created_count = 1
+                    else:
+                        for student in targets:
+                            MailQueue.objects.create(
+                                user=student,
+                                to_email=student.email,
+                                to_name=student.full_name,
+                                subject=email_subject,
+                                content=message_body
+                            )
+                            created_count += 1
+                    messages.success(request, f"Queued {created_count} email message(s) successfully! Go to Operations to flush the queue.")
+                
+                elif msg_type == 'sms':
+                    created_count = 0
+                    if recipient_type == 'manual_entry':
+                        manual_phone = request.POST.get('manual_phone', '').strip()
+                        if manual_phone:
+                            SMSQueue.objects.create(
+                                to_phone=manual_phone,
+                                message=message_body[:160]
+                            )
+                            created_count = 1
+                    else:
+                        for student in targets:
+                            if student.phone:
+                                SMSQueue.objects.create(
+                                    user=student,
+                                    to_phone=student.phone,
+                                    message=message_body[:160]
+                                )
+                                created_count += 1
+                    messages.success(request, f"Queued {created_count} SMS message(s) successfully! Go to Operations to flush the queue.")
+            return redirect('admin_dashboard')
+
     # 1. Basic Stats
     total_students = User.objects.filter(is_staff=False, is_superuser=False).count()
     total_courses = Course.objects.filter(is_active=True).count()
@@ -960,13 +1019,71 @@ def admin_dashboard(request):
         chart_course_names.append(c.name[:15] + "..." if len(c.name) > 15 else c.name)
         chart_course_enrollees.append(count)
 
-    # 6. CRM Leads / Enrollment Requests
-    recent_requests = CourseEnrollmentRequest.objects.select_related('course').order_by('-created_at')[:30]
+    # 6. CRM Leads / Enrollment Requests with Pagination, Searching, and Filtering
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+    from django.db.models import Q
+
+    all_courses = Course.objects.filter(is_active=True).order_by('name')
+    all_exams = Exam.objects.filter(is_active=True).order_by('title')
+
+    crm_search = request.GET.get('crm_search', '').strip()
+    crm_status = request.GET.get('crm_status', '').strip()
+    crm_course = request.GET.get('crm_course', '').strip()
+    crm_page = request.GET.get('crm_page', '1')
+
+    crm_qs = CourseEnrollmentRequest.objects.select_related('course').order_by('-created_at')
+    if crm_search:
+        crm_qs = crm_qs.filter(
+            Q(name__icontains=crm_search) |
+            Q(phone__icontains=crm_search) |
+            Q(email__icontains=crm_search) |
+            Q(message__icontains=crm_search)
+        )
+    if crm_status:
+        crm_qs = crm_qs.filter(status=crm_status)
+    if crm_course:
+        crm_qs = crm_qs.filter(course_id=crm_course)
+
+    crm_paginator = Paginator(crm_qs, 10)
+    try:
+        recent_requests = crm_paginator.page(crm_page)
+    except PageNotAnInteger:
+        recent_requests = crm_paginator.page(1)
+    except EmptyPage:
+        recent_requests = crm_paginator.page(crm_paginator.num_pages)
+
     pending_requests_count = CourseEnrollmentRequest.objects.filter(status='pending').count()
     total_requests_count = CourseEnrollmentRequest.objects.count()
 
-    # 7. Recent Registrations & Unverified Users list
-    recent_students = User.objects.filter(is_staff=False, is_superuser=False).order_by('-date_joined')[:15]
+    # 7. Recent Registrations & Unverified Users list with Search, Filtering & Pagination
+    student_search = request.GET.get('student_search', '').strip()
+    student_level = request.GET.get('student_level', '').strip()
+    student_verified = request.GET.get('student_verified', '').strip()
+    student_page = request.GET.get('student_page', '1')
+
+    student_qs = User.objects.filter(is_staff=False, is_superuser=False).order_by('-date_joined')
+    if student_search:
+        student_qs = student_qs.filter(
+            Q(full_name__icontains=student_search) |
+            Q(email__icontains=student_search) |
+            Q(phone__icontains=student_search) |
+            Q(previous_institute__icontains=student_search)
+        )
+    if student_level:
+        student_qs = student_qs.filter(current_level=student_level)
+    if student_verified == 'verified':
+        student_qs = student_qs.filter(is_phone_verified=True)
+    elif student_verified == 'unverified':
+        student_qs = student_qs.filter(is_phone_verified=False)
+
+    student_paginator = Paginator(student_qs, 10)
+    try:
+        recent_students = student_paginator.page(student_page)
+    except PageNotAnInteger:
+        recent_students = student_paginator.page(1)
+    except EmptyPage:
+        recent_students = student_paginator.page(student_paginator.num_pages)
+
     unverified_users = User.objects.filter(is_email_verified=False, is_staff=False, is_superuser=False).order_by('-date_joined')[:20]
 
     # 8. Queue Analytics & Failure Monitoring
@@ -988,8 +1105,65 @@ def admin_dashboard(request):
         'total': SMSQueue.objects.count()
     }
 
-    # 9. Comprehensive Recent Exam Attempts for Retake / Review management
-    recent_attempts = ExamAttempt.objects.select_related('student', 'exam').order_by('-started_at')[:25]
+    # 9. Comprehensive Recent Exam Attempts for Retake / Review management with Search, Filters & Pagination
+    attempt_search = request.GET.get('attempt_search', '').strip()
+    attempt_exam = request.GET.get('attempt_exam', '').strip()
+    attempt_status = request.GET.get('attempt_status', '').strip()
+    attempt_page = request.GET.get('attempt_page', '1')
+
+    attempts_qs = ExamAttempt.objects.select_related('student', 'exam', 'exam__course').order_by('-started_at')
+    if attempt_search:
+        attempts_qs = attempts_qs.filter(
+            Q(student__full_name__icontains=attempt_search) |
+            Q(student__email__icontains=attempt_search) |
+            Q(student__phone__icontains=attempt_search)
+        )
+    if attempt_exam:
+        attempts_qs = attempts_qs.filter(exam_id=attempt_exam)
+    if attempt_status == 'submitted':
+        attempts_qs = attempts_qs.filter(is_submitted=True)
+    elif attempt_status == 'active':
+        attempts_qs = attempts_qs.filter(is_submitted=False)
+
+    attempts_paginator = Paginator(attempts_qs, 10)
+    try:
+        recent_attempts = attempts_paginator.page(attempt_page)
+    except PageNotAnInteger:
+        recent_attempts = attempts_paginator.page(1)
+    except EmptyPage:
+        recent_attempts = attempts_paginator.page(attempts_paginator.num_pages)
+
+    # CRM Conversion Analytics
+    approved_leads_count = CourseEnrollmentRequest.objects.filter(status='approved').count()
+    lead_conversion_rate = round((approved_leads_count / total_requests_count) * 100, 1) if total_requests_count > 0 else 0.0
+    
+    # Student Verification rate
+    verified_students_count = User.objects.filter(is_phone_verified=True, is_staff=False, is_superuser=False).count()
+    student_verification_rate = round((verified_students_count / total_students) * 100, 1) if total_students > 0 else 0.0
+    
+    # Mail & SMS Delivery Rates
+    total_mail_count = MailQueue.objects.count()
+    sent_mail_count = MailQueue.objects.filter(status=QueueStatus.SENT).count()
+    mail_delivery_rate = round((sent_mail_count / total_mail_count) * 100, 1) if total_mail_count > 0 else 100.0
+    
+    total_sms_count = SMSQueue.objects.count()
+    sent_sms_count = SMSQueue.objects.filter(status=QueueStatus.SENT).count()
+    sms_delivery_rate = round((sent_sms_count / total_sms_count) * 100, 1) if total_sms_count > 0 else 100.0
+
+    # Platform-wide or exam-specific Leaderboard / Top Performers
+    leaderboard_exam_id = request.GET.get('leaderboard_exam', '').strip()
+    from django.db.models import Avg, Max, Count
+    leaderboard_attempts = ExamAttempt.objects.filter(is_submitted=True)
+    if leaderboard_exam_id:
+        leaderboard_attempts = leaderboard_attempts.filter(exam_id=leaderboard_exam_id)
+        
+    top_performers = leaderboard_attempts\
+        .values('student__full_name', 'student__email')\
+        .annotate(avg_score=Avg('score'), max_score=Max('score'), attempts_count=Count('id'))\
+        .order_by('-avg_score')[:10]
+        
+    # All students query for Quick Dispatcher select box
+    all_students_list = User.objects.filter(is_staff=False, is_superuser=False).order_by('full_name')
 
     context = {
         'total_students': total_students,
@@ -1004,6 +1178,30 @@ def admin_dashboard(request):
         'total_requests_count': total_requests_count,
         'recent_students': recent_students,
         'unverified_users': unverified_users,
+        
+        # Advanced Analytics & Broadcast
+        'lead_conversion_rate': lead_conversion_rate,
+        'student_verification_rate': student_verification_rate,
+        'mail_delivery_rate': mail_delivery_rate,
+        'sms_delivery_rate': sms_delivery_rate,
+        'top_performers': top_performers,
+        'all_students_list': all_students_list,
+        
+        # Filter choices
+        'all_courses': all_courses,
+        'all_exams': all_exams,
+        
+        # Filter values
+        'crm_search': crm_search,
+        'crm_status': crm_status,
+        'crm_course_id': int(crm_course) if crm_course.isdigit() else '',
+        'student_search': student_search,
+        'student_level': student_level,
+        'student_verified': student_verified,
+        'leaderboard_exam_id': int(leaderboard_exam_id) if leaderboard_exam_id.isdigit() else '',
+        'attempt_search': attempt_search,
+        'attempt_exam_id': int(attempt_exam) if attempt_exam.isdigit() else '',
+        'attempt_status': attempt_status,
         
         # Queues Context
         'recent_failed_emails': recent_failed_emails,
@@ -1074,61 +1272,747 @@ def admin_manage_enrollment_request(request, request_id, action):
         enroll_req.save()
         messages.error(request, f"Enrollment lead rejected.")
         
-    return redirect('admin_dashboard')
+    next_url = request.META.get('HTTP_REFERER') or reverse('admin_dashboard')
+    return redirect(next_url)
 
 
 @login_required
 def admin_export_exam_results(request, exam_id):
     """
-    Export all submitted exam attempts for a specific exam as a CSV.
+    Export all submitted exam attempts for a specific exam as a detailed Excel workbook.
+    Supports exporting Overview, Section-wise, and Question-wise sheets selectively or all together.
     """
     if not (request.user.is_staff or request.user.is_superuser):
         raise Http404("You do not have permission to perform this action.")
 
-    import csv
+    import openpyxl
+    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+    from openpyxl.utils import get_column_letter
     from django.http import HttpResponse
 
     exam = get_object_or_404(Exam, pk=exam_id)
-    attempts = ExamAttempt.objects.filter(exam=exam, is_submitted=True).select_related('student')
+    attempts = ExamAttempt.objects.filter(exam=exam, is_submitted=True).select_related('student').order_by('-score')
+    sections = list(exam.sections.all().order_by('order', 'id'))
+    questions = list(exam.questions.all().order_by('section__order', 'order', 'id'))
     
-    response = HttpResponse(content_type='text/csv')
-    filename = f"results_{exam.slug}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    export_type = request.GET.get('type', 'all').lower()
+    
+    wb = openpyxl.Workbook()
+    wb.remove(wb.active)  # Remove the default sheet
+
+    # Define beautiful styles
+    title_font = Font(name='Segoe UI', size=16, bold=True, color='1E293B')
+    header_font = Font(name='Segoe UI', size=11, bold=True, color='FFFFFF')
+    subheader_font = Font(name='Segoe UI', size=11, bold=True, color='1E293B')
+    data_font = Font(name='Segoe UI', size=10, color='334155')
+    bold_data_font = Font(name='Segoe UI', size=10, bold=True, color='1E293B')
+    
+    header_fill = PatternFill(start_color='1E293B', end_color='1E293B', fill_type='solid')
+    sec_header_fill = PatternFill(start_color='E2E8F0', end_color='E2E8F0', fill_type='solid')
+    zebra_fill = PatternFill(start_color='F8FAFC', end_color='F8FAFC', fill_type='solid')
+    
+    thin_border = Border(
+        left=Side(style='thin', color='CBD5E1'),
+        right=Side(style='thin', color='CBD5E1'),
+        top=Side(style='thin', color='CBD5E1'),
+        bottom=Side(style='thin', color='CBD5E1')
+    )
+    
+    # ── SHEET 1: SUMMARY RESULTS (Overview) ──────────────────────────────────
+    if export_type in ['all', 'overview']:
+        ws1 = wb.create_sheet(title="Summary Results")
+        ws1.views.sheetView[0].showGridLines = True
+        
+        # Title Block
+        ws1.append([])
+        ws1.cell(row=2, column=2, value=f"Exam Results Summary: {exam.title}").font = title_font
+        ws1.cell(row=3, column=2, value=f"Course: {exam.course.name} | Total Marks: {exam.total_marks()}").font = Font(name='Segoe UI', size=11, italic=True, color='64748B')
+        ws1.append([])
+        ws1.append([])
+        
+        headers1 = [
+            'Rank', 'Student Name', 'Student Email', 'Student Phone', 
+            'Score Obtained', 'Total Marks', 'Correct Answers', 
+            'Wrong Answers', 'Unattempted Questions', 'Accuracy %', 
+            'Started At', 'Submitted At'
+        ]
+        ws1.append(headers1)
+        
+        # Format Headers row
+        header_row_idx = 6
+        for col_idx in range(1, len(headers1) + 1):
+            cell = ws1.cell(row=header_row_idx, column=col_idx)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+            cell.border = thin_border
+        
+        total_marks = exam.total_marks()
+        for rank, att in enumerate(attempts, 1):
+            pct = round((att.score / total_marks) * 100, 1) if total_marks > 0 else 0.0
+            row_data = [
+                rank,
+                att.student.full_name,
+                att.student.email,
+                att.student.phone or 'N/A',
+                att.score,
+                total_marks,
+                att.correct_count,
+                att.wrong_count,
+                att.unattempted_count,
+                pct / 100,  # Excel uses decimal for percentage formatting
+                att.started_at.strftime('%Y-%m-%d %H:%M:%S'),
+                att.completed_at.strftime('%Y-%m-%d %H:%M:%S') if att.completed_at else 'N/A'
+            ]
+            ws1.append(row_data)
+            curr_row = ws1.max_row
+            
+            # Style row cells
+            is_even = (rank % 2 == 0)
+            for col_idx in range(1, len(headers1) + 1):
+                cell = ws1.cell(row=curr_row, column=col_idx)
+                cell.font = data_font
+                cell.border = thin_border
+                if is_even:
+                    cell.fill = zebra_fill
+                
+                # Alignments & Formats
+                if col_idx in [1, 5, 6, 7, 8, 9]:
+                    cell.alignment = Alignment(horizontal='center')
+                elif col_idx in [10]:
+                    cell.alignment = Alignment(horizontal='center')
+                    cell.number_format = '0.0%'
+                elif col_idx in [11, 12]:
+                    cell.alignment = Alignment(horizontal='right')
+                else:
+                    cell.alignment = Alignment(horizontal='left')
+
+        # Auto-fit columns for Sheet 1
+        for col in ws1.columns:
+            max_len = 0
+            col_letter = get_column_letter(col[0].column)
+            # Skip title block rows when calculating width
+            for cell in col:
+                if cell.row > 4 and cell.value:
+                    val_str = str(cell.value)
+                    if cell.number_format == '0.0%' and isinstance(cell.value, float):
+                        val_str = f"{cell.value * 100:.1f}%"
+                    if len(val_str) > max_len:
+                        max_len = len(val_str)
+            ws1.column_dimensions[col_letter].width = max(max_len + 4, 12)
+
+    # ── SHEET 2: SECTION-WISE ANALYSIS ───────────────────────────────────────
+    if export_type in ['all', 'section']:
+        ws2 = wb.create_sheet(title="Section-wise Analysis")
+        ws2.views.sheetView[0].showGridLines = True
+        
+        # Title Block
+        ws2.append([])
+        ws2.cell(row=2, column=2, value=f"Section-wise Marks Analysis: {exam.title}").font = title_font
+        ws2.append([])
+        ws2.append([])
+        
+        # Headers
+        # Row 5 will contain Section Group titles (merged columns)
+        # Row 6 will contain detail column headers
+        headers_row5 = ['', '', '', '']  # Rank, Name, Email, Phone
+        headers_row6 = ['Rank', 'Student Name', 'Student Email', 'Student Phone']
+        
+        # For each section, add a 4-column group header
+        for sec in sections:
+            headers_row5.extend([sec.title, '', '', ''])
+            headers_row6.extend(['Score', 'Correct', 'Wrong', 'Unattempted'])
+        
+        # Overall summary columns
+        headers_row5.extend(['Overall Total', '', ''])
+        headers_row6.extend(['Total Score', 'Total Correct', 'Total Wrong'])
+        
+        ws2.append(headers_row5)
+        ws2.append(headers_row6)
+        
+        row5_idx = 5
+        row6_idx = 6
+        
+        # Merge cells for sections group headers on Row 5
+        # Standard columns are 1 to 4
+        col_idx = 5
+        for sec in sections:
+            ws2.merge_cells(start_row=row5_idx, start_column=col_idx, end_row=row5_idx, end_column=col_idx+3)
+            # Style the merged group cell
+            group_cell = ws2.cell(row=row5_idx, column=col_idx)
+            group_cell.font = header_font
+            group_cell.fill = header_fill
+            group_cell.alignment = Alignment(horizontal='center', vertical='center')
+            group_cell.border = thin_border
+            
+            # Apply border to all merged cells
+            for c in range(col_idx, col_idx + 4):
+                ws2.cell(row=row5_idx, column=c).border = thin_border
+                ws2.cell(row=row5_idx, column=c).fill = header_fill
+            col_idx += 4
+            
+        # Merge for Overall Summary Group Header
+        ws2.merge_cells(start_row=row5_idx, start_column=col_idx, end_row=row5_idx, end_column=col_idx+2)
+        group_cell = ws2.cell(row=row5_idx, column=col_idx)
+        group_cell.font = header_font
+        group_cell.fill = header_fill
+        group_cell.alignment = Alignment(horizontal='center', vertical='center')
+        for c in range(col_idx, col_idx + 3):
+            ws2.cell(row=row5_idx, column=c).border = thin_border
+            ws2.cell(row=row5_idx, column=c).fill = header_fill
+            
+        # Merge first 4 columns vertically for header
+        for c in range(1, 5):
+            ws2.merge_cells(start_row=row5_idx, start_column=c, end_row=row6_idx, end_column=c)
+            v_cell = ws2.cell(row=row5_idx, column=c)
+            v_cell.font = header_font
+            v_cell.fill = header_fill
+            v_cell.alignment = Alignment(horizontal='center', vertical='center')
+            ws2.cell(row=row6_idx, column=c).border = thin_border
+            v_cell.border = thin_border
+            
+        # Format subheaders (Row 6 details)
+        for c in range(5, col_idx + 3):
+            cell = ws2.cell(row=row6_idx, column=c)
+            cell.font = subheader_font
+            cell.fill = sec_header_fill
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+            cell.border = thin_border
+
+        # Fill data
+        for rank, att in enumerate(attempts, 1):
+            # We need a map of this student's selected options
+            student_answers = {qa.question_id: qa.selected_option for qa in att.question_attempts.all()}
+            
+            row_data = [
+                rank,
+                att.student.full_name,
+                att.student.email,
+                att.student.phone or 'N/A'
+            ]
+            
+            # Calculate section-wise breakdown
+            for sec in sections:
+                sec_questions = [q for q in questions if q.section_id == sec.id]
+                sec_score = 0.0
+                sec_correct = 0
+                sec_wrong = 0
+                sec_unattempted = 0
+                
+                for q in sec_questions:
+                    selected = student_answers.get(q.id)
+                    if not selected:
+                        sec_unattempted += 1
+                    elif selected == q.correct_option:
+                        sec_score += q.get_correct_marks()
+                        sec_correct += 1
+                    else:
+                        sec_score -= q.get_negative_marks()
+                        sec_wrong += 1
+                row_data.extend([round(sec_score, 4), sec_correct, sec_wrong, sec_unattempted])
+                
+            row_data.extend([att.score, att.correct_count, att.wrong_count])
+            ws2.append(row_data)
+            curr_row = ws2.max_row
+            
+            is_even = (rank % 2 == 0)
+            # Style rows
+            for c in range(1, len(row_data) + 1):
+                cell = ws2.cell(row=curr_row, column=c)
+                cell.font = data_font
+                cell.border = thin_border
+                if is_even:
+                    cell.fill = zebra_fill
+                if c <= 4:
+                    cell.alignment = Alignment(horizontal='left' if c > 1 else 'center')
+                else:
+                    cell.alignment = Alignment(horizontal='center')
+                    # highlight total score
+                    if c == len(row_data) - 2:
+                        cell.font = bold_data_font
+
+        # Set column widths for Sheet 2
+        for col in ws2.columns:
+            max_len = 0
+            col_letter = get_column_letter(col[0].column)
+            for cell in col:
+                if cell.row > 4 and cell.value:
+                    val_str = str(cell.value)
+                    if len(val_str) > max_len:
+                        max_len = len(val_str)
+            ws2.column_dimensions[col_letter].width = max(max_len + 4, 11)
+
+    # ── SHEET 3: QUESTION-WISE DETAIL ────────────────────────────────────────
+    if export_type in ['all', 'question']:
+        ws3 = wb.create_sheet(title="Question-wise Detail")
+        ws3.views.sheetView[0].showGridLines = True
+        
+        ws3.append([])
+        ws3.cell(row=2, column=2, value=f"Question-wise Selected Options: {exam.title}").font = title_font
+        ws3.append([])
+        ws3.append([])
+        
+        # Headers
+        # Row 5: Section titles
+        # Row 6: Q numbers + Correct option
+        q_row5 = ['', '', '', '']
+        q_row6 = ['Rank', 'Student Name', 'Student Email', 'Student Phone']
+        
+        for idx, q in enumerate(questions, 1):
+            q_row5.append(q.section.title)
+            q_row6.append(f"Q{idx} (Ans: {q.correct_option or 'N/A'})")
+            
+        ws3.append(q_row5)
+        ws3.append(q_row6)
+        
+        # Merge and style headers
+        for c in range(1, 5):
+            ws3.merge_cells(start_row=5, start_column=c, end_row=6, end_column=c)
+            v_cell = ws3.cell(row=5, column=c)
+            v_cell.font = header_font
+            v_cell.fill = header_fill
+            v_cell.alignment = Alignment(horizontal='center', vertical='center')
+            v_cell.border = thin_border
+            ws3.cell(row=6, column=c).border = thin_border
+            
+        # Group sections header
+        current_sec_title = None
+        start_col = 5
+        for idx, q in enumerate(questions, 5):
+            # Format Q headers on Row 6
+            cell_q = ws3.cell(row=6, column=idx)
+            cell_q.font = subheader_font
+            cell_q.fill = sec_header_fill
+            cell_q.alignment = Alignment(horizontal='center', vertical='center')
+            cell_q.border = thin_border
+            
+            # Merge section header on Row 5 if it's the same section
+            sec_title = q.section.title
+            if current_sec_title is None:
+                current_sec_title = sec_title
+                start_col = idx
+            elif sec_title != current_sec_title:
+                # Merge previous
+                ws3.merge_cells(start_row=5, start_column=start_col, end_row=5, end_column=idx-1)
+                grp_cell = ws3.cell(row=5, column=start_col)
+                grp_cell.font = header_font
+                grp_cell.fill = header_fill
+                grp_cell.alignment = Alignment(horizontal='center', vertical='center')
+                for c in range(start_col, idx):
+                    ws3.cell(row=5, column=c).border = thin_border
+                    ws3.cell(row=5, column=c).fill = header_fill
+                
+                # Start new
+                current_sec_title = sec_title
+                start_col = idx
+                
+        # Merge the last group
+        if current_sec_title is not None and start_col < len(questions) + 5:
+            end_col = len(questions) + 4
+            ws3.merge_cells(start_row=5, start_column=start_col, end_row=5, end_column=end_col)
+            grp_cell = ws3.cell(row=5, column=start_col)
+            grp_cell.font = header_font
+            grp_cell.fill = header_fill
+            grp_cell.alignment = Alignment(horizontal='center', vertical='center')
+            for c in range(start_col, end_col + 1):
+                ws3.cell(row=5, column=c).border = thin_border
+                ws3.cell(row=5, column=c).fill = header_fill
+
+        # Fill student question-by-question options
+        correct_fill = PatternFill(start_color='E8F5E9', end_color='E8F5E9', fill_type='solid')  # light green
+        wrong_fill = PatternFill(start_color='FFEBEE', end_color='FFEBEE', fill_type='solid')    # light red
+        unattempted_fill = PatternFill(start_color='F1F5F9', end_color='F1F5F9', fill_type='solid') # light slate
+        
+        for rank, att in enumerate(attempts, 1):
+            student_answers = {qa.question_id: qa.selected_option for qa in att.question_attempts.all()}
+            
+            row_data = [
+                rank,
+                att.student.full_name,
+                att.student.email,
+                att.student.phone or 'N/A'
+            ]
+            
+            for q in questions:
+                selected = student_answers.get(q.id)
+                if not selected:
+                    row_data.append("Unattempted")
+                else:
+                    status = "Correct" if selected == q.correct_option else "Wrong"
+                    row_data.append(f"Opt {selected} ({status})")
+                    
+            ws3.append(row_data)
+            curr_row = ws3.max_row
+            
+            is_even = (rank % 2 == 0)
+            # Style rows
+            for c in range(1, len(row_data) + 1):
+                cell = ws3.cell(row=curr_row, column=c)
+                cell.font = data_font
+                cell.border = thin_border
+                if is_even:
+                    cell.fill = zebra_fill
+                if c <= 4:
+                    cell.alignment = Alignment(horizontal='left' if c > 1 else 'center')
+                else:
+                    cell.alignment = Alignment(horizontal='center')
+                    val = str(cell.value)
+                    if "Correct" in val:
+                        cell.fill = correct_fill
+                        cell.font = Font(name='Segoe UI', size=10, color='1B5E20', bold=True)
+                    elif "Wrong" in val:
+                        cell.fill = wrong_fill
+                        cell.font = Font(name='Segoe UI', size=10, color='B71C1C')
+                    elif "Unattempted" in val:
+                        cell.fill = unattempted_fill
+                        cell.font = Font(name='Segoe UI', size=10, color='64748B')
+
+        # Set column widths for Sheet 3
+        for col in ws3.columns:
+            max_len = 0
+            col_letter = get_column_letter(col[0].column)
+            for cell in col:
+                if cell.row > 4 and cell.value:
+                    val_str = str(cell.value)
+                    if len(val_str) > max_len:
+                        max_len = len(val_str)
+            ws3.column_dimensions[col_letter].width = max(max_len + 4, 11)
+
+    # Prepare HTTP response
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    
+    if export_type == 'overview':
+        filename = f"results_overview_{exam.slug}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    elif export_type == 'section':
+        filename = f"results_sectionwise_{exam.slug}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    elif export_type == 'question':
+        filename = f"results_questionwise_{exam.slug}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    else:
+        filename = f"results_detailed_{exam.slug}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     
-    writer = csv.writer(response)
-    writer.writerow([
-        'Student Name',
-        'Student Email',
-        'Student Phone',
-        'Exam Title',
-        'Course Title',
-        'Score Obtained',
-        'Total Marks',
-        'Correct Answers',
-        'Wrong Answers',
-        'Unattempted Questions',
-        'Accuracy %',
-        'Started At',
-        'Submitted At'
-    ])
-    
-    total_marks = exam.total_marks()
-    for att in attempts:
-        pct = round((att.score / total_marks) * 100, 1) if total_marks > 0 else 0.0
-        writer.writerow([
-            att.student.full_name,
-            att.student.email,
-            att.student.phone or 'N/A',
-            exam.title,
-            exam.course.name,
-            att.score,
-            total_marks,
-            att.correct_count,
-            att.wrong_count,
-            att.unattempted_count,
-            pct,
-            att.started_at.strftime('%Y-%m-%d %H:%M:%S'),
-            att.completed_at.strftime('%Y-%m-%d %H:%M:%S') if att.completed_at else 'N/A'
-        ])
-        
+    wb.save(response)
     return response
+
+
+@login_required
+def admin_api_get_sections_paragraphs(request):
+    """
+    JSON API for dynamic dropdown autopopulation in Django Admin.
+    Given an exam_id, returns lists of its sections and paragraphs.
+    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise Http404("You do not have permission to perform this action.")
+
+    from django.http import JsonResponse
+    from apps.exam.models import Section, Paragraph
+
+    exam_id = request.GET.get('exam_id')
+    sections = []
+    paragraphs = []
+    if exam_id:
+        sections = list(Section.objects.filter(exam_id=exam_id).order_by('order', 'id').values('id', 'title'))
+        paragraphs = list(Paragraph.objects.filter(section__exam_id=exam_id).order_by('order', 'id').values('id', 'title', 'section_id'))
+
+    return JsonResponse({
+        'sections': sections,
+        'paragraphs': paragraphs
+    })
+
+
+# ── Exam CRUD Views ─────────────────────────────────────────────────────────
+
+@login_required
+def admin_manage_exam(request, exam_id=None):
+    """
+    Sleek, custom page to create or update mock exams.
+    Inherits TinyMCE rich editor and standard validations.
+    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise Http404("You do not have permission to view this page.")
+        
+    from apps.exam.models import Exam
+    from apps.exam.forms import ExamAdminForm
+    from apps.pages.models import Course
+    from apps.exam.utils import invalidate_exam_cache
+    
+    exam = None
+    if exam_id:
+        exam = get_object_or_404(Exam, pk=exam_id)
+        
+    if request.method == 'POST':
+        form = ExamAdminForm(request.POST, instance=exam)
+        if form.is_valid():
+            saved_exam = form.save()
+            invalidate_exam_cache(saved_exam.pk)
+            messages.success(request, f"Mock exam '{saved_exam.title}' saved successfully!")
+            return redirect('admin_dashboard')
+        else:
+            messages.error(request, "Failed to save. Please correct form errors.")
+    else:
+        form = ExamAdminForm(instance=exam)
+        
+    return render(request, 'admin_custom/manage_exam.html', {
+        'form': form,
+        'exam': exam,
+        'courses': Course.objects.all()
+    })
+
+
+@login_required
+def admin_delete_exam(request, exam_id):
+    """
+    Purge a mock exam, sections, questions and attempts with cache invalidation.
+    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise Http404("You do not have permission to perform this action.")
+        
+    from apps.exam.models import Exam
+    from apps.exam.utils import invalidate_exam_cache
+    
+    exam = get_object_or_404(Exam, pk=exam_id)
+    title = exam.title
+    invalidate_exam_cache(exam.pk)
+    exam.delete()
+    messages.error(request, f"Mock exam '{title}' and all its contents were deleted.")
+    return redirect('admin_dashboard')
+
+
+# ── Section CRUD Views ──────────────────────────────────────────────────────
+
+@login_required
+def admin_manage_sections(request, exam_id):
+    """
+    CRUD management for sections of a given mock exam.
+    Supports display ordering, override defaults, and custom scoring marks.
+    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise Http404("You do not have permission to view this page.")
+        
+    from apps.exam.models import Exam, Section
+    from django import forms
+    from apps.exam.utils import invalidate_exam_cache
+    
+    exam = get_object_or_404(Exam, pk=exam_id)
+    sections = exam.sections.all().order_by('order', 'id')
+    
+    class SectionForm(forms.ModelForm):
+        class Meta:
+            model = Section
+            fields = ['title', 'description', 'order', 'override_scoring',
+                      'custom_correct_marks', 'custom_negative_marks', 'custom_has_negative']
+            widgets = {
+                'title': forms.TextInput(attrs={'class': 'form-control', 'required': 'true'}),
+                'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+                'order': forms.NumberInput(attrs={'class': 'form-control'}),
+                'override_scoring': forms.CheckboxInput(attrs={'class': 'form-check-input', 'id': 'id_override_scoring'}),
+                'custom_correct_marks': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
+                'custom_negative_marks': forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
+                'custom_has_negative': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            }
+            
+    section_id = request.GET.get('edit_section')
+    edit_section = None
+    if section_id:
+        edit_section = get_object_or_404(Section, pk=section_id, exam=exam)
+        
+    if request.method == 'POST':
+        form = SectionForm(request.POST, instance=edit_section)
+        if form.is_valid():
+            sec = form.save(commit=False)
+            sec.exam = exam
+            sec.save()
+            invalidate_exam_cache(exam.pk)
+            messages.success(request, f"Section '{sec.title}' saved successfully!")
+            return redirect(reverse('admin_manage_sections', kwargs={'exam_id': exam.pk}))
+        else:
+            messages.error(request, "Failed to save section. Verify fields.")
+    else:
+        form = SectionForm(instance=edit_section)
+        
+    return render(request, 'admin_custom/manage_sections.html', {
+        'exam': exam,
+        'sections': sections,
+        'form': form,
+        'edit_section': edit_section
+    })
+
+
+@login_required
+def admin_delete_section(request, exam_id, section_id):
+    """
+    Delete section and invalidate exam cache.
+    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise Http404("You do not have permission to perform this action.")
+        
+    from apps.exam.models import Section
+    from apps.exam.utils import invalidate_exam_cache
+    
+    section = get_object_or_404(Section, pk=section_id, exam_id=exam_id)
+    title = section.title
+    section.delete()
+    invalidate_exam_cache(exam_id)
+    messages.error(request, f"Section '{title}' deleted.")
+    return redirect(reverse('admin_manage_sections', kwargs={'exam_id': exam_id}))
+
+
+# ── Paragraph CRUD Views ────────────────────────────────────────────────────
+
+@login_required
+def admin_manage_paragraphs(request, section_id):
+    """
+    CRUD management for reading passages / paragraphs of a section.
+    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise Http404("You do not have permission to view this page.")
+        
+    from apps.exam.models import Section, Paragraph
+    from apps.exam.forms import ParagraphAdminForm
+    from apps.exam.utils import invalidate_exam_cache
+    
+    section = get_object_or_404(Section, pk=section_id)
+    paragraphs = section.paragraphs.all().order_by('order', 'id')
+    
+    paragraph_id = request.GET.get('edit_paragraph')
+    edit_paragraph = None
+    if paragraph_id:
+        edit_paragraph = get_object_or_404(Paragraph, pk=paragraph_id, section=section)
+        
+    if request.method == 'POST':
+        form = ParagraphAdminForm(request.POST, instance=edit_paragraph)
+        if form.is_valid():
+            para = form.save(commit=False)
+            para.section = section
+            para.save()
+            invalidate_exam_cache(section.exam_id)
+            messages.success(request, f"Passage '{para.title or para.id}' saved successfully!")
+            return redirect(reverse('admin_manage_paragraphs', kwargs={'section_id': section.pk}))
+        else:
+            messages.error(request, "Failed to save passage.")
+    else:
+        form = ParagraphAdminForm(instance=edit_paragraph)
+        
+    return render(request, 'admin_custom/manage_paragraphs.html', {
+        'section': section,
+        'paragraphs': paragraphs,
+        'form': form,
+        'edit_paragraph': edit_paragraph
+    })
+
+
+@login_required
+def admin_delete_paragraph(request, section_id, paragraph_id):
+    """
+    Delete a passage and invalidate cache.
+    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise Http404("You do not have permission to perform this action.")
+        
+    from apps.exam.models import Paragraph
+    from apps.exam.utils import invalidate_exam_cache
+    
+    paragraph = get_object_or_404(Paragraph, pk=paragraph_id, section_id=section_id)
+    title = paragraph.title or f"Passage #{paragraph.id}"
+    exam_id = paragraph.section.exam_id
+    paragraph.delete()
+    invalidate_exam_cache(exam_id)
+    messages.error(request, f"Passage '{title}' deleted.")
+    return redirect(reverse('admin_manage_paragraphs', kwargs={'section_id': section_id}))
+
+
+@login_required
+def admin_api_get_question_difficulty(request):
+    """
+    JSON API for dynamic question difficulty breakdown in Mock Exam Analytics.
+    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise Http404("You do not have permission to perform this action.")
+        
+    from django.http import JsonResponse
+    from apps.exam.models import Exam, QuestionAttempt
+    from django.db.models import F, Count
+    
+    exam_id = request.GET.get('exam_id')
+    if not exam_id:
+        return JsonResponse({'error': 'Missing exam_id'}, status=400)
+        
+    exam = get_object_or_404(Exam, pk=exam_id)
+    questions = list(exam.questions.all().order_by('section__order', 'order', 'id'))
+    total_attempts = exam.attempts.filter(is_submitted=True).count()
+    
+    stats = []
+    if total_attempts > 0:
+        q_attempts = QuestionAttempt.objects.filter(exam_attempt__exam=exam, exam_attempt__is_submitted=True)
+        
+        correct_counts = {
+            qa['question_id']: qa['count']
+            for qa in q_attempts.filter(selected_option=F('question__correct_option'))
+            .values('question_id')
+            .annotate(count=Count('id'))
+        }
+        
+        answered_counts = {
+            qa['question_id']: qa['count']
+            for qa in q_attempts.exclude(selected_option__isnull=True).exclude(selected_option='')
+            .values('question_id')
+            .annotate(count=Count('id'))
+        }
+        
+        import re
+        for idx, q in enumerate(questions, 1):
+            correct = correct_counts.get(q.id, 0)
+            answered = answered_counts.get(q.id, 0)
+            unattempted = total_attempts - answered
+            wrong = answered - correct
+            success_rate = round((correct / total_attempts) * 100, 1)
+            
+            if success_rate < 30:
+                difficulty = "Hard"
+                difficulty_color = "danger"
+            elif success_rate > 70:
+                difficulty = "Easy"
+                difficulty_color = "success"
+            else:
+                difficulty = "Medium"
+                difficulty_color = "warning"
+                
+            clean_text = re.sub(r'<[^>]+>', '', q.question_text)
+            clean_text = clean_text[:90] + '...' if len(clean_text) > 90 else clean_text
+            
+            stats.append({
+                'num': idx,
+                'text': clean_text,
+                'correct': correct,
+                'wrong': wrong,
+                'unattempted': unattempted,
+                'success_rate': success_rate,
+                'difficulty': difficulty,
+                'difficulty_color': difficulty_color
+            })
+            
+    # Calculate score ranges distribution
+    excellent_count = 0
+    good_count = 0
+    pass_count = 0
+    fail_count = 0
+    if total_attempts > 0:
+        attempts_exam = exam.attempts.filter(is_submitted=True)
+        total_marks = exam.total_marks()
+        if total_marks > 0:
+            excellent_count = attempts_exam.filter(score__gte=total_marks * 0.8).count()
+            good_count = attempts_exam.filter(score__gte=total_marks * 0.6, score__lt=total_marks * 0.8).count()
+            pass_count = attempts_exam.filter(score__gte=total_marks * 0.4, score__lt=total_marks * 0.6).count()
+            fail_count = attempts_exam.filter(score__lt=total_marks * 0.4).count()
+            
+    return JsonResponse({
+        'total_attempts': total_attempts,
+        'stats': stats,
+        'distribution': {
+            'fail': fail_count,
+            'pass': pass_count,
+            'good': good_count,
+            'excellent': excellent_count
+        }
+    })

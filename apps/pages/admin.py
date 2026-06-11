@@ -503,14 +503,15 @@ class EnrollmentAdmin(AdminStyleMixin, admin.ModelAdmin):
     )
 
     search_fields = (
-        'user__username',
         'user__email',
+        'user__full_name',
+        'user__phone',
         'course__name',
     )
 
     date_hierarchy = 'enrolled_at'
 
-    raw_id_fields = ('user',)
+    autocomplete_fields = ('user', 'course')
 
     def has_module_permission(self, request):
         return request.user.is_superuser
@@ -586,7 +587,7 @@ class LectureProgressAdmin(AdminStyleMixin, admin.ModelAdmin):
     )
 
     search_fields = (
-        'user__username',
+        'user__email',
         'lecture__title',
     )
 

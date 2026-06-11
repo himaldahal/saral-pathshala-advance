@@ -213,10 +213,55 @@
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
           <div>
             <h5 class="fw-bold text-dark mb-1"><i class="bi bi-telephone-inbound-fill text-primary me-2"></i>Course Enrollment Lead Requests</h5>
-            <p class="text-muted small mb-0">Approve course requests and automatically enroll students with one click.</p>
+            <p class="text-muted small mb-0">Approve course requests and automatically enroll students with one click. | Lead Conversion Rate: {{ lead_conversion_rate }}%</p>
           </div>
-          <span class="badge bg-primary px-3 py-2 rounded-pill fw-bold">{{ pending_requests_count }} Pending Actions</span>
+          <div class="d-flex gap-2">
+            <span class="badge bg-info px-3 py-2 rounded-pill fw-bold"><i class="bi bi-graph-up-arrow me-1"></i>Conversion: {{ lead_conversion_rate }}%</span>
+            <span class="badge bg-primary px-3 py-2 rounded-pill fw-bold">{{ pending_requests_count }} Pending Actions</span>
+          </div>
         </div>
+
+        <!-- Filter Form -->
+        <form method="GET" class="row g-3 mb-4 p-3 bg-light rounded-3 border">
+          <!-- Keep pagination/filters of other tabs -->
+          <input type="hidden" name="student_page" value="{{ recent_students.number }}">
+          <input type="hidden" name="student_search" value="{{ student_search }}">
+          <input type="hidden" name="student_level" value="{{ student_level }}">
+          <input type="hidden" name="student_verified" value="{{ student_verified }}">
+          <input type="hidden" name="attempt_page" value="{{ recent_attempts.number }}">
+          <input type="hidden" name="attempt_search" value="{{ attempt_search }}">
+          <input type="hidden" name="attempt_exam" value="{{ attempt_exam_id }}">
+          <input type="hidden" name="attempt_status" value="{{ attempt_status }}">
+
+          <div class="col-md-4">
+            <label class="form-label small fw-bold text-muted" for="crm_search">Search Lead</label>
+            <input type="text" class="form-control form-control-sm" id="crm_search" name="crm_search" value="{{ crm_search }}" placeholder="Name, Phone or Email...">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small fw-bold text-muted" for="crm_status">Status</label>
+            <select class="form-select form-select-sm" id="crm_status" name="crm_status">
+              <option value="">-- All Statuses --</option>
+              <option value="pending" {% if crm_status == 'pending' %}selected{% endif %}>Pending</option>
+              <option value="approved" {% if crm_status == 'approved' %}selected{% endif %}>Approved / Enrolled</option>
+              <option value="contacted" {% if crm_status == 'contacted' %}selected{% endif %}>Contacted / Followed Up</option>
+              <option value="rejected" {% if crm_status == 'rejected' %}selected{% endif %}>Rejected</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small fw-bold text-muted" for="crm_course">Course Track</label>
+            <select class="form-select form-select-sm" id="crm_course" name="crm_course">
+              <option value="">-- All Courses --</option>
+              {% for course in all_courses %}
+                <option value="{{ course.id }}" {% if crm_course_id == course.id %}selected{% endif %}>{{ course.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2 d-flex align-items-end gap-2">
+            <button type="submit" class="btn btn-sm btn-brand-primary w-100"><i class="bi bi-filter"></i> Filter</button>
+            <a href="?student_page={{ recent_students.number }}&attempt_page={{ recent_attempts.number }}" class="btn btn-sm btn-outline-secondary w-100"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
+          </div>
+        </form>
+
 
         <div class="table-responsive">
           <table class="table align-middle table-hover mb-0">
@@ -289,8 +334,39 @@
             </tbody>
           </table>
         </div>
+
+        <!-- Pagination -->
+        {% if recent_requests.has_other_pages %}
+        <nav aria-label="CRM pagination" class="mt-4">
+          <ul class="pagination pagination-sm justify-content-center">
+            {% if recent_requests.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?crm_page=1&crm_search={{ crm_search }}&crm_status={{ crm_status }}&crm_course={{ crm_course_id }}&student_page={{ recent_students.number }}&student_search={{ student_search }}&student_level={{ student_level }}&student_verified={{ student_verified }}&attempt_page={{ recent_attempts.number }}&attempt_search={{ attempt_search }}&attempt_exam={{ attempt_exam_id }}&attempt_status={{ attempt_status }}">&laquo; First</a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?crm_page={{ recent_requests.previous_page_number }}&crm_search={{ crm_search }}&crm_status={{ crm_status }}&crm_course={{ crm_course_id }}&student_page={{ recent_students.number }}&student_search={{ student_search }}&student_level={{ student_level }}&student_verified={{ student_verified }}&attempt_page={{ recent_attempts.number }}&attempt_search={{ attempt_search }}&attempt_exam={{ attempt_exam_id }}&attempt_status={{ attempt_status }}">Previous</a>
+              </li>
+            {% endif %}
+            
+            <li class="page-item disabled">
+              <span class="page-link">Page {{ recent_requests.number }} of {{ recent_requests.paginator.num_pages }}</span>
+            </li>
+
+            {% if recent_requests.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?crm_page={{ recent_requests.next_page_number }}&crm_search={{ crm_search }}&crm_status={{ crm_status }}&crm_course={{ crm_course_id }}&student_page={{ recent_students.number }}&student_search={{ student_search }}&student_level={{ student_level }}&student_verified={{ student_verified }}&attempt_page={{ recent_attempts.number }}&attempt_search={{ attempt_search }}&attempt_exam={{ attempt_exam_id }}&attempt_status={{ attempt_status }}">Next</a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?crm_page={{ recent_requests.paginator.num_pages }}&crm_search={{ crm_search }}&crm_status={{ crm_status }}&crm_course={{ crm_course_id }}&student_page={{ recent_students.number }}&student_search={{ student_search }}&student_level={{ student_level }}&student_verified={{ student_verified }}&attempt_page={{ recent_attempts.number }}&attempt_search={{ attempt_search }}&attempt_exam={{ attempt_exam_id }}&attempt_status={{ attempt_status }}">Last &raquo;</a>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+        {% endif %}
+
       </div>
     </div>
+
 
     <!-- TAB 2: EXAM ANALYTICS -->
     <div class="tab-pane fade" id="exams-panel" role="tabpanel" aria-labelledby="exams-tab">
@@ -342,9 +418,14 @@
 
       <!-- Detailed Exam Metrics & Distributions Grid -->
       <div class="card border border-light shadow-sm rounded-4 p-4 bg-white">
-        <h5 class="fw-bold text-dark mb-4"><i class="bi bi-grid-3x3-gap-fill text-primary me-2"></i>Mock Examinations Statistics & Mark Patterns</h5>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h5 class="fw-bold text-dark mb-0"><i class="bi bi-grid-3x3-gap-fill text-primary me-2"></i>Mock Examinations Statistics & Mark Patterns</h5>
+          <a href="{% url 'admin_create_exam' %}" class="btn btn-sm btn-success rounded-pill px-3 shadow-xs">
+            <i class="bi bi-plus-circle-fill me-1"></i> Add Mock Exam
+          </a>
+        </div>
         
-        <div class="table-responsive">
+        <div class="table-responsive mb-4 pb-4">
           <table class="table align-middle table-hover mb-0">
             <thead class="table-light">
               <tr>
@@ -415,9 +496,30 @@
                     {% endif %}
                   </td>
                   <td class="text-end">
-                    <a href="{% url 'admin_export_exam_results' stat.exam.pk %}" class="btn btn-sm btn-outline-success rounded-pill d-inline-flex align-items-center gap-1">
-                      <i class="bi bi-file-earmark-spreadsheet-fill"></i> Export CSV
-                    </a>
+                    <div class="d-inline-flex gap-1">
+                      <a href="{% url 'admin_edit_exam' stat.exam.pk %}" class="btn btn-sm btn-outline-warning rounded-pill" title="Edit Details">
+                        <i class="bi bi-pencil-fill"></i> Edit
+                      </a>
+                      <a href="{% url 'admin_manage_sections' stat.exam.pk %}" class="btn btn-sm btn-outline-primary rounded-pill" title="Manage Sections">
+                        <i class="bi bi-list-task"></i> Sections
+                      </a>
+                      <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Export Results">
+                          <i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> Excel
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border border-light">
+                          <li><h6 class="dropdown-header small text-muted">Select Export Mode</h6></li>
+                          <li><a class="dropdown-item py-2 small" href="{% url 'admin_export_exam_results' stat.exam.pk %}?type=all"><i class="bi bi-journal-album text-primary me-2"></i>Export All (Full Workbook)</a></li>
+                          <li><hr class="dropdown-divider"></li>
+                          <li><a class="dropdown-item py-2 small" href="{% url 'admin_export_exam_results' stat.exam.pk %}?type=overview"><i class="bi bi-file-earmark-bar-graph text-success me-2"></i>Export Overview Only</a></li>
+                          <li><a class="dropdown-item py-2 small" href="{% url 'admin_export_exam_results' stat.exam.pk %}?type=section"><i class="bi bi-file-earmark-ruled text-info me-2"></i>Export Section-wise Only</a></li>
+                          <li><a class="dropdown-item py-2 small" href="{% url 'admin_export_exam_results' stat.exam.pk %}?type=question"><i class="bi bi-file-earmark-spreadsheet text-warning me-2"></i>Export Question-wise Only</a></li>
+                        </ul>
+                      </div>
+                      <a href="{% url 'admin_delete_exam' stat.exam.pk %}" class="btn btn-sm btn-outline-danger rounded-pill" title="Delete Exam" onclick="return confirm('Are you sure you want to delete the exam &quot;{{ stat.exam.title }}&quot; and all its sections/questions/attempts? This cannot be undone.');">
+                        <i class="bi bi-trash-fill"></i>
+                      </a>
+                    </div>
                   </td>
                 </tr>
               {% empty %}
@@ -429,6 +531,97 @@
               {% endfor %}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- Detailed Question Difficulty & Diagnostics Card -->
+      <div class="card border border-light shadow-sm rounded-4 p-4 bg-white mt-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+          <div>
+            <h5 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-primary me-2"></i>Question Difficulty & Diagnostics</h5>
+            <p class="text-muted small mb-0">Analyze question-by-question success rates, wrong answers, and difficulty distribution dynamically.</p>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select form-select-sm" id="difficulty_exam_selector" onchange="loadQuestionDifficulty(this.value)">
+              <option value="">-- Select Mock Exam --</option>
+              {% for stat in exam_stats %}
+                <option value="{{ stat.exam.pk }}">{{ stat.exam.title }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div id="difficulty_loading_spinner" class="text-center py-5 d-none">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="text-muted mt-2 small">Analyzing question correctness patterns...</p>
+        </div>
+
+        <div id="difficulty_empty_state" class="text-center py-5 text-muted">
+          <i class="bi bi-bar-chart display-6 mb-2 d-block text-secondary"></i>
+          <span>Please select a mock exam from the dropdown to load question diagnostics.</span>
+        </div>
+
+        <div id="difficulty_table_wrapper" class="d-none">
+          <div class="row g-3 mb-3 align-items-center">
+            <!-- Search Input -->
+            <div class="col-md-6">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control bg-light border-start-0" id="difficulty_search_input" placeholder="Search questions content..." oninput="filterQuestions()">
+              </div>
+            </div>
+            <!-- Rating Filter -->
+            <div class="col-md-3">
+              <select class="form-select form-select-sm bg-light" id="difficulty_rating_filter" onchange="filterQuestions()">
+                <option value="">-- All Difficulties --</option>
+                <option value="easy">Easy (Correct > 70%)</option>
+                <option value="medium">Medium (40% - 70%)</option>
+                <option value="hard">Hard (Correct < 30%)</option>
+              </select>
+            </div>
+            <!-- Stat info -->
+            <div class="col-md-3 text-end">
+              <span class="small fw-bold text-muted"><i class="bi bi-people-fill me-1 text-primary"></i>Attempts: <span id="difficulty_total_attempts" class="badge bg-primary rounded-pill px-2.5 py-1">0</span></span>
+            </div>
+          </div>
+
+          <!-- Two Column Layout: Left Column (Table), Right Column (Distribution Chart) -->
+          <div class="row g-4">
+            <div class="col-lg-8 col-md-12">
+              <div class="table-responsive">
+                <table class="table align-middle table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="border-0">#</th>
+                      <th class="border-0" style="max-width: 400px;">Question Content</th>
+                      <th class="border-0 text-center">Correct</th>
+                      <th class="border-0 text-center">Wrong</th>
+                      <th class="border-0 text-center">Unattempted</th>
+                      <th class="border-0 text-center">Success Rate (%)</th>
+                      <th class="border-0 text-end">Difficulty</th>
+                    </tr>
+                  </thead>
+                  <tbody id="difficulty_table_body" class="border-top-0">
+                    <!-- Dynamically populated -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <!-- Right Column (Score Range Distribution) -->
+            <div class="col-lg-4 col-md-12">
+              <div class="card p-3 border border-light rounded-3 bg-light shadow-xs text-center">
+                <h6 class="fw-bold text-dark text-start mb-3"><i class="bi bi-pie-chart text-info me-1"></i>Score Distribution Analysis</h6>
+                <div style="position: relative; height: 220px;" class="d-flex align-items-center justify-content-center mb-2">
+                  <canvas id="examDifficultyDistributionChart"></canvas>
+                </div>
+                <div class="mt-2 small text-muted" id="exam_distribution_no_attempts_msg">
+                  Score pattern based on submitted answers.
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -457,9 +650,137 @@
         </div>
       </div>
 
+      <!-- Hall of Fame / Top Performers Leaderboard -->
+      <div class="card border border-light shadow-sm rounded-4 p-4 bg-white mb-5">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+          <div>
+            <h5 class="fw-bold text-dark mb-1"><i class="bi bi-trophy-fill text-warning me-2"></i>Hall of Fame | Top Performing Students</h5>
+            <p class="text-muted small mb-0">Top 10 performing students based on mock exam scores. | Verification Rate: {{ student_verification_rate }}%</p>
+          </div>
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <form method="GET" class="d-flex align-items-center gap-2 m-0">
+              <input type="hidden" name="crm_page" value="{{ recent_requests.number }}">
+              <input type="hidden" name="crm_search" value="{{ crm_search }}">
+              <input type="hidden" name="crm_status" value="{{ crm_status }}">
+              <input type="hidden" name="crm_course" value="{{ crm_course_id }}">
+              <input type="hidden" name="student_page" value="{{ recent_students.number }}">
+              <input type="hidden" name="student_search" value="{{ student_search }}">
+              <input type="hidden" name="student_level" value="{{ student_level }}">
+              <input type="hidden" name="student_verified" value="{{ student_verified }}">
+              <input type="hidden" name="attempt_page" value="{{ recent_attempts.number }}">
+              <input type="hidden" name="attempt_search" value="{{ attempt_search }}">
+              <input type="hidden" name="attempt_exam" value="{{ attempt_exam_id }}">
+              <input type="hidden" name="attempt_status" value="{{ attempt_status }}">
+
+              <label class="form-label small fw-bold text-muted mb-0 text-nowrap" for="leaderboard_exam_id_select">Filter by Exam:</label>
+              <select class="form-select form-select-sm rounded-pill px-3 py-1.5" id="leaderboard_exam_id_select" name="leaderboard_exam" onchange="this.form.submit()" style="max-width: 220px; font-size: 0.82rem;">
+                <option value="">-- All Mock Exams (Platform-wide) --</option>
+                {% for exam in all_exams %}
+                  <option value="{{ exam.pk }}" {% if leaderboard_exam_id == exam.pk %}selected{% endif %}>{{ exam.title }}</option>
+                {% endfor %}
+              </select>
+            </form>
+            <span class="badge bg-success px-3 py-2 rounded-pill fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Verification: {{ student_verification_rate }}%</span>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="border-0" style="width: 80px;">Rank</th>
+                <th class="border-0">Student Name</th>
+                <th class="border-0">Email Address</th>
+                <th class="border-0 text-center">Attempts count</th>
+                <th class="border-0 text-center">Peak Score</th>
+                <th class="border-0 text-end">Average Score</th>
+              </tr>
+            </thead>
+            <tbody class="border-top-0">
+              {% for performer in top_performers %}
+                <tr>
+                  <td>
+                    {% if forloop.counter == 1 %}
+                      <span class="badge bg-warning text-dark px-2.5 py-1.5 rounded-pill fw-bold"><i class="bi bi-trophy-fill me-1"></i>1st</span>
+                    {% elif forloop.counter == 2 %}
+                      <span class="badge bg-secondary text-white px-2.5 py-1.5 rounded-pill fw-bold"><i class="bi bi-award-fill me-1"></i>2nd</span>
+                    {% elif forloop.counter == 3 %}
+                      <span class="badge bg-bronze text-white px-2.5 py-1.5 rounded-pill fw-bold" style="background-color: #cd7f32;"><i class="bi bi-award-fill me-1"></i>3rd</span>
+                    {% else %}
+                      <span class="fw-bold text-muted ps-2">{{ forloop.counter }}th</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="fw-bold text-dark">{{ performer.student__full_name }}</div>
+                  </td>
+                  <td>
+                    <span class="text-muted small">{{ performer.student__email }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-light text-dark border rounded-pill px-3 py-1">{{ performer.attempts_count }}</span>
+                  </td>
+                  <td class="text-center fw-semibold text-success">
+                    {{ performer.max_score|floatformat:1 }}
+                  </td>
+                  <td class="text-end fw-bold text-primary">
+                    {{ performer.avg_score|floatformat:1 }}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center py-4 text-muted">
+                    <i class="bi bi-emoji-neutral display-6 mb-2 d-block"></i> No mock attempts submitted yet to rank students.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Recent Students Registrations List -->
       <div class="card border border-light shadow-sm rounded-4 p-4 bg-white">
         <h5 class="fw-bold text-dark mb-4"><i class="bi bi-person-lines-fill text-primary me-2"></i>Recently Registered Student Accounts</h5>
+
+        <!-- Filter Form -->
+        <form method="GET" class="row g-3 mb-4 p-3 bg-light rounded-3 border">
+          <!-- Keep pagination/filters of other tabs -->
+          <input type="hidden" name="crm_page" value="{{ recent_requests.number }}">
+          <input type="hidden" name="crm_search" value="{{ crm_search }}">
+          <input type="hidden" name="crm_status" value="{{ crm_status }}">
+          <input type="hidden" name="crm_course" value="{{ crm_course_id }}">
+          <input type="hidden" name="attempt_page" value="{{ recent_attempts.number }}">
+          <input type="hidden" name="attempt_search" value="{{ attempt_search }}">
+          <input type="hidden" name="attempt_exam" value="{{ attempt_exam_id }}">
+          <input type="hidden" name="attempt_status" value="{{ attempt_status }}">
+
+          <div class="col-md-4">
+            <label class="form-label small fw-bold text-muted" for="student_search">Search Student</label>
+            <input type="text" class="form-control form-control-sm" id="student_search" name="student_search" value="{{ student_search }}" placeholder="Name, Email, Phone or Inst...">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small fw-bold text-muted" for="student_level">Level</label>
+            <select class="form-select form-select-sm" id="student_level" name="student_level">
+              <option value="">-- All Levels --</option>
+              <option value="plus_two" {% if student_level == 'plus_two' %}selected{% endif %}>+2 (Grade XI/XII)</option>
+              <option value="bachelors" {% if student_level == 'bachelors' %}selected{% endif %}>Bachelors</option>
+              <option value="masters" {% if student_level == 'masters' %}selected{% endif %}>Masters</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small fw-bold text-muted" for="student_verified">Verification Status</label>
+            <select class="form-select form-select-sm" id="student_verified" name="student_verified">
+              <option value="">-- All Statuses --</option>
+              <option value="verified" {% if student_verified == 'verified' %}selected{% endif %}>Verified Accounts</option>
+              <option value="unverified" {% if student_verified == 'unverified' %}selected{% endif %}>Unverified Accounts</option>
+            </select>
+          </div>
+          <div class="col-md-2 d-flex align-items-end gap-2">
+            <button type="submit" class="btn btn-sm btn-brand-primary w-100"><i class="bi bi-filter"></i> Filter</button>
+            <a href="?crm_page={{ recent_requests.number }}&attempt_page={{ recent_attempts.number }}" class="btn btn-sm btn-outline-secondary w-100"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
+          </div>
+        </form>
+
         
         <div class="table-responsive">
           <table class="table align-middle table-hover mb-0">
@@ -506,8 +827,39 @@
             </tbody>
           </table>
         </div>
+
+        <!-- Pagination -->
+        {% if recent_students.has_other_pages %}
+        <nav aria-label="Student pagination" class="mt-4">
+          <ul class="pagination pagination-sm justify-content-center">
+            {% if recent_students.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?student_page=1&student_search={{ student_search }}&student_level={{ student_level }}&student_verified={{ student_verified }}&crm_page={{ recent_requests.number }}&crm_search={{ crm_search }}&crm_status={{ crm_status }}&crm_course={{ crm_course_id }}&attempt_page={{ recent_attempts.number }}&attempt_search={{ attempt_search }}&attempt_exam={{ attempt_exam_id }}&attempt_status={{ attempt_status }}">&laquo; First</a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?student_page={{ recent_students.previous_page_number }}&student_search={{ student_search }}&student_level={{ student_level }}&student_verified={{ student_verified }}&crm_page={{ recent_requests.number }}&crm_search={{ crm_search }}&crm_status={{ crm_status }}&crm_course={{ crm_course_id }}&attempt_page={{ recent_attempts.number }}&attempt_search={{ attempt_search }}&attempt_exam={{ attempt_exam_id }}&attempt_status={{ attempt_status }}">Previous</a>
+              </li>
+            {% endif %}
+            
+            <li class="page-item disabled">
+              <span class="page-link">Page {{ recent_students.number }} of {{ recent_students.paginator.num_pages }}</span>
+            </li>
+
+            {% if recent_students.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?student_page={{ recent_students.next_page_number }}&student_search={{ student_search }}&student_level={{ student_level }}&student_verified={{ student_verified }}&crm_page={{ recent_requests.number }}&crm_search={{ crm_search }}&crm_status={{ crm_status }}&crm_course={{ crm_course_id }}&attempt_page={{ recent_attempts.number }}&attempt_search={{ attempt_search }}&attempt_exam={{ attempt_exam_id }}&attempt_status={{ attempt_status }}">Next</a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?student_page={{ recent_students.paginator.num_pages }}&student_search={{ student_search }}&student_level={{ student_level }}&student_verified={{ student_verified }}&crm_page={{ recent_requests.number }}&crm_search={{ crm_search }}&crm_status={{ crm_status }}&crm_course={{ crm_course_id }}&attempt_page={{ recent_attempts.number }}&attempt_search={{ attempt_search }}&attempt_exam={{ attempt_exam_id }}&attempt_status={{ attempt_status }}">Last &raquo;</a>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+        {% endif %}
+
       </div>
     </div>
+
 
     <!-- TAB 4: SYSTEM OPERATIONS & LOGS -->
     <div class="tab-pane fade" id="logs-panel" role="tabpanel" aria-labelledby="logs-tab">
@@ -525,7 +877,10 @@
                 <div class="p-3 border rounded-3 bg-light d-flex flex-column h-100">
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="fw-bold small text-dark"><i class="bi bi-envelope-check text-success me-1"></i>Email Outbound Broker</span>
-                    <span class="badge bg-success-subtle text-success small">{{ mail_queue_stats.pending }} pending</span>
+                    <div class="d-flex gap-1 align-items-center">
+                      <span class="badge bg-success text-white small" style="font-size: 0.7rem;">Rate: {{ mail_delivery_rate }}%</span>
+                      <span class="badge bg-success-subtle text-success small" style="font-size: 0.7rem;">{{ mail_queue_stats.pending }} pending</span>
+                    </div>
                   </div>
                   <p class="text-muted small mb-3 flex-grow-1" style="font-size: 0.78rem;">Processes the transaction log and dispatches outstanding student alerts, OTP codes, and welcome packages.</p>
                   <form method="POST" action="{% url 'admin_dashboard' %}">
@@ -541,7 +896,10 @@
                 <div class="p-3 border rounded-3 bg-light d-flex flex-column h-100">
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="fw-bold small text-dark"><i class="bi bi-chat-text text-info me-1"></i>SMS Gateway Dispatcher</span>
-                    <span class="badge bg-info-subtle text-info small">{{ sms_queue_stats.pending }} pending</span>
+                    <div class="d-flex gap-1 align-items-center">
+                      <span class="badge bg-info text-white small" style="font-size: 0.7rem;">Rate: {{ sms_delivery_rate }}%</span>
+                      <span class="badge bg-info-subtle text-info small" style="font-size: 0.7rem;">{{ sms_queue_stats.pending }} pending</span>
+                    </div>
                   </div>
                   <p class="text-muted small mb-3 flex-grow-1" style="font-size: 0.78rem;">Sends Nepal mobile network phone OTP tokens and login verification alerts through connected gateways.</p>
                   <form method="POST" action="{% url 'admin_dashboard' %}">
@@ -617,6 +975,78 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Instant Outbound Dispatcher Form Card -->
+      <div class="card border border-light shadow-sm rounded-4 p-4 bg-white mb-4">
+        <h5 class="fw-bold text-dark mb-1"><i class="bi bi-broadcast text-primary me-2"></i>Instant Outbound Message Dispatcher</h5>
+        <p class="text-muted small mb-4">Broadcast notices, exam notifications, and custom alerts to registered students or guest contacts via Email or SMS.</p>
+
+        <form method="POST" action="{% url 'admin_dashboard' %}" class="needs-validation" novalidate>
+          {% csrf_token %}
+          <div class="row g-3">
+            <!-- Recipient Type Selection -->
+            <div class="col-md-3">
+              <label for="recipient_type" class="form-label fw-semibold text-muted small">Recipient Target Group</label>
+              <select class="form-select" id="recipient_type" name="recipient_type" onchange="toggleRecipientFields(this.value)" required>
+                <option value="all_students">All Active Students</option>
+                <option value="specific_student">Specific Registered Student</option>
+                <option value="manual_entry">Manual Direct Entry</option>
+              </select>
+            </div>
+
+            <!-- Message Channel Selection -->
+            <div class="col-md-3">
+              <label for="msg_type" class="form-label fw-semibold text-muted small">Communication Channel</label>
+              <select class="form-select" id="msg_type" name="msg_type" onchange="toggleSubjectField(this.value)" required>
+                <option value="email">Email Notification</option>
+                <option value="sms">SMS Text Alert</option>
+              </select>
+            </div>
+
+            <!-- Specific Student Selector -->
+            <div class="col-md-6 d-none" id="specific_student_wrapper">
+              <label for="specific_student" class="form-label fw-semibold text-muted small">Select Registered Student</label>
+              <select class="form-select" id="specific_student" name="specific_student">
+                <option value="">-- Choose Student --</option>
+                {% for student in all_students_list %}
+                  <option value="{{ student.pk }}">{{ student.full_name }} ({{ student.email }})</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Manual Email Entry -->
+            <div class="col-md-3 d-none" id="manual_email_wrapper">
+              <label for="manual_email" class="form-label fw-semibold text-muted small">Manual Email Address</label>
+              <input type="email" class="form-control" id="manual_email" name="manual_email" placeholder="e.g. guest@domain.com">
+            </div>
+
+            <!-- Manual Phone Entry -->
+            <div class="col-md-3 d-none" id="manual_phone_wrapper">
+              <label for="manual_phone" class="form-label fw-semibold text-muted small">Manual Phone Number</label>
+              <input type="text" class="form-control" id="manual_phone" name="manual_phone" placeholder="e.g. 98XXXXXXXX">
+            </div>
+          </div>
+
+          <!-- Email Subject Field -->
+          <div class="mt-3" id="email_subject_wrapper">
+            <label for="email_subject" class="form-label fw-semibold text-muted small">Email Subject</label>
+            <input type="text" class="form-control" id="email_subject" name="email_subject" value="Saral Pathshala Notification" placeholder="Enter message subject...">
+          </div>
+
+          <!-- Message Body Field -->
+          <div class="mt-3">
+            <label for="message_body" class="form-label fw-semibold text-muted small">Message Content (Body)</label>
+            <textarea class="form-control" id="message_body" name="message_body" rows="4" placeholder="Type your outbound message content here..." required></textarea>
+            <div class="form-text small text-muted">For SMS, content is automatically truncated to 160 characters per standard carrier constraints.</div>
+          </div>
+
+          <div class="mt-4 text-end">
+            <button type="submit" name="send_instant_message" value="1" class="btn btn-brand-primary rounded-pill px-4 py-2.5 shadow-sm fw-bold">
+              <i class="bi bi-send-check-fill me-2"></i>Queue Broadcast Message
+            </button>
+          </div>
+        </form>
       </div>
 
       <!-- Unverified Users Notifications Panel -->
@@ -711,7 +1141,47 @@
           <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-bold">{{ total_attempts_count }} Completed Attempts</span>
         </div>
 
+        <!-- Filter Form -->
+        <form method="GET" class="row g-3 mb-4 p-3 bg-light rounded-3 border">
+          <!-- Keep pagination/filters of other tabs -->
+          <input type="hidden" name="crm_page" value="{{ recent_requests.number }}">
+          <input type="hidden" name="crm_search" value="{{ crm_search }}">
+          <input type="hidden" name="crm_status" value="{{ crm_status }}">
+          <input type="hidden" name="crm_course" value="{{ crm_course_id }}">
+          <input type="hidden" name="student_page" value="{{ recent_students.number }}">
+          <input type="hidden" name="student_search" value="{{ student_search }}">
+          <input type="hidden" name="student_level" value="{{ student_level }}">
+          <input type="hidden" name="student_verified" value="{{ student_verified }}">
+
+          <div class="col-md-4">
+            <label class="form-label small fw-bold text-muted" for="attempt_search">Search Student</label>
+            <input type="text" class="form-control form-control-sm" id="attempt_search" name="attempt_search" value="{{ attempt_search }}" placeholder="Student Name, Email or Phone...">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small fw-bold text-muted" for="attempt_exam">Filter Exam</label>
+            <select class="form-select form-select-sm" id="attempt_exam" name="attempt_exam">
+              <option value="">-- All Exams --</option>
+              {% for exam in all_exams %}
+                <option value="{{ exam.id }}" {% if attempt_exam_id == exam.id %}selected{% endif %}>{{ exam.title }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small fw-bold text-muted" for="attempt_status">Status</label>
+            <select class="form-select form-select-sm" id="attempt_status" name="attempt_status">
+              <option value="">-- All Statuses --</option>
+              <option value="submitted" {% if attempt_status == 'submitted' %}selected{% endif %}>Submitted Attempts</option>
+              <option value="active" {% if attempt_status == 'active' %}selected{% endif %}>Active/Live Takers</option>
+            </select>
+          </div>
+          <div class="col-md-2 d-flex align-items-end gap-2">
+            <button type="submit" class="btn btn-sm btn-brand-primary w-100"><i class="bi bi-filter"></i> Filter</button>
+            <a href="?crm_page={{ recent_requests.number }}&student_page={{ recent_students.number }}" class="btn btn-sm btn-outline-secondary w-100"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
+          </div>
+        </form>
+
         <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
+
           <table class="table align-middle table-hover mb-0">
             <thead class="table-light sticky-top">
               <tr>
@@ -772,6 +1242,36 @@
             </tbody>
           </table>
         </div>
+
+        <!-- Pagination -->
+        {% if recent_attempts.has_other_pages %}
+        <nav aria-label="Attempt pagination" class="mt-4">
+          <ul class="pagination pagination-sm justify-content-center">
+            {% if recent_attempts.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?attempt_page=1&attempt_search={{ attempt_search }}&attempt_exam={{ attempt_exam_id }}&attempt_status={{ attempt_status }}&crm_page={{ recent_requests.number }}&crm_search={{ crm_search }}&crm_status={{ crm_status }}&crm_course={{ crm_course_id }}&student_page={{ recent_students.number }}&student_search={{ student_search }}&student_level={{ student_level }}&student_verified={{ student_verified }}">&laquo; First</a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?attempt_page={{ recent_attempts.previous_page_number }}&attempt_search={{ attempt_search }}&attempt_exam={{ attempt_exam_id }}&attempt_status={{ attempt_status }}&crm_page={{ recent_requests.number }}&crm_search={{ crm_search }}&crm_status={{ crm_status }}&crm_course={{ crm_course_id }}&student_page={{ recent_students.number }}&student_search={{ student_search }}&student_level={{ student_level }}&student_verified={{ student_verified }}">Previous</a>
+              </li>
+            {% endif %}
+            
+            <li class="page-item disabled">
+              <span class="page-link">Page {{ recent_attempts.number }} of {{ recent_attempts.paginator.num_pages }}</span>
+            </li>
+
+            {% if recent_attempts.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?attempt_page={{ recent_attempts.next_page_number }}&attempt_search={{ attempt_search }}&attempt_exam={{ attempt_exam_id }}&attempt_status={{ attempt_status }}&crm_page={{ recent_requests.number }}&crm_search={{ crm_search }}&crm_status={{ crm_status }}&crm_course={{ crm_course_id }}&student_page={{ recent_students.number }}&student_search={{ student_search }}&student_level={{ student_level }}&student_verified={{ student_verified }}">Next</a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?attempt_page={{ recent_attempts.paginator.num_pages }}&attempt_search={{ attempt_search }}&attempt_exam={{ attempt_exam_id }}&attempt_status={{ attempt_status }}&crm_page={{ recent_requests.number }}&crm_search={{ crm_search }}&crm_status={{ crm_status }}&crm_course={{ crm_course_id }}&student_page={{ recent_students.number }}&student_search={{ student_search }}&student_level={{ student_level }}&student_verified={{ student_verified }}">Last &raquo;</a>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+        {% endif %}
+
       </div>
 
       <!-- Outbound failure system logs and queue inspection -->
@@ -964,6 +1464,39 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     // ----------------------------------------------------
+    // Restore and save active tab from localStorage
+    // ----------------------------------------------------
+    const activeTab = localStorage.getItem('adminActiveTab');
+    if (activeTab) {
+      const tabEl = document.querySelector(`button[data-bs-target="${activeTab}"]`);
+      if (tabEl) {
+        // Remove active class from all tabs and panes
+        document.querySelectorAll('.nav-tabs-custom .nav-link').forEach(btn => {
+          btn.classList.remove('active');
+          btn.setAttribute('aria-selected', 'false');
+        });
+        document.querySelectorAll('.tab-content .tab-pane').forEach(pane => {
+          pane.classList.remove('show', 'active');
+        });
+        // Activate target
+        tabEl.classList.add('active');
+        tabEl.setAttribute('aria-selected', 'true');
+        const paneEl = document.querySelector(activeTab);
+        if (paneEl) {
+          paneEl.classList.add('show', 'active');
+        }
+      }
+    }
+
+    // Save active tab to localStorage on click
+    document.querySelectorAll('.nav-tabs-custom .nav-link').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const target = this.getAttribute('data-bs-target');
+        localStorage.setItem('adminActiveTab', target);
+      });
+    });
+
+    // ----------------------------------------------------
     // Chart 1: Performance Bar & Line Chart
     // ----------------------------------------------------
     const examLabels = {{ chart_exam_titles_json|safe }};
@@ -1109,5 +1642,213 @@
       container.innerHTML = `<div class="text-muted text-center py-5"><i class="bi bi-bookmark-x display-6 mb-2 d-block"></i>No active courses with student enrollment</div>`;
     }
   });
+
+  let currentQuestionStats = [];
+  let difficultyDistributionChart = null;
+
+  // Dynamic question difficulty fetcher
+  function loadQuestionDifficulty(examId) {
+    const loadingSpinner = document.getElementById('difficulty_loading_spinner');
+    const emptyState = document.getElementById('difficulty_empty_state');
+    const tableWrapper = document.getElementById('difficulty_table_wrapper');
+    const tableBody = document.getElementById('difficulty_table_body');
+    const totalAttemptsSpan = document.getElementById('difficulty_total_attempts');
+
+    if (!examId) {
+      emptyState.classList.remove('d-none');
+      loadingSpinner.classList.add('d-none');
+      tableWrapper.classList.add('d-none');
+      return;
+    }
+
+    // Show loading
+    emptyState.classList.add('d-none');
+    loadingSpinner.classList.remove('d-none');
+    tableWrapper.classList.add('d-none');
+
+    // Fetch data via AJAX
+    fetch(`/dhokakhol-custom/api/get-question-difficulty/?exam_id=${examId}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch diagnostics');
+        }
+        return response.json();
+      })
+      .then(data => {
+        loadingSpinner.classList.add('d-none');
+        totalAttemptsSpan.textContent = data.total_attempts;
+        currentQuestionStats = data.stats;
+        
+        // Reset local filter input boxes
+        document.getElementById('difficulty_search_input').value = '';
+        document.getElementById('difficulty_rating_filter').value = '';
+
+        filterQuestions();
+
+        // Render Score Distribution Chart
+        const dist = data.distribution;
+        const total = dist.fail + dist.pass + dist.good + dist.excellent;
+        const ctxDist = document.getElementById('examDifficultyDistributionChart').getContext('2d');
+        const noAttemptsMsg = document.getElementById('exam_distribution_no_attempts_msg');
+
+        if (difficultyDistributionChart) {
+          difficultyDistributionChart.destroy();
+        }
+
+        if (total === 0) {
+          document.getElementById('examDifficultyDistributionChart').style.display = 'none';
+          noAttemptsMsg.innerHTML = '<span class="text-danger fw-semibold"><i class="bi bi-info-circle me-1"></i>No submissions evaluated yet</span>';
+        } else {
+          document.getElementById('examDifficultyDistributionChart').style.display = 'block';
+          noAttemptsMsg.innerHTML = `Total Evaluated: <b>${total}</b> attempts`;
+
+          difficultyDistributionChart = new Chart(ctxDist, {
+            type: 'doughnut',
+            data: {
+              labels: ['Fail (<40%)', 'Pass (40-59%)', 'Good (60-79%)', 'Excellent (>=80%)'],
+              datasets: [{
+                data: [dist.fail, dist.pass, dist.good, dist.excellent],
+                backgroundColor: [
+                  'rgba(239, 68, 68, 0.75)',  // Red
+                  'rgba(245, 158, 11, 0.75)', // Orange
+                  'rgba(59, 130, 246, 0.75)',  // Blue
+                  'rgba(16, 185, 129, 0.75)'  // Green
+                ],
+                borderColor: [
+                  'rgba(239, 68, 68, 1)',
+                  'rgba(245, 158, 11, 1)',
+                  'rgba(59, 130, 246, 1)',
+                  'rgba(16, 185, 129, 1)'
+                ],
+                borderWidth: 1.5
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: {
+                    boxWidth: 10,
+                    font: { size: 10 }
+                  }
+                }
+              }
+            }
+          });
+        }
+
+        tableWrapper.classList.remove('d-none');
+      })
+      .catch(error => {
+        loadingSpinner.classList.add('d-none');
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center py-4 text-danger">
+              <i class="bi bi-exclamation-triangle display-6 mb-2 d-block"></i> Error loading question diagnostics: ${error.message}
+            </td>
+          </tr>
+        `;
+        tableWrapper.classList.remove('d-none');
+      });
+  }
+
+  // Client-side table rendering based on search keyword and difficulty status
+  function filterQuestions() {
+    const searchText = document.getElementById('difficulty_search_input').value.toLowerCase();
+    const difficultyFilter = document.getElementById('difficulty_rating_filter').value;
+    const tableBody = document.getElementById('difficulty_table_body');
+    tableBody.innerHTML = '';
+
+    const filtered = currentQuestionStats.filter(q => {
+      const matchesSearch = q.text.toLowerCase().includes(searchText);
+      const matchesDifficulty = !difficultyFilter || q.difficulty.toLowerCase() === difficultyFilter.toLowerCase();
+      return matchesSearch && matchesDifficulty;
+    });
+
+    if (filtered.length === 0) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="7" class="text-center py-4 text-muted">
+            <i class="bi bi-info-circle display-6 mb-2 d-block"></i> No questions match search or difficulty filter.
+          </td>
+        </tr>
+      `;
+    } else {
+      filtered.forEach(q => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><span class="fw-bold text-muted">${q.num}</span></td>
+          <td>
+            <div class="text-dark fw-semibold" style="font-size: 0.88rem; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${q.text}">
+              ${q.text}
+            </div>
+          </td>
+          <td class="text-center"><span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 small fw-bold">${q.correct}</span></td>
+          <td class="text-center"><span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 small fw-bold">${q.wrong}</span></td>
+          <td class="text-center"><span class="badge bg-light text-dark border px-2.5 py-1 small fw-bold">${q.unattempted}</span></td>
+          <td class="text-center">
+            <div class="d-flex align-items-center justify-content-center gap-2">
+              <span class="fw-bold text-primary">${q.success_rate}%</span>
+              <div class="progress" style="width: 60px; height: 6px;">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: ${q.success_rate}%" aria-valuenow="${q.success_rate}" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+            </div>
+          </td>
+          <td class="text-end">
+            <span class="badge bg-${q.difficulty_color} px-2.5 py-1 rounded-pill fw-bold" style="font-size: 0.75rem;">${q.difficulty}</span>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+  }
+
+  // Toggling broadcast dispatcher inputs
+  function toggleRecipientFields(val) {
+    const specificStudentWrapper = document.getElementById('specific_student_wrapper');
+    const manualEmailWrapper = document.getElementById('manual_email_wrapper');
+    const manualPhoneWrapper = document.getElementById('manual_phone_wrapper');
+    const msgType = document.getElementById('msg_type').value;
+
+    // Hide all first
+    specificStudentWrapper.classList.add('d-none');
+    manualEmailWrapper.classList.add('d-none');
+    manualPhoneWrapper.classList.add('d-none');
+
+    document.getElementById('specific_student').required = false;
+    document.getElementById('manual_email').required = false;
+    document.getElementById('manual_phone').required = false;
+
+    if (val === 'specific_student') {
+      specificStudentWrapper.classList.remove('d-none');
+      document.getElementById('specific_student').required = true;
+    } else if (val === 'manual_entry') {
+      if (msgType === 'email') {
+        manualEmailWrapper.classList.remove('d-none');
+        document.getElementById('manual_email').required = true;
+      } else {
+        manualPhoneWrapper.classList.remove('d-none');
+        document.getElementById('manual_phone').required = true;
+      }
+    }
+  }
+
+  function toggleSubjectField(val) {
+    const emailSubjectWrapper = document.getElementById('email_subject_wrapper');
+    const recipientType = document.getElementById('recipient_type').value;
+
+    if (val === 'email') {
+      emailSubjectWrapper.classList.remove('d-none');
+      document.getElementById('email_subject').required = true;
+    } else {
+      emailSubjectWrapper.classList.add('d-none');
+      document.getElementById('email_subject').required = false;
+    }
+
+    // Refresh recipient fields visibility since manual target depends on message type
+    toggleRecipientFields(recipientType);
+  }
 </script>
 {% endblock %}

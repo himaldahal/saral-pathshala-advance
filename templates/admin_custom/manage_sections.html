@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Sections - {{ exam.title }} | Custom Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  body {
+    background-color: #f8fafc;
+  }
+  .card-sections {
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01), 0 2px 4px -1px rgba(0,0,0,0.01);
+    padding: 2rem;
+  }
+  input[type="text"], input[type="number"], select, textarea {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #1e293b;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+  }
+  input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+    border-color: var(--blue-mid);
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(46, 134, 193, 0.15);
+  }
+  input[type="checkbox"] {
+    width: 1.25em;
+    height: 1.25em;
+    background-color: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    vertical-align: middle;
+    cursor: pointer;
+  }
+  input[type="checkbox"]:checked {
+    background-color: var(--blue);
+    border-color: var(--blue);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <!-- Back Link -->
+  <div class="mb-4">
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+      <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+    </a>
+  </div>
+
+  <!-- Header -->
+  <div class="mb-4">
+    <span class="badge bg-soft text-primary border px-3 py-1.5 rounded-pill mb-2 small fw-bold"><i class="bi bi-list-task me-1"></i> Exam Sections Manager</span>
+    <h1 class="serif-title mb-1">Sections for: {{ exam.title }}</h1>
+    <p class="text-muted">Exam Level Defaults: Correct Marks = <b>{{ exam.correct_marks }}</b> | Neg Marks = <b>{{ exam.negative_marks }}</b> | Neg Marking = <b>{% if exam.has_negative_marking %}Enabled{% else %}Disabled{% endif %}</b></p>
+  </div>
+
+  <div class="row g-4">
+    
+    <!-- Left Column: Sections List -->
+    <div class="col-lg-7">
+      <div class="card-sections">
+        <h5 class="fw-bold text-dark mb-4"><i class="bi bi-collection-fill text-primary me-2"></i>Existing Sections</h5>
+        
+        <div class="table-responsive">
+          <table class="table align-middle table-hover">
+            <thead class="table-light">
+              <tr>
+                <th class="border-0">Order</th>
+                <th class="border-0">Section Details</th>
+                <th class="border-0 text-center">Overrides</th>
+                <th class="border-0 text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for sec in sections %}
+                <tr class="{% if edit_section and edit_section.id == sec.id %}table-warning{% endif %}">
+                  <td class="text-center fw-bold">{{ sec.order }}</td>
+                  <td>
+                    <div class="fw-bold text-dark">{{ sec.title }}</div>
+                    {% if sec.description %}
+                      <div class="small text-muted text-truncate" style="max-width: 200px;">{{ sec.description }}</div>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    {% if sec.override_scoring %}
+                      <span class="badge bg-warning-subtle text-warn border border-warning-subtle px-2 py-0.5 rounded-pill small fw-bold">
+                        C: {{ sec.custom_correct_marks|default:"0" }} | N: {{ sec.custom_negative_marks|default:"0" }}
+                      </span>
+                    {% else %}
+                      <span class="text-muted small">No</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <div class="d-inline-flex gap-1.5">
+                      <a href="{% url 'admin_manage_paragraphs' sec.pk %}" class="btn btn-sm btn-outline-info rounded-pill" title="Manage Paragraphs/Passages">
+                        <i class="bi bi-file-text-fill"></i> Passages
+                      </a>
+                      <a href="?edit_section={{ sec.pk }}" class="btn btn-sm btn-outline-warning rounded-pill" title="Edit Section">
+                        <i class="bi bi-pencil-fill"></i>
+                      </a>
+                      <a href="{% url 'admin_delete_section' exam.pk sec.pk %}" class="btn btn-sm btn-outline-danger rounded-pill" title="Delete Section" onclick="return confirm('Are you sure you want to delete section &quot;{{ sec.title }}&quot;? All paragraphs and questions in this section will be permanently deleted.');">
+                        <i class="bi bi-trash-fill"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center py-5 text-muted">
+                    <i class="bi bi-list-nested display-6 mb-2 d-block"></i> No sections added to this mock exam yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Add/Edit Section Form -->
+    <div class="col-lg-5">
+      <div class="card-sections">
+        <h5 class="fw-bold text-dark mb-4">
+          <i class="bi {% if edit_section %}bi-pencil-square text-warning{% else %}bi-plus-circle text-success{% endif %} me-2"></i>
+          {% if edit_section %}Edit Section: {{ edit_section.title }}{% else %}Add New Section{% endif %}
+        </h5>
+
+        <form method="POST" action="">
+          {% csrf_token %}
+          
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-muted small" for="id_title">Section Title</label>
+            {{ form.title }}
+            {% if form.title.errors %}
+              <div class="text-danger small mt-1">{{ form.title.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-muted small" for="id_description">Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}
+              <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-muted small" for="id_order">Display Order</label>
+            {{ form.order }}
+            {% if form.order.errors %}
+              <div class="text-danger small mt-1">{{ form.order.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Override Scoring checkbox -->
+          <div class="mb-4 d-flex align-items-center gap-2">
+            {{ form.override_scoring }}
+            <label class="form-label fw-semibold text-muted small mb-0" for="id_override_scoring">Override default exam scoring</label>
+          </div>
+
+          <!-- Collapsible Scoring overrides -->
+          <div id="scoring-override-block" style="display: none;" class="p-3 bg-light rounded-3 border mb-4">
+            <div class="row g-2">
+              <div class="col-md-6 mb-2">
+                <label class="form-label fw-semibold text-muted small" for="id_custom_correct_marks">Custom Correct Marks</label>
+                {{ form.custom_correct_marks }}
+              </div>
+              <div class="col-md-6 mb-2">
+                <label class="form-label fw-semibold text-muted small" for="id_custom_negative_marks">Custom Negative Marks</label>
+                {{ form.custom_negative_marks }}
+              </div>
+              <div class="col-12 mt-2 d-flex align-items-center gap-2">
+                {{ form.custom_has_negative }}
+                <label class="form-label fw-semibold text-muted small mb-0" for="id_custom_has_negative">Enable Negative Marking</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Buttons -->
+          <div class="d-flex gap-2 justify-content-end">
+            {% if edit_section %}
+              <a href="?" class="btn btn-sm btn-outline-danger rounded-pill px-3">Cancel Edit</a>
+            {% endif %}
+            <button type="submit" class="btn btn-sm btn-success rounded-pill px-4 shadow-sm">
+              <i class="bi bi-save me-1"></i> {% if edit_section %}Update Section{% else %}Save Section{% endif %}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const overrideCheckbox = document.getElementById('id_override_scoring');
+    const overrideBlock = document.getElementById('scoring-override-block');
+
+    function toggleOverrideFields() {
+      if (overrideCheckbox && overrideCheckbox.checked) {
+        overrideBlock.style.display = 'block';
+      } else if (overrideBlock) {
+        overrideBlock.style.display = 'none';
+      }
+    }
+
+    if (overrideCheckbox) {
+      overrideCheckbox.addEventListener('change', toggleOverrideFields);
+      // Run once initially
+      toggleOverrideFields();
+    }
+  });
+</script>
+{% endblock %}

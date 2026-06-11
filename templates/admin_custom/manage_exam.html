@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}{% if exam %}Edit Mock Exam: {{ exam.title }}{% else %}Create New Mock Exam{% endif %} | Custom Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  body {
+    background-color: #f8fafc;
+  }
+  .card-form {
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01), 0 2px 4px -1px rgba(0,0,0,0.01);
+    padding: 2.5rem;
+  }
+  input[type="text"], input[type="number"], input[type="datetime-local"], select, textarea {
+    display: block;
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #1e293b;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+  }
+  input[type="text"]:focus, input[type="number"]:focus, input[type="datetime-local"]:focus, select:focus, textarea:focus {
+    border-color: var(--blue-mid);
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(46, 134, 193, 0.15);
+  }
+  input[type="checkbox"] {
+    width: 1.25em;
+    height: 1.25em;
+    background-color: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    vertical-align: middle;
+    cursor: pointer;
+  }
+  input[type="checkbox"]:checked {
+    background-color: var(--blue);
+    border-color: var(--blue);
+  }
+</style>
+{{ form.media }}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      
+      <!-- Back Link -->
+      <div class="mb-4">
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+          <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+        </a>
+      </div>
+
+      <!-- Header -->
+      <div class="mb-4">
+        <span class="badge bg-soft text-primary border px-3 py-1.5 rounded-pill mb-2 small fw-bold"><i class="bi bi-pencil-square me-1"></i> Exam Composer</span>
+        <h1 class="serif-title mb-1">{% if exam %}Edit Mock Exam{% else %}Create New Mock Exam{% endif %}</h1>
+        <p class="text-muted">{% if exam %}Modify details for mock exam "{{ exam.title }}"{% else %}Set up a new mock examination for students.{% endif %}</p>
+      </div>
+
+      <!-- Form Card -->
+      <div class="card-form">
+        <form method="POST" action="{% if exam %}{% url 'admin_edit_exam' exam.pk %}{% else %}{% url 'admin_create_exam' %}{% endif %}">
+          {% csrf_token %}
+          
+          <div class="row g-4">
+            
+            <!-- Basic Info Section -->
+            <div class="col-12 border-bottom pb-2 mb-3">
+              <h5 class="fw-bold text-dark"><i class="bi bi-info-circle text-primary me-2"></i>Basic Info</h5>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold text-muted small" for="id_course">Course Track</label>
+              {{ form.course }}
+              {% if form.course.errors %}
+                <div class="text-danger small mt-1">{{ form.course.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold text-muted small" for="id_title">Exam Title</label>
+              {{ form.title }}
+              {% if form.title.errors %}
+                <div class="text-danger small mt-1">{{ form.title.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-12 mb-3">
+              <label class="form-label fw-semibold text-muted small" for="id_description">Description</label>
+              {{ form.description }}
+              {% if form.description.errors %}
+                <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-12 mb-3">
+              <label class="form-label fw-semibold text-muted small" for="id_instructions">Instructions</label>
+              {{ form.instructions }}
+              {% if form.instructions.errors %}
+                <div class="text-danger small mt-1">{{ form.instructions.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-4 mb-3 d-flex align-items-center gap-2">
+              {{ form.is_active }}
+              <label class="form-label fw-semibold text-muted small mb-0" for="id_is_active">Is Active (Visible to list)</label>
+              {% if form.is_active.errors %}
+                <div class="text-danger small mt-1">{{ form.is_active.errors }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Schedule Settings -->
+            <div class="col-12 border-bottom pb-2 mt-4 mb-3">
+              <h5 class="fw-bold text-dark"><i class="bi bi-alarm text-primary me-2"></i>Schedule & Access Control</h5>
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold text-muted small" for="id_start_date">Start Date & Time</label>
+              {{ form.start_date }}
+              {% if form.start_date.errors %}
+                <div class="text-danger small mt-1">{{ form.start_date.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold text-muted small" for="id_end_date">End Date & Time</label>
+              {{ form.end_date }}
+              {% if form.end_date.errors %}
+                <div class="text-danger small mt-1">{{ form.end_date.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold text-muted small" for="id_duration_minutes">Duration (Minutes)</label>
+              {{ form.duration_minutes }}
+              {% if form.duration_minutes.errors %}
+                <div class="text-danger small mt-1">{{ form.duration_minutes.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6 mb-3 d-flex align-items-center gap-2">
+              {{ form.make_public }}
+              <label class="form-label fw-semibold text-muted small mb-0" for="id_make_public">Make Public (Practice exam bypass)</label>
+              {% if form.make_public.errors %}
+                <div class="text-danger small mt-1">{{ form.make_public.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6 mb-3 d-flex align-items-center gap-2">
+              {{ form.make_public_after }}
+              <label class="form-label fw-semibold text-muted small mb-0" for="id_make_public_after">Allow attempts even after end date</label>
+              {% if form.make_public_after.errors %}
+                <div class="text-danger small mt-1">{{ form.make_public_after.errors }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Scoring Defaults -->
+            <div class="col-12 border-bottom pb-2 mt-4 mb-3">
+              <h5 class="fw-bold text-dark"><i class="bi bi-calculator text-primary me-2"></i>Scoring Defaults</h5>
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold text-muted small" for="id_correct_marks">Correct Marks</label>
+              {{ form.correct_marks }}
+              {% if form.correct_marks.errors %}
+                <div class="text-danger small mt-1">{{ form.correct_marks.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold text-muted small" for="id_negative_marks">Negative Marks (Positive value)</label>
+              {{ form.negative_marks }}
+              {% if form.negative_marks.errors %}
+                <div class="text-danger small mt-1">{{ form.negative_marks.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-4 mb-3 d-flex align-items-center gap-2">
+              {{ form.has_negative_marking }}
+              <label class="form-label fw-semibold text-muted small mb-0" for="id_has_negative_marking">Enable Negative Marking</label>
+              {% if form.has_negative_marking.errors %}
+                <div class="text-danger small mt-1">{{ form.has_negative_marking.errors }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Result Visibility -->
+            <div class="col-12 border-bottom pb-2 mt-4 mb-3">
+              <h5 class="fw-bold text-dark"><i class="bi bi-eye text-primary me-2"></i>Result Visibility</h5>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold text-muted small" for="id_result_mode">Result Mode</label>
+              {{ form.result_mode }}
+              {% if form.result_mode.errors %}
+                <div class="text-danger small mt-1">{{ form.result_mode.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold text-muted small" for="id_result_publish_time">Result Publish Time (Scheduled)</label>
+              {{ form.result_publish_time }}
+              {% if form.result_publish_time.errors %}
+                <div class="text-danger small mt-1">{{ form.result_publish_time.errors }}</div>
+              {% endif %}
+            </div>
+
+          </div>
+
+          <!-- Submit Buttons -->
+          <div class="mt-5 pt-3 border-top d-flex gap-2 justify-content-end">
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-danger rounded-pill px-4">
+              Cancel
+            </a>
+            <button type="submit" class="btn btn-success rounded-pill px-5 shadow-sm">
+              <i class="bi bi-save me-1"></i> Save Mock Exam
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

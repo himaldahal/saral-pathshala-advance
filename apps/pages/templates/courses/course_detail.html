@@ -62,28 +62,9 @@
                 <p class="text-muted small mb-0"><i class="bi bi-info-circle me-1"></i>Since you are logged in, clicking will submit an enrollment request with your profile details.</p>
               {% else %}
                 <!-- Lead Form for Guest Users -->
-                <h5 class="fw-bold mb-3 text-dark text-start"><i class="bi bi-telephone-outbound text-primary me-2"></i>Enroll Now</h5>
-                <form method="POST" action="{% url 'enroll_request' %}" class="text-start needs-validation" novalidate>
-                  {% csrf_token %}
-                  <input type="hidden" name="course_slug" value="{{ course.slug }}">
-                  <!-- Honeypot -->
-                  <input type="text" name="website_url" style="display: none;" tabindex="-1" autocomplete="off">
-                  
-                  <div class="mb-3">
-                    <label for="enroll_name" class="form-label fw-semibold text-muted small">Full Name</label>
-                    <input type="text" class="form-control form-control-sm shadow-sm" id="enroll_name" name="name" placeholder="John Doe" required>
-                  </div>
-                  
-                  <div class="mb-3">
-                    <label for="enroll_phone" class="form-label fw-semibold text-muted small">Phone Number</label>
-                    <input type="text" class="form-control form-control-sm shadow-sm" id="enroll_phone" name="phone" placeholder="98XXXXXXXX" required>
-                  </div>
-                  
-                  <button type="submit" class="btn btn-brand-secondary w-100 py-2 rounded-pill shadow-sm mb-3">
-                    <i class="bi bi-send-fill me-2"></i>Enroll
-                  </button>
-                  <p class="text-muted text-center" style="font-size: 0.75rem;"><i class="bi bi-shield-lock me-1"></i>Protected by secure spam prevention.</p>
-                </form>
+                <h5 class="fw-bold mb-3 text-dark text-start">
+                  Please Login or Register to enroll.
+                </h5>
               {% endif %}
             {% endif %}
           </div>

@@ -66,10 +66,11 @@ class UserAdmin(admin.ModelAdmin, ExportCsvMixin):
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
 
-    list_display = ('full_name', 'email', 'phone', 'level_badge', 'verify_status', 'date_joined', 'is_staff')
-    list_filter = (VerificationFilter, 'current_level', 'is_staff', 'date_joined')
+    list_display = ('full_name', 'email', 'phone', 'level_badge', 'verify_status', 'is_active', 'is_staff', 'date_joined')
+    list_filter = (VerificationFilter, 'current_level', 'is_staff', 'is_active', 'date_joined')
     search_fields = ('full_name', 'email', 'phone')
     ordering = ('-date_joined',)
+    list_editable = ('is_active', 'is_staff')
     actions = ['export_as_csv', 'mark_verified']
     
     readonly_fields = ('id', 'date_joined', 'updated_at', 'last_login_ip')

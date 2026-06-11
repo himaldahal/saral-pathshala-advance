@@ -46,6 +46,7 @@ class ExamAdmin(admin.ModelAdmin):
     ]
     list_filter  = ['course', 'is_active', 'has_negative_marking', 'result_mode']
     search_fields= ['title', 'course__title']
+    list_editable = ['is_active', 'result_mode']
     readonly_fields = ['slug', 'created_at', 'updated_at']
     inlines      = [SectionInline]
     actions      = ['publish_results_now', 'hide_results', 'recalculate_all_scores',
@@ -141,6 +142,8 @@ class SectionAdmin(admin.ModelAdmin):
                      'effective_correct', 'effective_negative', 'q_count']
     list_filter   = ['exam__course', 'override_scoring']
     search_fields = ['title', 'exam__title']
+    list_editable = ['order', 'override_scoring']
+    autocomplete_fields = ['exam']
     inlines       = [ParagraphInline, QuestionInline]
 
     @admin.display(description='Correct Marks')
@@ -167,6 +170,8 @@ class ParagraphAdmin(admin.ModelAdmin):
     list_display  = ['__str__', 'section', 'order', 'q_count']
     list_filter   = ['section__exam']
     search_fields = ['title', 'content']
+    list_editable = ['order', 'section']
+    autocomplete_fields = ['section']
 
     @admin.display(description='Questions')
     def q_count(self, obj):
@@ -185,8 +190,12 @@ class QuestionAdmin(admin.ModelAdmin):
                      'correct_option', 'marks', 'use_custom_marks', 'order']
     list_filter   = ['exam', 'section', 'use_custom_marks']
     search_fields = ['question_text']
-    list_editable = ['order', 'correct_option', 'marks']
+    list_editable = ['order', 'correct_option', 'marks', 'use_custom_marks']
     ordering      = ['exam', 'section__order', 'order']
+    autocomplete_fields = ['exam', 'section', 'paragraph']
+
+    class Media:
+        js = ('admin/js/question_helper.js',)
 
     @admin.display(description='Question')
     def short_text(self, obj):
@@ -206,13 +215,24 @@ class ExamAttemptAdmin(admin.ModelAdmin):
                      'correct_count', 'wrong_count', 'unattempted_count',
                      'is_submitted', 'started_at']
     list_filter   = ['exam', 'is_submitted']
-    search_fields = ['student__username', 'exam__title']
+    search_fields = ['student__email', 'student__full_name', 'student__phone', 'exam__title']
     readonly_fields = ['score', 'negative_score', 'correct_count',
                        'wrong_count', 'unattempted_count', 'started_at']
-    actions       = ['recalculate']
+    actions       = ['recalculate', 'mark_submitted', 'mark_unsubmitted']
 
     @admin.action(description='Recalculate selected scores')
     def recalculate(self, request, queryset):
         for a in queryset:
             a.calculate_score()
         self.message_user(request, f"Recalculated {queryset.count()} attempt(s).")
+
+    @admin.action(description='Mark selected attempts as submitted')
+    def mark_submitted(self, request, queryset):
+        from django.utils import timezone
+        queryset.update(is_submitted=True, completed_at=timezone.now())
+        self.message_user(request, f"Successfully marked {queryset.count()} attempt(s) as submitted.")
+
+    @admin.action(description='Mark selected attempts as in-progress (unsubmitted)')
+    def mark_unsubmitted(self, request, queryset):
+        queryset.update(is_submitted=False, completed_at=None)
+        self.message_user(request, f"Successfully marked {queryset.count()} attempt(s) as in-progress.")
