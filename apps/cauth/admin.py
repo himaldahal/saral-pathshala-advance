@@ -154,8 +154,3 @@ class PasswordResetAdmin(admin.ModelAdmin):
     search_fields = ('user__email',)
 
 admin.site.register(EmailToken)
-
-# ── Site Customization ──────────────────────────────────────────────────────
-admin.site.site_header = "🎓 Saral Pathshala | Command Center"
-admin.site.site_title = "Saral Pathshala Command Center"
-admin.site.index_title = "Platform Administration & Systems Control"

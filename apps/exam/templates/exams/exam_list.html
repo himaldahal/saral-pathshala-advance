@@ -1,465 +1,762 @@
-{% extends "base.html" %}
-
-{% block title %}Mock Exams - {{ site_settings.site_name }}{% endblock %}
-
-{% block meta_description %}Interactive Mock Examinations and past questions with real-time countdown timers and score simulators.{% endblock %}
-
+{% extends "base.html" %} {% block title %}Mock Exams - {{ site_settings.site_name }}{% endblock %} {% block meta_description %} Practice IOE, CEE, BSc.CSIT and BCA entrance mock exams with real-time countdowns and instant score analytics on {{ site_settings.site_name }}. {% endblock %} 
 {% block extra_css %}
 <style>
-  :root {
-    --accent-orange: #e67e22;
-    --accent-orange-hover: #d35400;
-    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  }
+    :root {
+        --sp-orange: #e8722a;
+        --sp-orange-d: #c85e1f;
+        --sp-blue: #2e86c1;
+        --sp-blue-d: #246fa3;
+        --sp-bg: #f0f4f9;
+        --sp-card: #ffffff;
+        --sp-border: #e4eaf2;
+        --sp-text: #0d1b2a;
+        --sp-muted: #7a8fa6;
+        --sp-radius: 16px;
+        --sp-shadow-hover: 0 8px 28px rgba(13, 27, 42, 0.11);
+    }
 
-  body {
-    background-color: #f3f5f8;
-  }
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+    body {
+        background: var(--sp-bg);
+    }
 
-  .exam-header-banner {
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-    color: white;
-    padding: 3rem 0;
-    margin-bottom: 2rem;
-    position: relative;
-    overflow: hidden;
-  }
+    .sp-hero {
+        background: #0d1b2a;
+        padding: 3.5rem 0 0;
+        position: relative;
+        overflow: hidden;
+    }
+    .sp-hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(
+                ellipse 60% 80% at 90% -10%,
+                rgba(46, 134, 193, 0.35) 0%,
+                transparent 60%
+            ),
+            radial-gradient(
+                ellipse 40% 50% at -5% 110%,
+                rgba(232, 114, 42, 0.2) 0%,
+                transparent 55%
+            );
+        pointer-events: none;
+    }
+    .sp-hero-inner {
+        position: relative;
+        z-index: 1;
+    }
 
-  .exam-header-banner::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: radial-gradient(circle at 80% 20%, rgba(230, 126, 34, 0.15), transparent 45%);
-    z-index: 1;
-  }
+    .sp-hero-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.45);
+        margin-bottom: 0.75rem;
+    }
+    .sp-hero-eyebrow span {
+        width: 18px;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.3);
+    }
 
-  .banner-content {
-    position: relative;
-    z-index: 2;
-  }
+    .sp-hero h1 {
+        font-size: clamp(1.6rem, 4vw, 2.4rem);
+        font-weight: 800;
+        color: #fff;
+        line-height: 1.2;
+        margin: 0 0 0.6rem;
+    }
+    .sp-hero h1 em {
+        font-style: normal;
+        color: var(--sp-orange);
+    }
 
-  .search-wrapper {
-    max-width: 500px;
-    margin: 0 auto;
-    position: relative;
-  }
+    .sp-hero-sub {
+        font-size: 0.88rem;
+        color: rgba(255, 255, 255, 0.5);
+        margin: 0 auto 0.75rem;
+        max-width: 480px;
+    }
 
-  .search-input {
-    border-radius: 50px;
-    padding: 0.75rem 1.5rem 0.75rem 3rem;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    font-size: 1rem;
-    transition: var(--transition);
-  }
+    .sp-course-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+    .sp-chip {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.6);
+    }
 
-  .search-input:focus {
-    border-color: var(--brand-primary);
-    box-shadow: 0 4px 20px rgba(45, 137, 200, 0.15);
-  }
+    .sp-search-wrap {
+        max-width: 400px;
+        margin: 0 auto;
+        position: relative;
+    }
+    .sp-search-wrap i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255, 255, 255, 0.35);
+        font-size: 0.9rem;
+        pointer-events: none;
+    }
+    .sp-search-wrap input {
+        width: 100%;
+        padding: 0.65rem 1rem 0.65rem 2.6rem;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 50px;
+        color: #fff;
+        font-size: 0.88rem;
+        outline: none;
+        transition:
+            background 0.2s,
+            border-color 0.2s;
+    }
+    .sp-search-wrap input::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+    }
+    .sp-search-wrap input:focus {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.25);
+    }
 
-  .search-icon {
-    position: absolute;
-    left: 1.25rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
-    font-size: 1.1rem;
-  }
+    .sp-tab-bar {
+        display: flex;
+        justify-content: center;
+        gap: 0;
+        margin-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .sp-tab {
+        padding: 0.8rem 1.6rem;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        color: rgba(255, 255, 255, 0.4);
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        position: relative;
+        transition: color 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    .sp-tab::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--sp-orange);
+        transform: scaleX(0);
+        transition: transform 0.2s;
+    }
+    .sp-tab.active {
+        color: #fff;
+    }
+    .sp-tab.active::after {
+        transform: scaleX(1);
+    }
+    .sp-tab:hover:not(.active) {
+        color: rgba(255, 255, 255, 0.7);
+    }
 
-  .tab-pill-button {
-    border-radius: 50px;
-    font-weight: 600;
-    padding: 0.6rem 1.5rem;
-    transition: var(--transition);
-    border: 1px solid transparent;
-  }
+    .sp-staff-bar {
+        background: #fff3cd;
+        border-bottom: 1px solid #fde68a;
+        padding: 0.45rem 0;
+    }
+    .sp-staff-bar .inner {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        font-size: 0.75rem;
+    }
+    .sp-staff-bar a {
+        font-size: 0.72rem;
+        padding: 0.2rem 0.7rem;
+        border-radius: 50px;
+        font-weight: 700;
+        text-decoration: none;
+        border: 1px solid currentColor;
+        transition: background 0.15s;
+    }
+    .sp-staff-bar a:hover {
+        background: rgba(0, 0, 0, 0.06);
+    }
 
-  .nav-pills .nav-link.active {
-    background-color: var(--brand-primary) !important;
-    box-shadow: 0 4px 10px rgba(45, 137, 200, 0.2);
-  }
+    .sp-content {
+        max-width: 820px;
+        margin: 0 auto;
+        padding: 2rem 1rem 4rem;
+    }
 
-  .nav-pills .nav-link {
-    color: var(--text-dark);
-    background-color: #ffffff;
-    border: 1px solid var(--border-color);
-    margin-right: 0.5rem;
-  }
+    .sp-pane {
+        display: none;
+    }
+    .sp-pane.active {
+        display: block;
+        animation: spFade 0.18s ease;
+    }
+    @keyframes spFade {
+        from {
+            opacity: 0;
+            transform: translateY(5px);
+        }
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
 
-  .nav-pills .nav-link:hover:not(.active) {
-    background-color: #f8fafc;
-    border-color: #cbd5e1;
-  }
+    .sp-section-head {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin: 1.75rem 0 0.75rem;
+    }
+    .sp-section-head .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    .dot-green {
+        background: #10b981;
+    }
+    .dot-gray {
+        background: #cbd5e1;
+    }
+    .sp-section-head span {
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--sp-muted);
+    }
+    .sp-section-head::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--sp-border);
+    }
 
-  .card-clean-exam {
-    background: #ffffff;
-    border-radius: 18px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
-    transition: var(--transition);
-    overflow: hidden;
-  }
+    .sp-exam-card {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+        background: var(--sp-card);
+        border: 1px solid var(--sp-border);
+        border-radius: var(--sp-radius);
+        padding: 0.9rem 1.1rem;
+        text-decoration: none;
+        margin-bottom: 0.5rem;
+        transition:
+            box-shadow 0.18s,
+            border-color 0.18s,
+            transform 0.15s;
+        position: relative;
+        overflow: hidden;
+    }
+    .sp-exam-card::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        border-radius: 3px 0 0 3px;
+        background: transparent;
+        transition: background 0.18s;
+    }
+    .sp-exam-card:hover {
+        box-shadow: var(--sp-shadow-hover);
+        border-color: #c8d6e8;
+        transform: translateY(-1px);
+    }
+    .sp-exam-card:hover::before {
+        background: var(--sp-blue);
+    }
+    .sp-exam-card.card-live:hover::before {
+        background: #10b981;
+    }
+    .sp-exam-card.card-ended {
+        opacity: 0.82;
+    }
 
-  .card-clean-exam:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.07);
-    border-color: #cbd5e1;
-  }
+    .sp-card-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    .ic-live {
+        background: #d1fae5;
+        color: #059669;
+    }
+    .ic-upcoming {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+    .ic-ended {
+        background: #f1f5f9;
+        color: #94a3b8;
+    }
+    .ic-done {
+        background: #fef3c7;
+        color: #d97706;
+    }
 
-  .countdown-badge {
-    background-color: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeeba;
-    padding: 0.4rem 0.8rem;
-    border-radius: 8px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
+    .sp-card-body {
+        flex: 1;
+        min-width: 0;
+    }
+    .sp-card-title {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--sp-text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin: 0 0 0.3rem;
+        line-height: 1.3;
+    }
+    .sp-card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 0.9rem;
+        font-size: 0.74rem;
+        color: var(--sp-muted);
+    }
+    .sp-card-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    .sp-card-meta i {
+        font-size: 0.78rem;
+    }
 
-  .badge-status {
-    font-size: 0.75rem;
-    padding: 0.35rem 0.7rem;
-    border-radius: 6px;
-    font-weight: 700;
-    text-transform: uppercase;
-  }
+    .sp-card-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.35rem;
+        flex-shrink: 0;
+    }
+    .sp-pill {
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 0.2rem 0.65rem;
+        border-radius: 50px;
+        white-space: nowrap;
+    }
+    .pill-live {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    .pill-upcoming {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    .pill-ended {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+    .pill-done {
+        background: #fef3c7;
+        color: #92400e;
+    }
 
-  .status-live { background-color: #d1e7dd; color: #0f5132; }
-  .status-upcoming { background-color: #cfe2ff; color: #084298; }
-  .status-ended { background-color: #f8d7da; color: #842029; }
-  .status-attempted { background-color: #e2e8f0; color: #334155; }
+    .sp-countdown {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--sp-muted);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+    .sp-countdown.live-text {
+        color: #059669;
+    }
 
-  .meta-item {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-  }
+    .sp-gate {
+        text-align: center;
+        padding: 3.5rem 1.5rem;
+        background: var(--sp-card);
+        border-radius: var(--sp-radius);
+        border: 1px solid var(--sp-border);
+    }
+    .sp-gate-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        color: #94a3b8;
+        margin: 0 auto 1rem;
+    }
+    .sp-gate h5 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--sp-text);
+        margin: 0 0 0.4rem;
+    }
+    .sp-gate p {
+        font-size: 0.85rem;
+        color: var(--sp-muted);
+        margin: 0 0 1.25rem;
+    }
 
-  .delete-attempt-form {
-    display: inline-block;
-  }
+    .btn-sp-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: var(--sp-blue);
+        color: #fff;
+        border: none;
+        border-radius: 50px;
+        padding: 0.6rem 1.7rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition:
+            background 0.18s,
+            transform 0.15s;
+    }
+    .btn-sp-primary:hover {
+        background: var(--sp-blue-d);
+        color: #fff;
+        transform: translateY(-1px);
+    }
 
-  .btn-action {
-    border-radius: 30px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    padding: 0.5rem 1.2rem;
-    transition: var(--transition);
-  }
+    .sp-empty {
+        text-align: center;
+        padding: 2rem 1rem;
+        background: var(--sp-card);
+        border-radius: var(--sp-radius);
+        border: 1px dashed var(--sp-border);
+        font-size: 0.83rem;
+        color: var(--sp-muted);
+        margin-bottom: 0.5rem;
+    }
+    .sp-empty i {
+        font-size: 1.5rem;
+        display: block;
+        margin-bottom: 0.4rem;
+        opacity: 0.5;
+    }
 
-  .btn-give {
-    background-color: var(--accent-orange);
-    color: white;
-    border: none;
-  }
-
-  .btn-give:hover {
-    background-color: var(--accent-orange-hover);
-    color: white;
-    transform: translateY(-1px);
-  }
-
-  .btn-result {
-    background-color: var(--brand-primary);
-    color: white;
-    border: none;
-  }
-
-  .btn-result:hover {
-    background-color: var(--brand-primary-hover);
-    color: white;
-    transform: translateY(-1px);
-  }
-
-  .btn-delete {
-    background-color: #fff1f2;
-    color: #e11d48;
-    border: 1px solid #fecdd3;
-  }
-
-  .btn-delete:hover {
-    background-color: #ffe4e6;
-    color: #be123c;
-  }
-
-  .practice-badge {
-    background-color: #f1f5f9;
-    color: #475569;
-    border: 1px solid #cbd5e1;
-  }
+    @media (max-width: 540px) {
+        .sp-tab {
+            padding: 0.7rem 1rem;
+            font-size: 0.78rem;
+        }
+        .sp-exam-card {
+            gap: 0.65rem;
+            padding: 0.75rem 0.9rem;
+        }
+        .sp-card-icon {
+            width: 34px;
+            height: 34px;
+            font-size: 0.85rem;
+            border-radius: 9px;
+        }
+        .sp-card-title {
+            font-size: 0.85rem;
+        }
+        .sp-pill {
+            font-size: 0.6rem;
+        }
+    }
 </style>
-{% endblock %}
+{% endblock %} {% block content %}
 
-{% block content %}
-<!-- Banner Section -->
-<section class="exam-header-banner shadow-sm">
-  <div class="container text-center banner-content py-3">
-    <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill mb-3 small fw-bold tracking-wider">MOCK TESTING HUB</span>
-    <h1 class="display-4 fw-bold serif-title text-white">Online Entrance Mock Exams</h1>
-    <p class="lead text-white-50 mx-auto mb-4" style="max-width: 650px; font-size: 1.05rem;">
-      Test your capability, simulate official Nepalese boards (IOE, CEE, CSIT), and track progress with detailed analytics.
-    </p>
+<meta name="robots" content="index, follow" />
 
-    <!-- Search filter bar -->
-    <div class="search-wrapper">
-      <i class="bi bi-search search-icon"></i>
-      <input type="text" id="examSearchInput" class="form-control search-input" placeholder="Search exams by title or course...">
+<section class="sp-hero">
+    <div class="container text-center sp-hero-inner pb-0">
+        <div class="sp-hero-eyebrow">
+            <span></span>Saral Pathshala &middot; Mock Testing Hub<span></span>
+        </div>
+        <h1>Entrance Mock <em>Exams</em></h1>
+        <p class="sp-hero-sub">
+            Simulate real exams, track your score, and nail your entrance prep.
+        </p>
+        <div class="sp-course-chips">
+            <span class="sp-chip">IOE</span>
+            <span class="sp-chip">CEE</span>
+            <span class="sp-chip">BSc.CSIT</span>
+            <span class="sp-chip">BCA</span>
+        </div>
+        <div class="sp-search-wrap mb-0">
+            <i class="bi bi-search"></i>
+            <input
+                type="text"
+                id="spSearch"
+                placeholder="Search exams&#x2026;"
+                autocomplete="off"
+            />
+        </div>
+        <div class="sp-tab-bar mt-3">
+            <button class="sp-tab active" data-pane="my-course">
+                <i
+                    class="bi bi-star-fill"
+                    style="color: #f59e0b; font-size: 0.75rem"
+                ></i>
+                My Course {% if interested_course %}&nbsp; ({{ interested_course.name }}) {% endif %}
+            </button>
+            <button class="sp-tab" data-pane="all-courses">
+                <i class="bi bi-grid-3x3-gap"></i>All Courses
+            </button>
+        </div>
     </div>
-  </div>
 </section>
 
-<!-- Staff Bar -->
 {% if is_staff %}
-<div class="bg-white border-bottom py-2.5 shadow-xs mb-4">
-  <div class="container d-flex align-items-center flex-wrap gap-2">
-    <span class="badge bg-secondary px-2.5 py-1.5 text-uppercase fw-bold" style="font-size: 0.7rem;"><i class="bi bi-shield-lock-fill me-1"></i>Staff Tools</span>
-    <a href="{% url 'exams:import_exam_page' %}" class="btn btn-xs btn-outline-primary rounded-pill btn-action py-1 px-3">
-      <i class="bi bi-upload me-1"></i>Import Exam JSON
-    </a>
-    <a href="{% url 'exams:download_template' %}" class="btn btn-xs btn-outline-secondary rounded-pill btn-action py-1 px-3">
-      <i class="bi bi-download me-1"></i>JSON Template
-    </a>
-    <a href="/dhokakhol-custom/import-enrollments/" class="btn btn-xs btn-outline-info rounded-pill btn-action py-1 px-3">
-      <i class="bi bi-people-fill me-1"></i>Bulk Enroller
-    </a>
-    <a href="/dhokakhol-custom/dashboard/" class="btn btn-xs btn-outline-success rounded-pill btn-action py-1 px-3">
-      <i class="bi bi-pie-chart-fill me-1"></i>Live Analytics
-    </a>
-    <a href="/admin/" class="btn btn-xs btn-outline-dark rounded-pill btn-action py-1 px-3 ms-auto">
-      <i class="bi bi-gear-fill me-1"></i>Admin Dashboard
-    </a>
-  </div>
+<div class="sp-staff-bar">
+    <div class="container inner">
+        <span
+            style="
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #92400e;
+                letter-spacing: 0.05em;
+            "
+        >
+            <i class="bi bi-shield-lock-fill me-1"></i>STAFF
+        </span>
+        <a href="{% url 'exams:import_exam_page' %}" style="color: #1d4ed8"
+            ><i class="bi bi-upload me-1"></i>Import JSON</a
+        >
+        <a href="{% url 'exams:download_template' %}" style="color: #374151"
+            ><i class="bi bi-download me-1"></i>Template</a
+        >
+        <a href="/dhokakhol-custom/import-enrollments/" style="color: #065f46"
+            ><i class="bi bi-people-fill me-1"></i>Bulk Enroll</a
+        >
+        <a href="/dhokakhol-custom/dashboard/" style="color: #5b21b6"
+            ><i class="bi bi-pie-chart-fill me-1"></i>Analytics</a
+        >
+        <a href="/dhokakhol/" style="color: #be123c; margin-left: auto"
+            ><i class="bi bi-gear-fill me-1"></i>Admin</a
+        >
+    </div>
 </div>
 {% endif %}
 
-<div class="container py-4" style="max-width: 900px;">
-  <!-- Two Tabs Header -->
-  <ul class="nav nav-pills mb-4 justify-content-center" id="examTabs" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button class=" active tab-pill-button btn-dark" id="my-course-tab" data-bs-toggle="pill" data-bs-target="#my-course-pane" type="button" role="tab" aria-controls="my-course-pane" aria-selected="true">
-        <i class="bi bi-star-fill me-2 text-warning"></i>My Course Exams{% if interested_course %}({{ interested_course.name }}){% endif %}
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="btn-warning tab-pill-button" id="all-course-tab" data-bs-toggle="pill" data-bs-target="#all-course-pane" type="button" role="tab" aria-controls="all-course-pane" aria-selected="false">
-        <i class="bi bi-grid-fill me-2"></i>All Other Courses
-      </button>
-    </li>
-  </ul>
+<div class="sp-content">
+    <div class="sp-pane active" id="pane-my-course">
+        {% if not user.is_authenticated %}
+        <div class="sp-gate">
+            <div class="sp-gate-icon"><i class="bi bi-lock-fill"></i></div>
+            <h5>Sign in to see your course exams</h5>
+            <p>We'll tailor the list to your selected entrance course.</p>
+            <a href="{% url 'login' %}" class="btn-sp-primary">
+                <i class="bi bi-box-arrow-in-right"></i>Sign In
+            </a>
+        </div>
+        {% elif not interested_course %}
+        <div class="sp-gate">
+            <div class="sp-gate-icon"><i class="bi bi-compass"></i></div>
+            <h5>No course selected</h5>
+            <p>
+                Set your interested course in your profile to filter exams for
+                your path.
+            </p>
+            <a href="{% url 'dashboard' %}" class="btn-sp-primary">
+                <i class="bi bi-person-gear"></i>Go to Dashboard
+            </a>
+        </div>
+        {% else %}
+        <div class="sp-section-head">
+            <span class="dot dot-green"></span
+            ><span>Active &amp; Upcoming</span>
+        </div>
+        {% if interested_active %} {% for exam in interested_active %} {% include 'exams/partials/exam_row.html' with exam=exam %} {% endfor %} {%
+        else %}
+        <div class="sp-empty">
+            <i class="bi bi-calendar-x"></i>No active exams for your course
+            right now.
+        </div>
+        {% endif %}
 
-  <!-- Tab Content Panes -->
-  <div class="tab-content" id="examTabsContent">
-    
-    <!-- TAB 1: Interested Course -->
-    <div class="tab-content-pane tab-pane fade show active" id="my-course-pane" role="tabpanel" aria-labelledby="my-course-tab">
-      {% if not user.is_authenticated %}
-        <div class="text-center py-5 bg-white border rounded-4 shadow-sm p-4">
-          <i class="bi bi-lock-fill display-2 text-muted mb-3 d-block"></i>
-          <h4 class="fw-bold">Login to View Your Tailored Exams</h4>
-          <p class="text-muted mb-4">Logging in allows you to unlock exams tailored for your chosen interested course and monitor attempts.</p>
-          <a href="{% url 'login' %}" class="btn btn-brand-primary rounded-pill px-4 btn-action py-2">Sign In Now</a>
+        <div class="sp-section-head">
+            <span class="dot dot-gray"></span><span>Past &amp; Practice</span>
         </div>
-      {% elif not interested_course %}
-        <div class="text-center py-5 bg-white border rounded-4 shadow-sm p-4">
-          <i class="bi bi-compass display-2 text-muted mb-3 d-block"></i>
-          <h4 class="fw-bold">No Course Selected</h4>
-          <p class="text-muted mb-4">Please update your interested course on your profile to filter exams specific to your path.</p>
-          <a href="{% url 'dashboard' %}" class="btn btn-brand-primary rounded-pill px-4 btn-action py-2">Go to Profile Dashboard</a>
+        {% if interested_past %} {% for exam in interested_past %} {% include 'exams/partials/exam_row.html' with exam=exam %} {% endfor %} {% else %}
+        <div class="sp-empty">
+            <i class="bi bi-archive"></i>No past exams yet.
         </div>
-      {% else %}
-        
-        <!-- Live & Upcoming Category -->
-        <h5 class="fw-bold mb-3 mt-2 text-dark"><i class="bi bi-play-circle-fill text-success me-2"></i>Active & Upcoming Exams</h5>
-        <div class="d-flex flex-column gap-3 mb-5" id="interestedActiveList">
-          {% for exam in interested_exams %}
-            {% if not exam.has_ended %}
-              {% include 'exams/exam_card_component.html' with exam=exam %}
-            {% endif %}
-          {% empty %}
-            <div class="p-4 bg-white border rounded-3 text-center text-muted">No active or upcoming exams scheduled for your course.</div>
-          {% endfor %}
-        </div>
-
-        <!-- Past Questions Category -->
-        <h5 class="fw-bold mb-3 text-muted"><i class="bi bi-archive-fill me-2"></i>Past Questions & Practice Exams</h5>
-        <div class="d-flex flex-column gap-3" id="interestedPastList">
-          {% for exam in interested_exams %}
-            {% if exam.has_ended %}
-              {% include 'exams/exam_card_component.html' with exam=exam %}
-            {% endif %}
-          {% empty %}
-            <div class="p-4 bg-white border rounded-3 text-center text-muted">No past exams available for your course.</div>
-          {% endfor %}
-        </div>
-
-      {% endif %}
+        {% endif %} {% endif %}
     </div>
 
-    <!-- TAB 2: All Other Courses -->
-    <div class="tab-content-pane tab-pane fade" id="all-course-pane" role="tabpanel" aria-labelledby="all-course-tab">
-      
-      <!-- Live & Upcoming Category -->
-      <h5 class="fw-bold mb-3 mt-2 text-dark"><i class="bi bi-play-circle-fill text-success me-2"></i>Active & Upcoming Exams</h5>
-      <div class="d-flex flex-column gap-3 mb-5" id="otherActiveList">
-        {% for exam in other_exams %}
-          {% if not exam.has_ended %}
-            {% include 'exams/exam_card_component.html' with exam=exam %}
-          {% endif %}
-        {% empty %}
-          <div class="p-4 bg-white border rounded-3 text-center text-muted">No active or upcoming exams scheduled in other courses.</div>
-        {% endfor %}
-      </div>
+    <div class="sp-pane" id="pane-all-courses">
+        <div class="sp-section-head">
+            <span class="dot dot-green"></span
+            ><span>Active &amp; Upcoming</span>
+        </div>
+        {% if other_active %} {% for exam in other_active %} {% include 'exams/partials/exam_row.html' with exam=exam %} {% endfor %} {% else %}
+        <div class="sp-empty">
+            <i class="bi bi-calendar-x"></i>No active exams in other courses
+            right now.
+        </div>
+        {% endif %}
 
-      <!-- Past Category -->
-      <h5 class="fw-bold mb-3 text-muted"><i class="bi bi-archive-fill me-2"></i>Past Questions & Practice Exams</h5>
-      <div class="d-flex flex-column gap-3" id="otherPastList">
-        {% for exam in other_exams %}
-          {% if exam.has_ended %}
-            {% include 'exams/exam_card_component.html' with exam=exam %}
-          {% endif %}
-        {% empty %}
-          <div class="p-4 bg-white border rounded-3 text-center text-muted">No past exams available in other courses.</div>
-        {% endfor %}
-      </div>
-
+        <div class="sp-section-head">
+            <span class="dot dot-gray"></span><span>Past &amp; Practice</span>
+        </div>
+        {% if other_past %} {% for exam in other_past %} {% include 'exams/partials/exam_row.html' with exam=exam %} {% endfor %} {% else %}
+        <div class="sp-empty">
+            <i class="bi bi-archive"></i>No past exams yet.
+        </div>
+        {% endif %}
     </div>
-
-  </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
+{% endblock %} {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  
-  // ==========================================
-  // REAL-TIME SEARCH FILTER ENGINE
-  // ==========================================
-  const searchInput = document.getElementById('examSearchInput');
-  
-  searchInput.addEventListener('keyup', function(e) {
-    const query = e.target.value.toLowerCase().trim();
-    const activePane = document.querySelector('.tab-content-pane.active');
-    if (!activePane) return;
+    (function () {
+        "use strict";
 
-    const cards = activePane.querySelectorAll('.card-clean-exam');
-    cards.forEach(function(card) {
-      const title = card.querySelector('.exam-title-text').textContent.toLowerCase();
-      const course = card.querySelector('.exam-course-text').textContent.toLowerCase();
-      
-      if (title.includes(query) || course.includes(query)) {
-        card.style.display = 'block';
-      } else {
-        card.style.display = 'none';
-      }
-    });
+        var tabs = document.querySelectorAll(".sp-tab");
+        var panes = document.querySelectorAll(".sp-pane");
 
-    // Handle empty category state placeholders if all elements are hidden
-    const lists = activePane.querySelectorAll('.d-flex.flex-column');
-    lists.forEach(function(list) {
-      const visibleCards = list.querySelectorAll('.card-clean-exam[style="display: block"]').length;
-      const totalCards = list.querySelectorAll('.card-clean-exam').length;
-      let placeholder = list.querySelector('.search-empty-placeholder');
-      
-      if (totalCards > 0) {
-        if (visibleCards === 0) {
-          if (!placeholder) {
-            placeholder = document.createElement('div');
-            placeholder.className = 'search-empty-placeholder p-4 bg-white border rounded-3 text-center text-muted';
-            placeholder.innerHTML = '<i class="bi bi-search-heart d-block fs-4 mb-1"></i> No matching exams found.';
-            list.appendChild(placeholder);
-          }
-        } else {
-          if (placeholder) placeholder.remove();
+        tabs.forEach(function (tab) {
+            tab.addEventListener("click", function () {
+                tabs.forEach(function (t) {
+                    t.classList.remove("active");
+                });
+                panes.forEach(function (p) {
+                    p.classList.remove("active");
+                });
+                tab.classList.add("active");
+                document
+                    .getElementById("pane-" + tab.dataset.pane)
+                    .classList.add("active");
+                document.getElementById("spSearch").value = "";
+                document
+                    .querySelectorAll(".sp-exam-card")
+                    .forEach(function (c) {
+                        c.style.display = "";
+                    });
+            });
+        });
+
+        document
+            .getElementById("spSearch")
+            .addEventListener("input", function () {
+                var q = this.value.toLowerCase().trim();
+                var activePane = document.querySelector(".sp-pane.active");
+                activePane
+                    .querySelectorAll(".sp-exam-card")
+                    .forEach(function (card) {
+                        var hay = (
+                            (card.dataset.title || "") +
+                            " " +
+                            (card.dataset.course || "")
+                        ).toLowerCase();
+                        card.style.display = hay.includes(q) ? "" : "none";
+                    });
+            });
+
+        function pad(n) {
+            return String(n).padStart(2, "0");
         }
-      }
-    });
-  });
 
-  // Clear search on tab switch
-  const tabButtons = document.querySelectorAll('.tab-pill-button');
-  tabButtons.forEach(btn => {
-    btn.addEventListener('shown.bs.tab', function () {
-      searchInput.value = '';
-      const placeholders = document.querySelectorAll('.search-empty-placeholder');
-      placeholders.forEach(p => p.remove());
-      const cards = document.querySelectorAll('.card-clean-exam');
-      cards.forEach(c => c.style.display = 'block');
-    });
-  });
-
-
-  // ==========================================
-  // LIVE REAL-TIME COUNTDOWN TIMER SYSTEM
-  // ==========================================
-  function updateCountdownTimers() {
-    const timers = document.querySelectorAll('.countdown-timer');
-    timers.forEach(function(timer) {
-      const startDateStr = timer.getAttribute('data-start-time');
-      if (!startDateStr) return;
-
-      const startDate = new Date(startDateStr);
-      const now = new Date();
-      const diff = startDate - now;
-
-      if (diff <= 0) {
-        // Exam has started! Replace countdown with Live Action block
-        const container = timer.closest('.exam-status-container');
-        if (container) {
-          const examSlug = timer.getAttribute('data-slug');
-          
-          // Re-render status badge to Live
-          const badgeContainer = container.querySelector('.badge-status-container');
-          if (badgeContainer) {
-            badgeContainer.innerHTML = '<span class="badge-status status-live">Live</span>';
-          }
-          
-          // Replace countdown display with a green text
-          container.innerHTML = '<span class="text-success small fw-bold"><i class="bi bi-patch-check-fill me-1"></i>Started | Live now!</span>';
-          
-          // Enable or show the Give Exam action button
-          const actionContainer = container.closest('.card-clean-exam').querySelector('.exam-action-container');
-          if (actionContainer && !actionContainer.querySelector('.btn-give')) {
-            actionContainer.innerHTML = `
-              <a href="/exams/${examSlug}/start/" class="btn btn-action btn-give shadow-sm">
-                Give Exam <i class="bi bi-arrow-right-short ms-1"></i>
-              </a>
-            `;
-          }
+        function fmtDiff(ms) {
+            if (ms <= 0) {
+                return null;
+            }
+            var d = Math.floor(ms / 86400000);
+            var h = Math.floor((ms % 86400000) / 3600000);
+            var m = Math.floor((ms % 3600000) / 60000);
+            var s = Math.floor((ms % 60000) / 1000);
+            if (d > 0) {
+                return d + "d " + pad(h) + "h " + pad(m) + "m";
+            }
+            if (h > 0) {
+                return pad(h) + "h " + pad(m) + "m " + pad(s) + "s";
+            }
+            return pad(m) + "m " + pad(s) + "s";
         }
-        return;
-      }
 
-      // Calculate time components
-      const seconds = Math.floor((diff / 1000) % 60);
-      const minutes = Math.floor((diff / 1000 / 60) % 60);
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        function tick() {
+            var now = Date.now();
 
-      let displayStr = "starts in ";
-      if (days > 0) {
-        displayStr += `${days} d ${hours} hr ${minutes} min`;
-      } else if (hours > 0) {
-        displayStr += `${hours} hr ${minutes} min ${seconds} sec`;
-      } else if (minutes > 0) {
-        displayStr += `${minutes} min ${seconds} sec`;
-      } else {
-        displayStr += `${seconds} sec`;
-      }
+            document
+                .querySelectorAll("[data-countdown]")
+                .forEach(function (el) {
+                    var diff = new Date(el.dataset.countdown) - now;
+                    var card = el.closest(".sp-exam-card");
+                    if (diff <= 0) {
+                        if (card) {
+                            var pill = card.querySelector(".sp-pill");
+                            var icon = card.querySelector(".sp-card-icon");
+                            if (pill) {
+                                pill.className = "sp-pill pill-live";
+                                pill.textContent = "Live";
+                            }
+                            if (icon) {
+                                icon.className = "sp-card-icon ic-live";
+                                icon.innerHTML =
+                                    '<i class="bi bi-broadcast"></i>';
+                            }
+                            card.classList.add("card-live");
+                        }
+                        el.className = "sp-countdown live-text";
+                        el.textContent = "Live now";
+                        el.removeAttribute("data-countdown");
+                        return;
+                    }
+                    el.textContent = fmtDiff(diff) || "\u2014";
+                });
 
-      timer.textContent = displayStr;
-    });
-  }
+            document
+                .querySelectorAll("[data-endcountdown]")
+                .forEach(function (el) {
+                    var diff = new Date(el.dataset.endcountdown) - now;
+                    if (diff <= 0) {
+                        el.textContent = "Ended";
+                        return;
+                    }
+                    el.textContent = "ends " + fmtDiff(diff);
+                });
+        }
 
-  // Run immediately and update every second
-  updateCountdownTimers();
-  setInterval(updateCountdownTimers, 1000);
-});
+        tick();
+        setInterval(tick, 1000);
+    })();
 </script>
 {% endblock %}

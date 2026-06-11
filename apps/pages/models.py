@@ -9,11 +9,7 @@ import re
 
 from apps.pages.utils import generate_random_slug
 
-
-# =========================================================
 # COURSE
-# =========================================================
-
 class Course(models.Model):
     thumbnail   = models.ImageField(upload_to='courses')
     name        = models.CharField(max_length=120, unique=True)
@@ -93,6 +89,9 @@ class Subject(models.Model):
         verbose_name_plural = "Subjects"
 
     def __str__(self):
+        course_names = ", ".join(c.name for c in self.courses.all())
+        if course_names:
+            return f"[{course_names}] {self.name}"
         return self.name
 
     def save(self, *args, **kwargs):
@@ -108,11 +107,7 @@ class Subject(models.Model):
 
 # SECTION
 class Section(models.Model):
-    subject = models.ForeignKey(
-        Subject,
-        on_delete=models.CASCADE,
-        related_name='sections'
-    )
+    subject = models.ForeignKey(Subject,on_delete=models.CASCADE,related_name='sections')
 
     title   = models.CharField(max_length=120, blank=True, null=True)
     order   = models.PositiveIntegerField(default=0, db_index=True)
@@ -124,7 +119,10 @@ class Section(models.Model):
         verbose_name_plural = "Sections"
 
     def __str__(self):
-        return self.title or f"Section #{self.pk} - {self.subject.name}"
+        course_names = ", ".join(c.name for c in self.subject.courses.all())
+        prefix = f"[{course_names}] " if course_names else ""
+        label = self.title or f"Section #{self.pk}"
+        return f"{prefix}{self.subject.name} → {label}"
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -327,9 +325,8 @@ class LectureProgress(models.Model):
         status = "✓" if self.completed else "○"
         return f"{status} {self.user} → {self.lecture}"
 
-# =========================================================
+
 # SITE SETTING (SINGLETON)
-# =========================================================
 from django.core.cache import cache
 
 class SiteSetting(models.Model):

@@ -15,14 +15,12 @@ body {
 /* 1. Header Branding Styling */
 #header {
   background: #0f172a !important;
-  color: #ffffff !important;
   border-bottom: 2px solid #1e293b !important;
   padding: 15px 30px !important;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
 }
 
 #header a:link, #header a:visited {
-  color: #f1f5f9 !important;
   font-weight: 500 !important;
   transition: color 0.2s ease;
 }
@@ -32,12 +30,10 @@ body {
 }
 
 #branding h1 {
-  color: #ffffff !important;
   font-weight: 700 !important;
 }
 
 #branding h1 a {
-  color: #ffffff !important;
   text-decoration: none !important;
 }
 
@@ -55,7 +51,6 @@ body {
   border: 1px solid rgba(15, 23, 42, 0.08) !important;
   border-radius: 14px !important;
   box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01), 0 2px 4px -1px rgba(0,0,0,0.01) !important;
-  background-color: #ffffff !important;
   overflow: hidden !important;
   margin-bottom: 25px !important;
 }
@@ -72,7 +67,6 @@ body {
 }
 
 .module caption {
-  background: #f8fafc !important;
   color: #0f172a !important;
   font-weight: 700 !important;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08) !important;
@@ -107,7 +101,7 @@ input[type=text]:focus, input[type=password]:focus, select:focus, textarea:focus
   border: 1px solid #2d89c8 !important;
   border-radius: 20px !important;
   padding: 8px 22px !important;
-  color: white !important;
+  color: #fff !important;
   font-weight: 600 !important;
   transition: all 0.2s ease !important;
   cursor: pointer !important;

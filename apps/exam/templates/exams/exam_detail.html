@@ -1,207 +1,531 @@
-{% extends "base.html" %}
-
-{% block title %}{{ exam.title }} - Mock Exam - {{ site_settings.site_name }}{% endblock %}
-
-{% block meta_description %}Details for {{ exam.title }} online exam on Saral Pathshala. Complete mock examination simulation.{% endblock %}
-
-{% block extra_css %}
+{% extends "base.html" %} {% block title %}{{ exam.title }} - {{ site_settings.site_name }}{% endblock %} {% block meta_description %}{{ exam.title }} mock exam on {{ site_settings.site_name }}. {{ questions_count }} questions, {{ exam.duration_minutes }} minutes. Practice for {{ exam.course.name }} entrance. Start now.{% endblock %} {% block extra_css %}
 <style>
-  .card-info {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    padding: 2rem;
-  }
-  .stat-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-  .stat-box {
-    background: var(--bg-light);
-    border-radius: 12px;
-    padding: 1.25rem 1rem;
-    text-align: center;
-    border: 1px solid var(--border-color);
-  }
-  .stat-box .val {
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: var(--text-dark);
-  }
-  .stat-box .lbl {
-    font-size: .8rem;
-    color: var(--text-muted);
-    margin-top: .25rem;
-    font-weight: 600;
-  }
-  .rule-item {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    font-size: .95rem;
-    padding: .75rem 0;
-    border-bottom: 1px solid var(--border-color);
-  }
-  .rule-item:last-child {
-    border-bottom: none;
-  }
-  .btn-start-exam {
-    background: var(--brand-secondary);
-    border: none;
-    color: #fff;
-    padding: .75rem 2.5rem;
-    border-radius: 50px;
-    font-size: 1rem;
-    font-weight: 600;
-    text-decoration: none;
-    display: inline-block;
-    transition: all 0.2s ease;
-  }
-  .btn-start-exam:hover {
-    background: var(--brand-secondary-hover);
-    color: #fff;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(230, 126, 34, 0.2);
-  }
-  .instructions-box {
-    background: #fffbeb;
-    border-left: 4px solid #f59e0b;
-    border-radius: 0 12px 12px 0;
-    padding: 1.25rem 1.5rem;
-    margin-bottom: 2rem;
-    font-size: .95rem;
-  }
-</style>
-{% endblock %}
+    :root {
+        --orange: #e8722a;
+        --orange-hover: #cf6122;
+        --blue: #2e86c1;
+        --blue-hover: #2573a7;
+    }
 
-{% block content %}
-<section class="py-5 bg-dark text-white border-bottom shadow-sm">
-  <div class="container py-3">
-    <div class="row justify-content-center">
-      <div class="col-lg-8 text-center">
-        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill mb-3 small fw-bold">{{ exam.course.name }}</span>
-        <h1 class="display-5 fw-bold serif-title mb-3">{{ exam.title }}</h1>
-        {% if exam.description %}
-          <div class="lead text-muted mx-auto" style="max-width: 700px; color: #cbd5e1 !important;">
-            {{ exam.description|safe }}
-          </div>
+    body {
+        background: #f7f9fc;
+    }
+
+    .detail-hero {
+        background: linear-gradient(135deg, #1a2f55 0%, #2e86c1 100%);
+        padding: 3rem 0 2rem;
+    }
+
+    .detail-card {
+        background: #fff;
+        border-radius: 20px;
+        border: 1px solid #e8edf3;
+        overflow: hidden;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+    }
+
+    /* ── Stats row ── */
+    .stat-strip {
+        display: flex;
+        border-bottom: 1px solid #f1f5f9;
+        flex-wrap: wrap;
+    }
+    .stat-cell {
+        flex: 1;
+        min-width: 110px;
+        padding: 1.1rem 1rem;
+        text-align: center;
+        border-right: 1px solid #f1f5f9;
+    }
+    .stat-cell:last-child {
+        border-right: none;
+    }
+    .stat-val {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0f172a;
+        line-height: 1;
+        margin-bottom: 0.2rem;
+    }
+    .stat-lbl {
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #94a3b8;
+    }
+
+    /* ── Body section ── */
+    .card-body-section {
+        padding: 1.5rem 1.75rem;
+    }
+
+    /* ── Info rows ── */
+    .info-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid #f8fafc;
+        font-size: 0.9rem;
+        color: #334155;
+    }
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    .info-row i {
+        font-size: 1rem;
+        margin-top: 0.05rem;
+        flex-shrink: 0;
+        width: 20px;
+        text-align: center;
+    }
+    .info-label {
+        color: #94a3b8;
+        font-weight: 600;
+        min-width: 120px;
+        font-size: 0.82rem;
+    }
+
+    /* ── Instructions ── */
+    .instructions-box {
+        background: #fffbeb;
+        border-left: 3px solid #f59e0b;
+        border-radius: 0 10px 10px 0;
+        padding: 1rem 1.25rem;
+        font-size: 0.9rem;
+        color: #78350f;
+        line-height: 1.6;
+    }
+
+    /* ── Actions ── */
+    .action-strip {
+        padding: 1.25rem 1.75rem;
+        background: #fafbfc;
+        border-top: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-start {
+        background: var(--orange);
+        color: #fff !important;
+        border: none;
+        border-radius: 50px;
+        padding: 0.65rem 2rem;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition:
+            background 0.2s,
+            transform 0.15s,
+            box-shadow 0.2s;
+    }
+    .btn-start:hover {
+        background: var(--orange-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(232, 114, 42, 0.25);
+    }
+
+    .btn-secondary-action {
+        background: transparent;
+        border: 1px solid #e2e8f0;
+        border-radius: 50px;
+        padding: 0.6rem 1.5rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #475569;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition:
+            background 0.15s,
+            border-color 0.15s;
+    }
+    .btn-secondary-action:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+        color: #1e293b;
+    }
+
+    .btn-result {
+        background: var(--blue);
+        color: #fff !important;
+        border: none;
+        border-radius: 50px;
+        padding: 0.65rem 1.8rem;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: background 0.2s;
+    }
+    .btn-result:hover {
+        background: var(--blue-hover);
+    }
+
+    /* ── Course badge ── */
+    .course-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 0.3rem 0.9rem;
+        border-radius: 50px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        margin-bottom: 0.75rem;
+    }
+
+    /* ── Status chip ── */
+    .status-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+    }
+    .chip-live {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    .chip-upcoming {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    .chip-ended {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    /* live dot */
+    .live-dot {
+        width: 6px;
+        height: 6px;
+        background: #10b981;
+        border-radius: 50%;
+        display: inline-block;
+        animation: pulse 1.4s infinite;
+    }
+    @keyframes pulse {
+        0%,
+        100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.35;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .stat-cell {
+            min-width: 80px;
+            padding: 0.8rem 0.5rem;
+        }
+        .stat-val {
+            font-size: 1.2rem;
+        }
+        .card-body-section {
+            padding: 1.2rem;
+        }
+        .action-strip {
+            padding: 1rem 1.2rem;
+        }
+    }
+</style>
+{% endblock %} {% block content %}
+
+<!-- ── SEO structured data ── -->
+<script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      "name": "{{ exam.title }}",
+      "description": "{{ exam.title }} mock exam for {{ exam.course.name }} entrance preparation.",
+      "startDate": "{{ exam.start_date|date:'c' }}",
+      {% if exam.end_date %}"endDate": "{{ exam.end_date|date:'c' }}",{% endif %}
+      "organizer": {
+        "@type": "Organization",
+        "name": "{{ site_settings.site_name }}"
+      },
+      "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+      "eventStatus": "https://schema.org/EventScheduled"
+    }
+</script>
+
+<!-- ── Hero ── -->
+<section class="detail-hero">
+    <div class="container text-center" style="max-width: 700px">
+        <span class="course-badge">{{ exam.course.name }}</span>
+
+        <!-- Live/upcoming/ended chip -->
+        {% if exam.is_live %}
+        <div class="mb-2">
+            <span class="status-chip chip-live"
+                ><span class="live-dot"></span>Live Now</span
+            >
+        </div>
+        {% elif exam.has_ended %}
+        <div class="mb-2">
+            <span class="status-chip chip-ended"
+                ><i class="bi bi-archive me-1"></i>Ended</span
+            >
+        </div>
+        {% else %}
+        <div class="mb-2">
+            <span class="status-chip chip-upcoming">
+                <i class="bi bi-clock me-1"></i>Starts
+                <span
+                    id="heroCountdown"
+                    data-countdown="{{ exam.start_date|date:'c' }}"
+                    >soon</span
+                >
+            </span>
+        </div>
         {% endif %}
-      </div>
+
+        <h1
+            class="fw-bold text-white mb-0"
+            style="font-size: 1.85rem; line-height: 1.3"
+        >
+            {{ exam.title }}
+        </h1>
+        {% if exam.description %}
+        <p
+            class="mt-2 mb-0"
+            style="
+                color: rgba(255, 255, 255, 0.65);
+                font-size: 0.9rem;
+                max-width: 560px;
+                margin: 0 auto;
+            "
+        >
+            {{ exam.description|striptags|truncatechars:140 }}
+        </p>
+        {% endif %}
     </div>
-  </div>
 </section>
 
-<div class="container py-5" style="max-width: 800px;">
-  <div class="card-info">
-    
-    {# ── Stats grid ─────────────────────────────────────────────── #}
-    <div class="stat-grid">
-      <div class="stat-box">
-        <div class="val">{{ questions_count }}</div>
-        <div class="lbl">Questions</div>
-      </div>
-      <div class="stat-box">
-        <div class="val">{{ sections_count }}</div>
-        <div class="lbl">Sections</div>
-      </div>
-      {% if exam.duration_minutes %}
-      <div class="stat-box">
-        <div class="val">{{ exam.duration_minutes }}<small style="font-size:1rem; font-weight: 500;"> min</small></div>
-        <div class="lbl">Duration</div>
-      </div>
-      {% endif %}
-      <div class="stat-box">
-        <div class="val">+{{ exam.correct_marks }}</div>
-        <div class="lbl">Correct Mark</div>
-      </div>
-      {% if exam.has_negative_marking %}
-      <div class="stat-box" style="background:#fff5f5; border-color: #f8d7da;">
-        <div class="val" style="color:#dc3545;">−{{ exam.negative_marks }}</div>
-        <div class="lbl">Negative Mark</div>
-      </div>
-      {% endif %}
-    </div>
+<!-- ── Detail card ── -->
+<div class="container py-4" style="max-width: 700px">
+    <div class="detail-card">
+        <!-- Stats strip -->
+        <div class="stat-strip">
+            <div class="stat-cell">
+                <div class="stat-val">{{ questions_count }}</div>
+                <div class="stat-lbl">Questions</div>
+            </div>
+            <div class="stat-cell">
+                <div class="stat-val">{{ sections_count }}</div>
+                <div class="stat-lbl">Sections</div>
+            </div>
+            {% if exam.duration_minutes %}
+            <div class="stat-cell">
+                <div class="stat-val">
+                    {{ exam.duration_minutes }}<span
+                        style="font-size: 0.9rem; font-weight: 500"
+                    >
+                        m</span
+                    >
+                </div>
+                <div class="stat-lbl">Duration</div>
+            </div>
+            {% endif %}
+            <div class="stat-cell">
+                <div class="stat-val" style="color: #059669">
+                    +{{ exam.correct_marks }}
+                </div>
+                <div class="stat-lbl">Per Right</div>
+            </div>
+            {% if exam.has_negative_marking %}
+            <div class="stat-cell">
+                <div class="stat-val" style="color: #dc2626">
+                    −{{ exam.negative_marks }}
+                </div>
+                <div class="stat-lbl">Per Wrong</div>
+            </div>
+            {% endif %}
+        </div>
 
-    {# ── Schedule & Rules ────────────────────────────────────────── #}
-    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-calendar-check-fill text-primary me-2"></i>Exam Schedule & Rules</h5>
-    <div class="mb-4 bg-light p-3 rounded-3 border border-light">
-      <div class="rule-item">
-        <i class="bi bi-calendar-event text-primary fs-5"></i>
-        <span><strong>Start Date:</strong> {{ exam.start_date|date:"d M Y, H:i" }}</span>
-      </div>
-      {% if exam.end_date %}
-      <div class="rule-item">
-        <i class="bi bi-calendar-x text-danger fs-5"></i>
-        <span><strong>End Date:</strong> {{ exam.end_date|date:"d M Y, H:i" }}</span>
-      </div>
-      {% else %}
-      <div class="rule-item">
-        <i class="bi bi-infinity text-success fs-5"></i>
-        <span><strong>Deadline:</strong> No hard end date. Open for practice anytime.</span>
-      </div>
-      {% endif %}
-      <div class="rule-item">
-        <i class="bi bi-bar-chart text-info fs-5"></i>
-        <span>
-          <strong>Results Publish:</strong>
-          {% if exam.result_mode == 'after_end' %}Immediately after the exam closes.
-          {% elif exam.result_mode == 'auto' %}{{ exam.result_publish_time|date:"d M Y, H:i" }}
-          {% elif exam.result_mode == 'hidden' %}Hidden / Results will not be published.
-          {% else %}Manually published by Admin.{% endif %}
-        </span>
-      </div>
-    </div>
+        <!-- Schedule & result info -->
+        <div class="card-body-section">
+            <div class="info-row">
+                <i class="bi bi-calendar-event text-primary"></i>
+                <div>
+                    <span class="info-label">Start</span>
+                    {{ exam.start_date|date:"d M Y, H:i" }}
+                </div>
+            </div>
 
-    {# ── Instructions ────────────────────────────────────────────── #}
-    {% if exam.instructions %}
-    <div class="instructions-box shadow-sm">
-      <h6 class="fw-bold text-warning-emphasis mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Exam Instructions</h6>
-      <div class="lh-base">{{ exam.instructions|safe }}</div>
-    </div>
-    {% endif %}
+            {% if exam.end_date %}
+            <div class="info-row">
+                <i class="bi bi-calendar-x text-danger"></i>
+                <div>
+                    <span class="info-label">End</span>
+                    {{ exam.end_date|date:"d M Y, H:i" }}
+                </div>
+            </div>
+            {% else %}
+            <div class="info-row">
+                <i class="bi bi-infinity text-success"></i>
+                <div>
+                    <span class="info-label">Deadline</span>
+                    Open for practice — no hard end date.
+                </div>
+            </div>
+            {% endif %}
 
-    {# ── CTA Actions ──────────────────────────────────────────────── #}
-    <div class="d-flex align-items-center gap-3 flex-wrap mt-4 pt-3 border-top border-light">
-      {% if not user.is_authenticated %}
-        <a href="{% url 'login' %}?next={% url 'exams:exam_detail' exam.slug %}" class="btn-start-exam shadow">
-          <i class="bi bi-box-arrow-in-right me-2"></i>Login to Attempt Exam
-        </a>
-      {% elif attempt and attempt.is_submitted %}
-        <a href="{% url 'exams:exam_result' exam.slug %}" class="btn btn-outline-primary rounded-pill px-4">
-          <i class="bi bi-graph-up me-2"></i>View Result & Solutions
-        </a>
-      {% elif attempt %}
-        <a href="{% url 'exams:exam_attempt' exam.slug %}" class="btn-start-exam shadow">
-          <i class="bi bi-play-fill me-2"></i>Resume Exam
-        </a>
-        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>You have an active saved session.</small>
-      {% elif exam.is_accessible %}
-        <form method="post" action="{% url 'exams:start_exam' exam.slug %}">
-          {% csrf_token %}
-          <button type="submit" class="btn-start-exam shadow text-dark">
-            <i class="bi bi-play-fill me-2"></i>Start Exam Now
-          </button>
-        </form>
-      {% elif is_staff %}
-        <form method="post" action="{% url 'exams:start_exam' exam.slug %}">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-outline-warning rounded-pill px-4">
-            <i class="bi bi-eye me-2"></i>Preview (Staff Mode)
-          </button>
-        </form>
-      {% else %}
-        <button class="btn btn-secondary rounded-pill px-4 py-2" disabled>
-          <i class="bi bi-lock-fill me-2"></i>Exam Closed
-        </button>
-      {% endif %}
-      
-      <a href="{% url 'exams:exam_list' %}" class="btn btn-light rounded-pill px-4 py-2 border">
-        <i class="bi bi-arrow-left me-2"></i>Back to Exams
-      </a>
-    </div>
+            <div class="info-row">
+                <i class="bi bi-bar-chart text-info"></i>
+                <div>
+                    <span class="info-label">Results</span>
+                    {% if exam.result_mode == 'after_end' %}Published when exam
+                    closes. {% elif exam.result_mode == 'auto' %}Published {{
+                    exam.result_publish_time|date:"d M Y, H:i" }}. {% elif
+                    exam.result_mode == 'hidden' %}Results not published. {%
+                    else %}Published manually by admin.{% endif %}
+                </div>
+            </div>
+        </div>
 
-  </div>
+        <!-- Instructions (if any) -->
+        {% if exam.instructions %}
+        <div class="card-body-section" style="padding-top: 0">
+            <div class="instructions-box">
+                <div
+                    class="fw-bold mb-1"
+                    style="
+                        font-size: 0.8rem;
+                        letter-spacing: 0.05em;
+                        text-transform: uppercase;
+                    "
+                >
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i
+                    >Instructions
+                </div>
+                {{ exam.instructions|safe }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ── CTA strip ── -->
+        <div class="action-strip">
+            {% if not user.is_authenticated %}
+            <a
+                href="{% url 'login' %}?next={% url 'exams:exam_detail' exam.slug %}"
+                class="btn-start"
+            >
+                <i class="bi bi-box-arrow-in-right"></i>Sign in to Attempt
+            </a>
+
+            {% elif attempt and attempt.is_submitted %}
+            <a
+                href="{% url 'exams:exam_result' exam.slug %}"
+                class="btn-result"
+            >
+                <i class="bi bi-graph-up-arrow"></i>View Result &amp; Solutions
+            </a>
+
+            {% elif attempt %}
+            <a
+                href="{% url 'exams:exam_attempt' exam.slug %}"
+                class="btn-start"
+            >
+                <i class="bi bi-play-fill"></i>Resume Exam
+            </a>
+            <span style="font-size: 0.78rem; color: #94a3b8"
+                ><i class="bi bi-floppy me-1"></i>You have an active
+                session.</span
+            >
+
+            {% elif exam.is_accessible %}
+            <form
+                method="post"
+                action="{% url 'exams:start_exam' exam.slug %}"
+                style="display: inline"
+            >
+                {% csrf_token %}
+                <button type="submit" class="btn-start">
+                    <i class="bi bi-play-fill"></i>Start Exam
+                </button>
+            </form>
+
+            {% elif is_staff %}
+            <form
+                method="post"
+                action="{% url 'exams:start_exam' exam.slug %}"
+                style="display: inline"
+            >
+                {% csrf_token %}
+                <button
+                    type="submit"
+                    class="btn-secondary-action"
+                    style="border-color: #f59e0b; color: #92400e"
+                >
+                    <i class="bi bi-eye"></i>Preview (Staff)
+                </button>
+            </form>
+
+            {% else %}
+            <button
+                class="btn-secondary-action"
+                disabled
+                style="opacity: 0.55; cursor: not-allowed"
+            >
+                <i class="bi bi-lock-fill"></i>Exam Closed
+            </button>
+            {% endif %}
+
+            <a href="{% url 'exams:exam_list' %}" class="btn-secondary-action">
+                <i class="bi bi-arrow-left"></i>All Exams
+            </a>
+        </div>
+    </div>
 </div>
+
+{% endblock %} {% block extra_js %}
+<script>
+    (function () {
+        function pad(n) {
+            return String(n).padStart(2, "0");
+        }
+
+        function tick() {
+            document.querySelectorAll("[data-countdown]").forEach((el) => {
+                const diff = new Date(el.dataset.countdown) - Date.now();
+                if (diff <= 0) {
+                    el.textContent = "now";
+                    return;
+                }
+                const d = Math.floor(diff / 86400000);
+                const h = Math.floor((diff % 86400000) / 3600000);
+                const m = Math.floor((diff % 3600000) / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
+                el.textContent =
+                    d > 0
+                        ? `in ${d}d ${pad(h)}h ${pad(m)}m`
+                        : h > 0
+                          ? `in ${pad(h)}h ${pad(m)}m ${pad(s)}s`
+                          : `in ${pad(m)}m ${pad(s)}s`;
+            });
+        }
+
+        tick();
+        setInterval(tick, 1000);
+    })();
+</script>
 {% endblock %}

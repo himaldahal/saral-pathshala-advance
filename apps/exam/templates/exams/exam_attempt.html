@@ -1,309 +1,780 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ exam.title }}</title>
+{% extends "base.html" %}
+{% load static %}
 
-{# ── Prism (code highlighting | matches TinyMCE codesample) ─── #}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/toolbar/prism-toolbar.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% block title %}{{ exam.title }} — Attempt | {{ site_settings.site_name }}{% endblock %}
 
-{# ── MathJax config | before the script ─────────────────────── #}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+
 <script>
 window.MathJax = {
   tex: {
-    inlineMath:  [['$','$'], ['\\(','\\)']],
-    displayMath: [['$$','$$'], ['\\[','\\]']],
+    inlineMath:  [['$','$'],['\\(','\\)']],
+    displayMath: [['$$','$$'],['\\[','\\]']],
     processEscapes: true,
   },
-  options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] },
-  startup: { typeset: false },
+  options: {
+    skipHtmlTags: ['script','noscript','style','textarea','pre','code'],
+  },
+  startup: {
+    typeset: true,
+  },
 };
 </script>
 <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 
 <style>
-/* ── Reset / base ───────────────────────────────────────────────────── */
-*,*::before,*::after{box-sizing:border-box;}
-:root{
-  --brand:#1a1a2e;
-  --accent:#e94560;
-  --answered:#f59e0b;
-  --header-h:56px;
-  --palette-w:220px;
-  --border:#e8ecf2;
-}
-html,body{height:100%;margin:0;font-family:'Segoe UI',system-ui,sans-serif;
-  font-size:15px;background:#f6f8fb;color:#1a1a2e;}
-
-/* ── Header ─────────────────────────────────────────────────────────── */
-#exam-header{
-  position:fixed;top:0;left:0;right:0;height:var(--header-h);
-  background:var(--brand);z-index:999;
-  display:flex;align-items:center;padding:0 1rem;gap:.8rem;
-}
-#exam-header .title{color:#fff;font-weight:700;font-size:.95rem;flex:1;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#timer{
-  font-family:'Courier New',monospace;font-size:1.1rem;font-weight:700;
-  color:#4ade80;white-space:nowrap;letter-spacing:.04em;
-  background:rgba(255,255,255,.08);padding:.2rem .6rem;border-radius:6px;
-}
-#timer.warn{color:#fbbf24;}
-#timer.danger{color:#f87171;animation:blink .8s step-end infinite;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
-#timer.unlimited{color:#94a3b8;font-size:.85rem;}
-#timer.expired{color:#f87171;font-size:.78rem;letter-spacing:.01em;}
-#btn-submit{
-  background:var(--accent);border:none;color:#fff;
-  padding:.35rem .9rem;border-radius:6px;font-size:.85rem;font-weight:600;
-  cursor:pointer;white-space:nowrap;
-}
-#btn-submit:hover{background:#c73652;}
-#save-indicator{color:#94a3b8;font-size:.72rem;white-space:nowrap;}
-
-/* ── Layout ─────────────────────────────────────────────────────────── */
-#layout{
-  display:flex;
-  padding-top:var(--header-h);
-  height:100vh;
+:root {
+  --exam-header-h : 60px;
+  --palette-w     : 230px;
+  --opt-radius    : 10px;
+  --q-shadow      : 0 2px 10px rgba(30,80,140,.06);
 }
 
-/* ── Question panel ─────────────────────────────────────────────────── */
-#question-panel{
-  flex:1;min-width:0;
-  overflow-y:auto;
-  padding:0;
-  scroll-behavior:smooth;
+/* Hide base nav/topbar/footer/floats during exam */
+.sp-topbar,.sp-nav,.sp-drawer,.sp-float, .sp-footer, #examSidebar { display: none !important; }
+main { padding: 0 !important; }
+
+/* Exam header  */
+#exam-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--exam-header-h);
+  background: linear-gradient(135deg, #0d1b2e 0%, #1a2d4a 100%);
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  padding: 0 1.1rem;
+  gap: .85rem;
+  box-shadow: 0 2px 16px rgba(0,0,0,.25);
+}
+.exam-title {
+  flex: 1;
+  min-width: 0;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: .92rem;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.exam-title small {
+  display: block;
+  font-size: .68rem;
+  font-weight: 400;
+  color: rgba(255,255,255,.45);
 }
 
-/* ── Section tabs ───────────────────────────────────────────────────── */
-.section-tabs{
-  position:sticky;top:0;background:#fff;z-index:10;
-  border-bottom:2px solid var(--border);
-  display:flex;overflow-x:auto;gap:0;
-  scrollbar-width:none;
+#save-indicator {
+  font-size: .7rem;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: rgba(255,255,255,.45);
+  transition: color .2s;
+  flex-shrink: 0;
 }
-.section-tabs::-webkit-scrollbar{display:none;}
-.stab{
-  padding:.65rem 1.1rem;font-size:.82rem;font-weight:600;cursor:pointer;
-  white-space:nowrap;border-bottom:3px solid transparent;color:#6c757d;
-  background:none;border-top:0;border-left:0;border-right:0;
-  transition:color .15s,border-color .15s;
-}
-.stab:hover{color:var(--brand);}
-.stab.active{color:var(--brand);border-bottom-color:var(--accent);}
-.section-body{display:none;padding:1rem 1.2rem 4rem;}
-.section-body.active{display:block;}
+#save-indicator.saving { color: #94a3b8; }
+#save-indicator.saved  { color: #4ade80; }
+#save-indicator.offline{ color: #fbbf24; }
 
-/* ── Paragraph block ────────────────────────────────────────────────── */
-.para-block{
-  background:#fff;border-left:4px solid var(--accent);
-  border-radius:0 10px 10px 0;padding:1rem 1.2rem;
-  margin-bottom:1.2rem;font-size:.9rem;line-height:1.7;
-  box-shadow:0 1px 6px rgba(0,0,0,.05);
+#timer {
+  font-family: 'Courier New', monospace;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #4ade80;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 8px;
+  padding: .25rem .7rem;
+  letter-spacing: .05em;
+  white-space: nowrap;
+  transition: color .3s;
+  flex-shrink: 0;
 }
-.para-label{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--accent);margin-bottom:.5rem;}
+#timer.warn    { color: #fbbf24; background: rgba(251,191,36,.1); border-color: rgba(251,191,36,.3); }
+#timer.danger  { color: #f87171; background: rgba(248,113,113,.1); border-color: rgba(248,113,113,.3); animation: timerpulse .8s step-end infinite; }
+#timer.unlimited { color: rgba(255,255,255,.4); font-size: .8rem; }
+#timer.expired   { color: #f87171; font-size: .78rem; }
+@keyframes timerpulse { 0%,100%{opacity:1} 50%{opacity:.35} }
 
-/* ── Question card ──────────────────────────────────────────────────── */
-.q-card{
-  background:#fff;border-radius:10px;margin-bottom:1rem;
-  box-shadow:0 1px 6px rgba(0,0,0,.05);overflow:hidden;
-  scroll-margin-top:calc(var(--header-h) + 50px);
-  border:2px solid transparent;transition:border-color .15s;
+#btn-submit-header {
+  background: var(--orange);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: .4rem .95rem;
+  font-family: 'Inter', sans-serif;
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: background .15s, box-shadow .15s;
+  flex-shrink: 0;
 }
-.q-card.current{border-color:var(--accent);}
-.q-meta{
-  background:#f8fafc;border-bottom:1px solid var(--border);
-  padding:.45rem .9rem;display:flex;align-items:center;gap:.5rem;
-  font-size:.75rem;color:#6c757d;
-}
-.q-num-badge{
-  background:var(--brand);color:#fff;font-weight:700;
-  padding:.15rem .5rem;border-radius:4px;font-size:.72rem;
-}
-.q-body{padding:.9rem;}
-.q-text{line-height:1.7;margin-bottom:1rem;}
-.q-text img{max-width:100%;height:auto;border-radius:6px;}
-.q-text pre{background:#f4f6f9;border-radius:6px;overflow-x:auto;}
-.q-text code{font-size:.85em;}
+#btn-submit-header:hover { background: var(--orange-dk); box-shadow: 0 4px 14px rgba(232,114,42,.4); }
 
-/* ── Options ────────────────────────────────────────────────────────── */
-.options{display:flex;flex-direction:column;gap:.5rem;}
-.opt-btn{
-  display:flex;align-items:flex-start;gap:.75rem;
-  background:#f8fafc;border:1.5px solid var(--border);
-  border-radius:8px;padding:.6rem .9rem;cursor:pointer;
-  text-align:left;font-size:.88rem;line-height:1.5;
-  transition:border-color .12s,background .12s;
-  width:100%;
+/* Progress bar under header */
+#exam-progress-bar {
+  position: fixed;
+  top: var(--exam-header-h);
+  left: 0; right: 0;
+  height: 3px;
+  background: rgba(255,255,255,.06);
+  z-index: 1049;
 }
-.opt-btn:hover{border-color:#6c757d;background:#f0f4f8;}
-.opt-btn.selected{
-  border-color:var(--accent);background:#fff5f7;
-}
-.opt-btn.selected .opt-prefix{
-  background:var(--accent);color:#fff;
-}
-.opt-prefix{
-  display:inline-flex;align-items:center;justify-content:center;
-  min-width:24px;height:24px;border-radius:50%;
-  background:#e8ecf2;color:#1a1a2e;font-size:.72rem;font-weight:700;
-  flex-shrink:0;margin-top:.05rem;transition:background .12s,color .12s;
-}
-.opt-text img{max-width:100%;height:auto;max-height:120px;object-fit:contain;}
-.clear-btn{
-  background:none;border:none;color:#6c757d;font-size:.75rem;
-  cursor:pointer;padding:.3rem 0 0;display:none;
-}
-.clear-btn.visible{display:inline;}
-.clear-btn:hover{color:var(--accent);}
-
-/* ── Sidebar palette ────────────────────────────────────────────────── */
-#palette{
-  width:var(--palette-w);flex-shrink:0;
-  background:#fff;border-left:1px solid var(--border);
-  overflow-y:auto;padding:.8rem;
-  position:sticky;top:var(--header-h);height:calc(100vh - var(--header-h));
-}
-.palette-section{margin-bottom:1rem;}
-.palette-sec-title{
-  font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:#adb5bd;margin-bottom:.4rem;padding-bottom:.3rem;
-  border-bottom:1px solid var(--border);
-}
-.q-nums{display:flex;flex-wrap:wrap;gap:.35rem;}
-.qn-btn{
-  width:32px;height:32px;border-radius:6px;border:1.5px solid #dee2e6;
-  background:#f6f8fb;font-size:.72rem;font-weight:600;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  transition:background .1s,border-color .1s,color .1s;
-  color:#495057;
-}
-.qn-btn.answered{background:var(--answered);border-color:#d97706;color:#fff;}
-.qn-btn.current{outline:2px solid var(--accent);outline-offset:1px;}
-
-/* ── Mobile: hide palette, add bottom bar ────────────────────────────── */
-@media(max-width:767px){
-  #palette{display:none;}
-  .section-body{padding-bottom:5rem;}
+#exam-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--orange), var(--blue));
+  width: 0%;
+  transition: width .4s ease;
 }
 
-/* ── Prism overrides ─────────────────────────────────────────────────── */
-pre[class*=language-]{border-radius:8px;font-size:.82rem;}
-
-/* ── Submit overlay ──────────────────────────────────────────────────── */
-#submitting-overlay{
-  display:none;position:fixed;inset:0;background:rgba(26,26,46,.85);
-  z-index:9999;align-items:center;justify-content:center;flex-direction:column;color:#fff;
+/* Main layout  */
+#exam-layout {
+  display: flex;
+  padding-top: calc(var(--exam-header-h) + 3px);
+  min-height: 100vh;
+  background: var(--bg);
 }
-#submitting-overlay.show{display:flex;}
 
-/* ── Expired banner ──────────────────────────────────────────────────── */
-#expired-banner{
-  background:#fff3cd;border-bottom:2px solid #ffc107;
-  padding:.5rem 1.2rem;font-size:.82rem;color:#856404;
-  display:flex;align-items:center;gap:.5rem;
+/* Question panel */
+#question-panel {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  scroll-behavior: smooth;
 }
+
+#expired-banner {
+  background: #fff3cd;
+  border-bottom: 2px solid #ffc107;
+  padding: .6rem 1.25rem;
+  font-size: .82rem;
+  color: #856404;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+/* Section tabs */
+.section-tabs {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  z-index: 20;
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.section-tabs::-webkit-scrollbar { display: none; }
+
+.stab {
+  flex-shrink: 0;
+  padding: .7rem 1.2rem;
+  font-size: .8rem;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: none;
+  color: var(--ink-3);
+  white-space: nowrap;
+  letter-spacing: .01em;
+  transition: color .15s, border-color .15s;
+}
+.stab:hover  { color: var(--blue); }
+.stab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+/* Section body */
+.section-body         { display: none; padding: 1.1rem 1.25rem 6rem; }
+.section-body.active  { display: block; }
+
+.section-rule {
+  background: var(--blue-lt);
+  border: 1px solid rgba(46,134,193,.2);
+  border-radius: 8px;
+  padding: .5rem .9rem;
+  font-size: .78rem;
+  color: var(--blue-dk);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 1rem;
+}
+
+/* Paragraph block */
+.para-block {
+  background: var(--surface);
+  border-left: 4px solid var(--orange);
+  border-radius: 0 10px 10px 0;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.1rem;
+  font-size: .9rem;
+  line-height: 1.75;
+  box-shadow: var(--q-shadow);
+}
+.para-label {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: .5rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.para-block img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+  margin: .5rem 0;
+}
+
+/* Question card  */
+.q-card {
+  background: var(--surface);
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  margin-bottom: 1rem;
+  box-shadow: var(--q-shadow);
+  overflow: hidden;
+  scroll-margin-top: 120px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.q-card:hover          { border-color: var(--border-dk); }
+.q-card.current        { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(46,134,193,.12); }
+.q-card.answered-card  { border-color: var(--orange); }
+
+.q-meta {
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  padding: .45rem .9rem;
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  font-size: .73rem;
+  color: var(--ink-3);
+}
+.q-num-badge {
+  background: var(--blue);
+  color: #fff;
+  font-weight: 800;
+  font-family: 'Nunito', sans-serif;
+  padding: .12rem .55rem;
+  border-radius: 6px;
+  font-size: .7rem;
+  letter-spacing: .03em;
+}
+.q-marks-badge {
+  margin-left: auto;
+  font-size: .7rem;
+  font-weight: 600;
+  background: var(--orange-lt);
+  border: 1px solid rgba(232,114,42,.2);
+  border-radius: 20px;
+  padding: .1rem .55rem;
+  color: var(--orange-dk);
+}
+
+.q-body { padding: .95rem 1rem; }
+
+.q-text {
+  font-size: .9rem;
+  line-height: 1.75;
+  color: var(--ink);
+  margin-bottom: 1rem;
+}
+.q-text img {
+  max-width: 100%;
+  max-height: 280px;
+  height: auto;
+  width: auto;
+  border-radius: 8px;
+  display: block;
+  margin: .5rem 0;
+  object-fit: contain;
+}
+.q-text pre  { background: #1e293b; color: #e2e8f0; border-radius: 8px; overflow-x: auto; padding: .75rem; }
+.q-text code:not([class]) { background: var(--surface-2); padding: .15em .4em; border-radius: 4px; font-size: .85em; }
+
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .6rem;
+}
+@media (max-width: 640px) {
+  .options-grid { grid-template-columns: 1fr; }
+}
+
+.opt-btn {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: var(--opt-radius);
+  padding: .65rem .9rem;
+  cursor: pointer;
+  text-align: left;
+  font-size: .875rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+  font-family: 'Inter', sans-serif;
+  transition: border-color .15s, background .15s, box-shadow .15s;
+  width: 100%;
+  min-height: 52px;
+}
+.opt-btn:hover {
+  border-color: var(--blue-mid);
+  background: var(--blue-lt);
+  color: var(--blue-dk);
+}
+.opt-btn.selected {
+  border-color: var(--orange);
+  background: var(--orange-lt);
+  color: var(--orange-dk);
+  box-shadow: 0 0 0 3px rgba(232,114,42,.12);
+}
+
+.opt-prefix {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1.5px solid var(--border-dk);
+  color: var(--ink-3);
+  font-size: .72rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  margin-top: .1rem;
+  font-family: 'Nunito', sans-serif;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.opt-btn:hover    .opt-prefix { background: var(--blue);   border-color: var(--blue);   color: #fff; }
+.opt-btn.selected .opt-prefix { background: var(--orange); border-color: var(--orange); color: #fff; }
+
+.opt-text { flex: 1; min-width: 0; }
+.opt-text img {
+  max-width: 100%;
+  max-height: 120px;
+  height: auto;
+  width: auto;
+  object-fit: contain;
+  border-radius: 6px;
+  display: block;
+  margin-top: .35rem;
+}
+
+.clear-btn {
+  background: none;
+  border: none;
+  font-size: .73rem;
+  color: var(--ink-3);
+  cursor: pointer;
+  padding: .35rem 0 0;
+  display: none;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Inter', sans-serif;
+  transition: color .15s;
+  margin-top: .35rem;
+}
+.clear-btn.visible { display: flex; }
+.clear-btn:hover   { color: var(--danger); }
+
+/* Palette sidebar */
+#palette {
+  width: var(--palette-w);
+  flex-shrink: 0;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  padding: .85rem;
+  position: sticky;
+  top: calc(var(--exam-header-h) + 3px);
+  height: calc(100vh - var(--exam-header-h) - 3px);
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.palette-legend {
+  display: flex;
+  gap: .75rem;
+  flex-wrap: wrap;
+  padding-bottom: .6rem;
+  border-bottom: 1px solid var(--border);
+}
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: .67rem; color: var(--ink-3); font-weight: 600; }
+.legend-dot  { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.legend-dot.answered   { background: var(--orange); }
+.legend-dot.unanswered { background: var(--bg); border: 1.5px solid var(--border-dk); }
+
+.palette-progress {
+  background: var(--surface-2);
+  border-radius: 8px;
+  padding: .6rem .8rem;
+  font-size: .75rem;
+  color: var(--ink-2);
+}
+.prog-row { display: flex; justify-content: space-between; margin-bottom: .35rem; }
+.prog-bar-wrap { background: var(--border); border-radius: 20px; height: 5px; overflow: hidden; }
+.prog-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--orange), var(--blue));
+  border-radius: 20px;
+  transition: width .4s ease;
+  width: 0%;
+}
+
+.palette-sec-title {
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: .45rem;
+  padding-bottom: .3rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.q-nums { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .75rem; }
+
+.qn-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border-dk);
+  background: var(--bg);
+  font-size: .7rem;
+  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-3);
+  transition: background .12s, border-color .12s, color .12s;
+}
+.qn-btn:hover    { background: var(--blue-lt); border-color: var(--blue); color: var(--blue-dk); }
+.qn-btn.answered { background: var(--orange);  border-color: var(--orange-dk); color: #fff; }
+.qn-btn.current  { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+.palette-submit-wrap {
+  margin-top: auto;
+  padding-top: .75rem;
+  border-top: 1px solid var(--border);
+}
+
+#submitting-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(13,27,46,.9);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1rem;
+  color: #fff;
+}
+#submitting-overlay.show { display: flex; }
+#submitting-overlay p    { font-size: 1.05rem; font-weight: 700; font-family: 'Nunito', sans-serif; margin: 0; }
+#submitting-overlay small{ font-size: .8rem; color: rgba(255,255,255,.45); }
+
+#cheat-toast-stack {
+  position: fixed;
+  top: calc(var(--exam-header-h) + 10px);
+  right: 16px;
+  z-index: 9998;
+  width: min(400px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.cheat-toast {
+  background: #1e293b;
+  border: 1px solid rgba(248,113,113,.3);
+  border-left: 4px solid #f87171;
+  border-radius: 10px;
+  padding: .75rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  pointer-events: all;
+  animation: toastin .25s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,.3);
+}
+@keyframes toastin { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+.cheat-toast i.ct-icon { color: #f87171; font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+.cheat-toast-body  { flex: 1; }
+.cheat-toast-title { font-size: .78rem; font-weight: 700; color: #f87171; font-family: 'Nunito', sans-serif; margin-bottom: 2px; }
+.cheat-toast-msg   { font-size: .75rem; color: rgba(255,255,255,.6); line-height: 1.4; }
+.cheat-toast-close {
+  background: none; border: none; color: rgba(255,255,255,.3);
+  cursor: pointer; font-size: .75rem; padding: 0; line-height: 1;
+  flex-shrink: 0; transition: color .15s;
+}
+.cheat-toast-close:hover { color: #fff; }
+.severity-badge {
+  display: inline-block;
+  font-size: .63rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  border-radius: 20px;
+  padding: .1rem .4rem;
+  vertical-align: middle;
+  margin-left: .2rem;
+}
+.sev-1 { background: rgba(251,191,36,.15); color: #fbbf24; }
+.sev-2 { background: rgba(248,113,113,.15); color: #f87171; }
+.sev-3 { background: rgba(220,38,38,.25); color: #dc2626; border: 1px solid rgba(220,38,38,.4); }
+
+.modal-content         { border-radius: 14px !important; overflow: hidden; }
+.modal-header          { background: linear-gradient(135deg,#0d1b2e,#1a2d4a) !important; border-bottom: none !important; padding: 1.1rem 1.4rem !important; }
+.modal-header .modal-title { font-family:'Nunito',sans-serif; font-weight:800; font-size:1rem; color:#fff !important; display:flex; align-items:center; gap:.5rem; }
+.modal-header .btn-close   { filter:invert(1) brightness(2); opacity:.6; }
+.modal-header .btn-close:hover { opacity:1; }
+.modal-body   { padding: 1.4rem !important; background: var(--surface) !important; color: var(--ink) !important; }
+.modal-footer { background: var(--surface-2) !important; border-top: 1px solid var(--border) !important; padding: .85rem 1.4rem !important; }
+
+.submit-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-bottom: 1rem; }
+.submit-stat {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .75rem;
+  text-align: center;
+}
+.submit-stat .stat-num   { font-family:'Nunito',sans-serif; font-size:1.6rem; font-weight:800; line-height:1; margin-bottom:3px; }
+.submit-stat .stat-label { font-size:.7rem; color:var(--ink-3); font-weight:600; }
+.submit-stat.answered-stat   .stat-num { color: var(--orange); }
+.submit-stat.unanswered-stat .stat-num { color: var(--ink-3); }
+
+/* Time-up modal header */
+#timeupModal .modal-header { background: linear-gradient(135deg,#7f1d1d,#991b1b) !important; }
+
+/* Mobile */
+@media (max-width: 767px) {
+  #palette        { display: none; }
+  .section-body   { padding-bottom: 5.5rem; }
+  #mobile-progress{ display: flex !important; }
+  #exam-header    { gap: .5rem; }
+  .exam-title     { font-size: .82rem; }
+  #timer          { font-size: .9rem; padding: .2rem .5rem; }
+  #btn-submit-header { padding: .35rem .65rem; font-size: .75rem; }
+}
+#mobile-progress {
+  display: none;
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0d1b2e;
+  color: #fff;
+  font-family: 'Nunito', sans-serif;
+  font-size: .8rem;
+  font-weight: 700;
+  padding: .5rem 1.1rem;
+  border-radius: 30px;
+  gap: .5rem;
+  align-items: center;
+  z-index: 100;
+  box-shadow: 0 4px 16px rgba(0,0,0,.3);
+  border: 1px solid rgba(255,255,255,.1);
+  white-space: nowrap;
+}
+.mp-answered { color: var(--orange); }
+
+pre[class*=language-] { border-radius: 8px; font-size: .82rem; margin: .5rem 0 0; }
 </style>
-</head>
-<body>
+{% endblock %}
 
+{% block content %}
 
-{# HEADER                                                                #}
+{# Config vars — injected before any JS runs #}
+<script>
+var EXAM_SLUG    = "{{ exam.slug }}";
+var USER_PK      = "{{ request.user.pk|default:0 }}";
+var END_TS       = {{ end_timestamp|default:"null" }};
+var IS_UNLIMITED = {{ is_unlimited|yesno:"true,false" }};
+var IS_EXPIRED   = {{ is_expired|yesno:"true,false" }};
+var CSRF         = "{{ csrf_token }}";
+var SAVE_URL     = "{% url 'exams:save_answer' exam.slug %}";
+var SUBMIT_URL   = "{% url 'exams:submit_exam' exam.slug %}";
+var RESULT_URL   = "{% url 'exams:exam_result' exam.slug %}";
+var SERVER_ANSWERS = {{ answered_json|safe|default:"{}" }};
+var LS_KEY = 'sp_exam_' + EXAM_SLUG + '_u' + USER_PK;
+</script>
 
+{# Exam header #}
 <header id="exam-header">
-  <div class="title">{{ exam.title }}</div>
-  <span id="save-indicator"></span>
-  <div id="timer" {% if is_unlimited %}class="unlimited"{% endif %}>
-    {% if is_unlimited %}Unlimited{% else %}--:--:--{% endif %}
+  <div class="exam-title">
+    {{ exam.title }}
+    <small>{{ exam.course.name|default:"" }}{% if exam.course.name %} &middot; {% endif %}{{ request.user.get_full_name|default:request.user.email }}</small>
   </div>
-  <button id="btn-submit" onclick="confirmSubmit()">Submit Exam</button>
+  <span id="save-indicator">
+    <i class="bi bi-cloud" id="save-icon"></i>
+    <span id="save-text"></span>
+  </span>
+  <div id="timer"{% if is_unlimited %} class="unlimited"{% endif %}>
+    {% if is_unlimited %}&#x221E;{% else %}--:--:--{% endif %}
+  </div>
+  <button id="btn-submit-header" onclick="openSubmitModal()">
+    <i class="bi bi-send"></i>Submit
+  </button>
 </header>
 
+<div id="exam-progress-bar"><div id="exam-progress-fill"></div></div>
 
-{# SUBMIT OVERLAY                                                        #}
-
+{# Submitting overlay  #}
 <div id="submitting-overlay">
-  <div class="spinner-border text-light mb-3" role="status"></div>
-  <span style="font-size:1.1rem;font-weight:600;">Submitting your exam…</span>
+  <div class="spinner-border" style="width:2.5rem;height:2.5rem;border-width:3px;color:var(--orange);" role="status"></div>
+  <p>Submitting your exam…</p>
+  <small>Please don't close this tab</small>
 </div>
 
+{# Cheat toast stack  #}
+<div id="cheat-toast-stack"></div>
 
-{# MAIN LAYOUT                                                           #}
+{# Submit modal #}
+<div class="modal fade" id="submitModal" tabindex="-1" aria-labelledby="submitModalLabel" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="submitModalLabel">
+          <i class="bi bi-send-check"></i> Confirm Submission
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="submit-stat-grid">
+          <div class="submit-stat answered-stat">
+            <div class="stat-num" id="modal-answered">0</div>
+            <div class="stat-label">Answered</div>
+          </div>
+          <div class="submit-stat unanswered-stat">
+            <div class="stat-num" id="modal-unanswered">0</div>
+            <div class="stat-label">Unanswered</div>
+          </div>
+        </div>
+        <div id="submit-warning-box" class="alert alert-warning d-flex align-items-start gap-2 py-2 px-3 mb-2" role="alert" style="font-size:.82rem;display:none!important;">
+          <i class="bi bi-exclamation-triangle-fill mt-1 flex-shrink-0"></i>
+          <span id="submit-warning-text"></span>
+        </div>
+        <p class="text-muted mb-0" style="font-size:.82rem;">
+          <i class="bi bi-info-circle me-1"></i>
+          Once submitted, answers cannot be changed and will be scored immediately.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+          <i class="bi bi-arrow-left me-1"></i>Continue Exam
+        </button>
+        <button type="button" id="confirm-submit-btn"
+                class="btn btn-sm fw-bold"
+                style="background:var(--orange);color:#fff;"
+                onclick="doSubmit()">
+          <i class="bi bi-send me-1"></i>Yes, Submit Now
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
-<div id="layout">
+{# Time-up modal  #}
+<div class="modal fade" id="timeupModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#7f1d1d,#991b1b)!important;">
+        <h5 class="modal-title">
+          <i class="bi bi-hourglass-bottom me-2"></i>Time's Up!
+        </h5>
+      </div>
+      <div class="modal-body text-center py-4">
+        <i class="bi bi-clock-history" style="font-size:2.5rem;color:var(--orange);display:block;margin-bottom:.75rem;"></i>
+        <h6 style="font-family:'Nunito',sans-serif;font-weight:700;margin-bottom:.5rem;">Your exam time has ended</h6>
+        <p class="text-muted mb-0" style="font-size:.85rem;">Submitting your answers automatically…</p>
+      </div>
+    </div>
+  </div>
+</div>
 
-  {# ── Question panel ──────────────────────────────────────────── #}
+{# Main layout #}
+<div id="exam-layout">
+
   <div id="question-panel">
 
-    {# Expired-but-public notice banner #}
     {% if is_expired %}
       <div id="expired-banner">
         <i class="bi bi-clock-history"></i>
-        <span>
-          The exam window has closed, but you can still complete and submit your attempt.
-          Your answers have been saved.
-        </span>
+        <strong>Exam window closed.</strong>&nbsp;You can still complete and submit — your answers are saved.
       </div>
     {% endif %}
 
-    {# Section tabs #}
     <div class="section-tabs" id="sectionTabs">
       {% for section in exam_data.sections %}
-        <button class="stab {% if forloop.first %}active{% endif %}"
+        <button class="stab{% if forloop.first %} active{% endif %}"
                 data-sec="{{ section.id }}"
+                id="stab-{{ section.id }}"
                 onclick="switchSection({{ section.id }}, this)">
           {{ section.title }}
         </button>
       {% endfor %}
     </div>
 
-    {# Section bodies #}
     {% for section in exam_data.sections %}
-      <div class="section-body {% if forloop.first %}active{% endif %}"
+      <div class="section-body{% if forloop.first %} active{% endif %}"
            id="sec-body-{{ section.id }}">
 
-        {# Scoring note for this section #}
         {% if section.override_scoring %}
-          <div class="alert alert-info py-1 px-2 mb-2" style="font-size:.78rem;">
-            <i class="bi bi-info-circle me-1"></i>
-            Section rules: +{{ section.correct_marks }} correct
-            {% if section.has_negative %}/ −{{ section.negative_marks }} wrong{% endif %}
+          <div class="section-rule">
+            <i class="bi bi-calculator"></i>
+            +{{ section.correct_marks }} correct{% if section.has_negative %} &nbsp;&middot;&nbsp; &minus;{{ section.negative_marks }} wrong{% endif %}
           </div>
         {% endif %}
 
-        {# Question groups (by paragraph) #}
         {% for group in section.question_groups %}
 
-          {# Paragraph block #}
           {% if group.paragraph %}
             <div class="para-block">
               <div class="para-label">
-                <i class="bi bi-paragraph me-1"></i>
+                <i class="bi bi-paragraph"></i>
                 {{ group.paragraph.title|default:"Reading Passage" }}
               </div>
               {{ group.paragraph.content|safe }}
             </div>
           {% endif %}
 
-          {# Questions in this group #}
           {% for q in group.questions %}
             <div class="q-card" id="qc-{{ q.id }}" data-qid="{{ q.id }}">
               <div class="q-meta">
                 <span class="q-num-badge">Q{{ q.global_num }}</span>
                 <span>{{ section.title }}</span>
                 {% if q.marks != 1 or section.override_scoring %}
-                  <span class="ms-auto">+{{ q.marks }}{% if section.has_negative %} / −{{ q.neg_marks }}{% endif %}</span>
+                  <span class="q-marks-badge">+{{ q.marks }}{% if section.has_negative %} / &minus;{{ q.neg_marks }}{% endif %}</span>
                 {% endif %}
               </div>
               <div class="q-body">
                 <div class="q-text">{{ q.text|safe }}</div>
-                <div class="options" data-qid="{{ q.id }}">
+                <div class="options-grid" data-qid="{{ q.id }}">
                   {% for opt in q.options %}
                     <button class="opt-btn"
                             data-qid="{{ q.id }}"
@@ -314,9 +785,8 @@ pre[class*=language-]{border-radius:8px;font-size:.82rem;}
                     </button>
                   {% endfor %}
                 </div>
-                <button class="clear-btn" id="clear-{{ q.id }}"
-                        onclick="clearOption({{ q.id }})">
-                  <i class="bi bi-x-circle me-1"></i>Clear selection
+                <button class="clear-btn" id="clear-{{ q.id }}" onclick="clearOption({{ q.id }})">
+                  <i class="bi bi-x-circle"></i> Clear selection
                 </button>
               </div>
             </div>
@@ -328,15 +798,26 @@ pre[class*=language-]{border-radius:8px;font-size:.82rem;}
 
   </div>{# /question-panel #}
 
-  {# ── Palette sidebar ─────────────────────────────────────────── #}
   <aside id="palette">
-    <div style="font-size:.72rem;color:#adb5bd;margin-bottom:.6rem;text-align:center;">
-      <span style="background:#f59e0b;display:inline-block;width:10px;height:10px;border-radius:2px;"></span> Answered
-      <span style="background:#f6f8fb;border:1px solid #dee2e6;display:inline-block;width:10px;height:10px;border-radius:2px;margin-left:.4rem;"></span> Not answered
+    <div class="palette-legend">
+      <div class="legend-item"><div class="legend-dot answered"></div>Answered</div>
+      <div class="legend-item"><div class="legend-dot unanswered"></div>Not answered</div>
     </div>
+
+    <div class="palette-progress">
+      <div class="prog-row">
+        <span>Progress</span>
+        <span id="prog-label" style="font-weight:700;color:var(--orange);">0 / 0</span>
+      </div>
+      <div class="prog-bar-wrap"><div class="prog-bar-fill" id="prog-bar-fill"></div></div>
+    </div>
+
     {% for section in exam_data.sections %}
       <div class="palette-section" data-sec="{{ section.id }}">
-        <div class="palette-sec-title">{{ section.title }}</div>
+        <div class="palette-sec-title">
+          <i class="bi bi-grid-3x3-gap-fill" style="font-size:.6rem;"></i>
+          {{ section.title }}
+        </div>
         <div class="q-nums">
           {% for q in section.questions_flat %}
             <button class="qn-btn" id="qn-{{ q.id }}"
@@ -348,380 +829,487 @@ pre[class*=language-]{border-radius:8px;font-size:.82rem;}
         </div>
       </div>
     {% endfor %}
-    <div style="margin-top:1rem;">
-      <button class="btn btn-danger w-100 btn-sm" onclick="confirmSubmit()">
-        <i class="bi bi-send me-1"></i>Submit Exam
+
+    <div class="palette-submit-wrap">
+      <button class="btn w-100 btn-sm fw-bold d-flex align-items-center justify-content-center gap-2"
+              style="background:var(--orange);color:#fff;border-radius:8px;padding:.6rem;"
+              onclick="openSubmitModal()">
+        <i class="bi bi-send"></i>Submit Exam
       </button>
     </div>
   </aside>
 
-</div>{# /layout #}
+</div>{# /exam-layout #}
 
+<div id="mobile-progress">
+  <i class="bi bi-check2-circle" style="color:var(--orange);"></i>
+  <span><span class="mp-answered" id="mp-answered">0</span> / <span id="mp-total">0</span> answered</span>
+  <button onclick="openSubmitModal()"
+          style="background:var(--orange);color:#fff;border:none;border-radius:20px;font-size:.72rem;font-weight:700;padding:.2rem .7rem;cursor:pointer;margin-left:.25rem;">
+    Submit
+  </button>
+</div>
 
-{# SCRIPTS                                                               #}
+{% endblock %}
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
 <script>
-/* ── CONFIG  (injected safely from Django view context) ─────────────── */
-const EXAM_SLUG     = "{{ exam.slug }}";
-const USER_PK       = "{{ request.user.pk|default:0 }}";
-const END_TS        = {{ end_timestamp|default:"null" }};   // ms timestamp
-const IS_UNLIMITED  = {{ is_unlimited|yesno:"true,false" }};
-const IS_EXPIRED    = {{ is_expired|yesno:"true,false" }};  // past-deadline public exam
-const CSRF          = "{{ csrf_token }}";
-const SAVE_URL      = "{% url 'exams:save_answer' exam.slug %}";
-const SUBMIT_URL    = "{% url 'exams:submit_exam' exam.slug %}";
-const RESULT_URL    = "{% url 'exams:exam_result' exam.slug %}";
+/* ================================================================
+   STATE
+   ================================================================ */
+var localAnswers   = {};
+var autoSubmitDone = false;
+var saveQueue      = {};
+var toastCount     = 0;
+var focusLossCount = 0;
+var totalQuestions = 0;
+var bsSubmitModal, bsTimeupModal;
 
-// Answers already saved on server | parsed safely without double-escape bugs
-const SERVER_ANSWERS = {{ answered_json|safe|default:"{}" }};
-
-// LocalStorage key | per user per exam so multiple students on same browser work
-const LS_KEY = `exam_${EXAM_SLUG}_u${USER_PK}`;
-
-/* ── PREMIUM FLOATING BOOTSTRAP WARNING ALERTS ───────────────────────── */
-function showCheatWarning(message) {
-  let container = document.getElementById('cheat-warning-container');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'cheat-warning-container';
-    container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;max-width:400px;width:90%;';
-    document.body.appendChild(container);
-  }
-
-  const alertId  = 'cheat-alert-' + Date.now();
-  const alertEl  = document.createElement('div');
-  alertEl.id     = alertId;
-  alertEl.className = 'alert alert-warning alert-dismissible fade show shadow border-0 d-flex align-items-center mb-2';
-  alertEl.role   = 'alert';
-  alertEl.innerHTML = `
-    <i class="bi bi-exclamation-triangle-fill fs-5 me-2 flex-shrink-0"></i>
-    <div style="font-size:.88rem;font-weight:500;">${message}</div>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="font-size:.75rem;padding:1rem;"></button>
-  `;
-  container.appendChild(alertEl);
-
-  // Auto-dismiss after 6 s
-  setTimeout(() => {
-    const el = document.getElementById(alertId);
-    if (el) new bootstrap.Alert(el).close();
-  }, 6000);
-}
-
-/* ── STATE ───────────────────────────────────────────────────────────── */
-let localAnswers  = {};   // {qid: option}
-let currentSection = null;
-let autoSubmitDone = false;
-let saveQueue      = {};  // debounce per question
-
-/* ── BEFOREUNLOAD HANDLER ────────────────────────────────────────────── */
+/* ================================================================
+   NAV LOCK
+   ================================================================ */
 function preventNav(e) {
   e.preventDefault();
-  e.returnValue = 'Your progress is saved. Are you sure you want to leave?';
-  return e.returnValue;
+  e.returnValue = '';
+  return '';
 }
 
-/* ── INIT ────────────────────────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', () => {
+/* ================================================================
+   SECTION SWITCHING
+   ================================================================ */
+function switchSection(secId, btn) {
+  // Deactivate all tabs and bodies
+  var tabs   = document.querySelectorAll('.stab');
+  var bodies = document.querySelectorAll('.section-body');
+  for (var i = 0; i < tabs.length;   i++) tabs[i].classList.remove('active');
+  for (var i = 0; i < bodies.length; i++) bodies[i].classList.remove('active');
 
-  // Purge stale localStorage on fresh attempt
-  if (window.location.search.includes('fresh=1')) {
+  // Activate clicked tab + matching body
+  btn.classList.add('active');
+  var body = document.getElementById('sec-body-' + secId);
+  if (body) {
+    body.classList.add('active');
+    // Re-render MathJax for the newly visible section
+    retypeset(body);
+    // Re-highlight code
+    if (typeof Prism !== 'undefined') {
+      setTimeout(function(){ Prism.highlightAllUnder(body); }, 60);
+    }
+  }
+}
+
+/* ================================================================
+   MATHJAX — retypeset a specific element or the whole panel
+   ================================================================ */
+function retypeset(el) {
+  if (window.MathJax && MathJax.typesetPromise) {
+    var target = el || document.getElementById('question-panel');
+    if (target) {
+      MathJax.typesetPromise([target]).catch(function(e){ console.warn('MathJax error', e); });
+    }
+  }
+}
+
+/* ================================================================
+   INIT
+   ================================================================ */
+document.addEventListener('DOMContentLoaded', function() {
+
+  // Bootstrap modals
+  bsSubmitModal = new bootstrap.Modal(document.getElementById('submitModal'));
+  bsTimeupModal = new bootstrap.Modal(document.getElementById('timeupModal'));
+
+  // Count questions
+  totalQuestions = document.querySelectorAll('.q-card').length;
+
+  // Clear fresh localStorage
+  if (window.location.search.indexOf('fresh=1') !== -1) {
     try { localStorage.removeItem(LS_KEY); } catch(e) {}
     try {
-      const url = new URL(window.location);
-      url.searchParams.delete('fresh');
-      window.history.replaceState({}, document.title, url.toString());
+      var u = new URL(window.location);
+      u.searchParams.delete('fresh');
+      history.replaceState({}, document.title, u.toString());
     } catch(e) {}
   }
 
   // Load localStorage
   try {
-    const raw = localStorage.getItem(LS_KEY);
+    var raw = localStorage.getItem(LS_KEY);
     if (raw) localAnswers = JSON.parse(raw) || {};
   } catch(e) { localAnswers = {}; }
 
-  // Merge: localStorage takes priority (most recent)
-  const merged = { ...SERVER_ANSWERS, ...localAnswers };
-  for (const [qid, opt] of Object.entries(merged)) {
-    if (opt) applySelection(parseInt(qid), opt);
+  // Merge: localStorage (most recent) wins over server
+  var merged = {};
+  var key;
+  for (key in SERVER_ANSWERS) { if (SERVER_ANSWERS.hasOwnProperty(key)) merged[key] = SERVER_ANSWERS[key]; }
+  for (key in localAnswers)   { if (localAnswers.hasOwnProperty(key) && localAnswers[key]) merged[key] = localAnswers[key]; }
+
+  for (key in merged) {
+    if (merged.hasOwnProperty(key) && merged[key]) {
+      applySelection(parseInt(key), merged[key]);
+    }
   }
   localAnswers = merged;
   persistLocal();
+  updateProgress();
 
-  // ── Timer ──────────────────────────────────────────────────────────────
-  // IS_EXPIRED:   past-deadline exam with make_public_after=True
-  //               → show static "00:00:00", never auto-submit
-  // IS_UNLIMITED: no end_date and no duration
-  //               → show "Unlimited" label, no countdown
-  // otherwise:    start live countdown; auto-submit when it hits zero
-  if (!IS_UNLIMITED) {
-    if (END_TS) startTimer(END_TS);
+  // Timer
+  if (!IS_UNLIMITED && END_TS) {
+    startTimer(END_TS);
   }
 
-  // Render LaTeX on first visible section
-  renderMath();
+  // Initial MathJax render on visible section
+  var firstActive = document.querySelector('.section-body.active');
+  if (firstActive) retypeset(firstActive);
 
-  // Navigation lock
+  // Prism
+  if (typeof Prism !== 'undefined') Prism.highlightAll();
+
+  // Nav lock
   window.addEventListener('beforeunload', preventNav);
 
-  // ── Anti-Cheat ─────────────────────────────────────────────────────────
-  document.addEventListener('contextmenu', e => {
+  // Anti-cheat
+  document.addEventListener('contextmenu', function(e) {
     e.preventDefault();
-    showCheatWarning("⚠️ Security Warning: Right click context menu is disabled during the exam.");
+    showCheatToast('Right-Click Blocked', 'Context menu is disabled during the exam.', 1);
   });
-  document.addEventListener('selectstart', e => e.preventDefault());
-  document.addEventListener('copy',  e => { e.preventDefault(); showCheatWarning("⚠️ Security Warning: Copying text is strictly prohibited."); });
-  document.addEventListener('cut',   e => { e.preventDefault(); showCheatWarning("⚠️ Security Warning: Cutting text is strictly prohibited."); });
-  document.addEventListener('paste', e => { e.preventDefault(); showCheatWarning("⚠️ Security Warning: Pasting text is strictly prohibited."); });
-  document.addEventListener('dragstart', e => e.preventDefault());
+  document.addEventListener('selectstart', function(e) { e.preventDefault(); });
+  document.addEventListener('copy',  function(e) { e.preventDefault(); showCheatToast('Copy Blocked', 'Copying text is not allowed.', 1); });
+  document.addEventListener('cut',   function(e) { e.preventDefault(); showCheatToast('Cut Blocked', 'Cutting text is not allowed.', 1); });
+  document.addEventListener('paste', function(e) { e.preventDefault(); showCheatToast('Paste Blocked', 'Pasting is not allowed.', 1); });
+  document.addEventListener('dragstart', function(e) { e.preventDefault(); });
 
-  document.addEventListener('keydown', e => {
+  document.addEventListener('keydown', function(e) {
+    var k = e.key ? e.key.toLowerCase() : '';
     if (e.key === 'F12' || e.keyCode === 123) {
       e.preventDefault();
-      showCheatWarning("⚠️ Cheat Warning: Developer tools (F12) are disabled during examinations.");
+      showCheatToast('DevTools Blocked', 'Developer tools (F12) are disabled during exams.', 2);
       return false;
     }
-    if (e.ctrlKey && ['c','v','x','u','s','C','V','X','U','S'].includes(e.key)) {
+    if (e.ctrlKey && ['c','v','x','u','s'].indexOf(k) !== -1) {
       e.preventDefault();
-      showCheatWarning("⚠️ Cheat Warning: Copying, pasting, cutting, viewing source, and saving pages are disabled.");
+      showCheatToast('Shortcut Blocked', 'Copy, paste, cut, view-source, and save shortcuts are disabled.', 1);
       return false;
     }
-    if (e.ctrlKey && e.shiftKey && ['I','J','C','i','j','c'].includes(e.key)) {
+    if (e.ctrlKey && e.shiftKey && ['i','j','c'].indexOf(k) !== -1) {
       e.preventDefault();
-      showCheatWarning("⚠️ Cheat Warning: Developer tools and inspection options are disabled.");
+      showCheatToast('Inspection Blocked', 'Browser inspection tools are disabled.', 2);
       return false;
     }
-    if (e.metaKey && e.altKey && ['i','j','I','J'].includes(e.key)) {
+    if (e.metaKey && e.altKey && ['i','j'].indexOf(k) !== -1) {
       e.preventDefault();
-      showCheatWarning("⚠️ Cheat Warning: Developer tools shortcuts are disabled.");
-      return false;
-    }
-    if (e.metaKey && ['u','s','U','S'].includes(e.key)) {
-      e.preventDefault();
-      showCheatWarning("⚠️ Cheat Warning: View source and page saving are disabled.");
+      showCheatToast('DevTools Blocked', 'Developer tools shortcuts are disabled.', 2);
       return false;
     }
   });
 
-  let focusLossCount = 0;
-  window.addEventListener('blur', () => {
+  window.addEventListener('blur', function() {
+    if (autoSubmitDone) return;
     focusLossCount++;
-    showCheatWarning(`⚠️ Cheat Warning (${focusLossCount}): You switched tabs or left the active examination screen. This activity has been recorded.`);
+    var sev = focusLossCount >= 5 ? 3 : focusLossCount >= 3 ? 2 : 1;
+    var lvl = sev === 3 ? 'HIGH' : sev === 2 ? 'MEDIUM' : 'LOW';
+    showCheatToast(
+      'Tab Switch Detected <span class="severity-badge sev-' + sev + '">' + lvl + '</span>',
+      'You left the exam window (' + focusLossCount + ' time' + (focusLossCount > 1 ? 's' : '') + '). This activity is recorded.',
+      sev
+    );
   });
+
+  // Scroll: update palette highlight
+  var qPanel = document.getElementById('question-panel');
+  if (qPanel) qPanel.addEventListener('scroll', onPanelScroll, { passive: true });
 });
 
-/* ── SECTION SWITCHING ───────────────────────────────────────────────── */
-function switchSection(secId, btn) {
-  document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.section-body').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const targetBody = document.getElementById('sec-body-' + secId);
-  if (targetBody) {
-    targetBody.classList.add('active');
-    currentSection = secId;
-    setTimeout(() => renderMath(targetBody), 50);
-  }
+/* ================================================================
+   CHEAT TOAST
+   ================================================================ */
+function showCheatToast(title, msg, sev) {
+  var stack = document.getElementById('cheat-toast-stack');
+  var id    = 'ct-' + (++toastCount);
+  var el    = document.createElement('div');
+  el.id        = id;
+  el.className = 'cheat-toast';
+  el.innerHTML =
+    '<i class="bi bi-shield-exclamation ct-icon"></i>' +
+    '<div class="cheat-toast-body">' +
+      '<div class="cheat-toast-title">' + title + '</div>' +
+      '<div class="cheat-toast-msg">' + msg + '</div>' +
+    '</div>' +
+    '<button class="cheat-toast-close" onclick="dismissToast(\'' + id + '\')" aria-label="Dismiss">' +
+      '<i class="bi bi-x"></i>' +
+    '</button>';
+  stack.appendChild(el);
+  setTimeout(function(){ dismissToast(id); }, 7000);
 }
 
-/* ── OPTION SELECTION ────────────────────────────────────────────────── */
+function dismissToast(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.style.transition = 'opacity .25s, transform .25s';
+  el.style.opacity    = '0';
+  el.style.transform  = 'translateX(20px)';
+  setTimeout(function(){ if (el.parentNode) el.parentNode.removeChild(el); }, 270);
+}
+
+/* ================================================================
+   OPTION SELECTION
+   ================================================================ */
 function selectOption(qid, opt, btn) {
-  const already   = localAnswers[qid] === opt;
-  const targetOpt = already ? null : opt;
-  applySelection(qid, targetOpt);
-  localAnswers[qid] = targetOpt;
+  var toggle = (localAnswers[qid] === opt) ? null : opt;
+  applySelection(qid, toggle);
+  localAnswers[qid] = toggle;
   persistLocal();
-  debounceSave(qid, targetOpt);
+  updateProgress();
+  debounceSave(qid, toggle);
 }
 
 function applySelection(qid, opt) {
-  document.querySelectorAll(`.opt-btn[data-qid="${qid}"]`).forEach(b => b.classList.remove('selected'));
+  var allOpts = document.querySelectorAll('.opt-btn[data-qid="' + qid + '"]');
+  for (var i = 0; i < allOpts.length; i++) allOpts[i].classList.remove('selected');
+
   if (opt) {
-    const btn = document.querySelector(`.opt-btn[data-qid="${qid}"][data-opt="${opt}"]`);
-    if (btn) btn.classList.add('selected');
+    var sel = document.querySelector('.opt-btn[data-qid="' + qid + '"][data-opt="' + opt + '"]');
+    if (sel) sel.classList.add('selected');
   }
-  const clearBtn = document.getElementById('clear-' + qid);
+
+  var clearBtn = document.getElementById('clear-' + qid);
   if (clearBtn) clearBtn.classList.toggle('visible', !!opt);
-  const qnBtn = document.getElementById('qn-' + qid);
+
+  var qnBtn = document.getElementById('qn-' + qid);
   if (qnBtn) qnBtn.classList.toggle('answered', !!opt);
+
+  var card = document.getElementById('qc-' + qid);
+  if (card) card.classList.toggle('answered-card', !!opt);
 }
 
 function clearOption(qid) {
   applySelection(qid, null);
   localAnswers[qid] = null;
   persistLocal();
+  updateProgress();
   debounceSave(qid, null);
 }
 
-/* ── PERSIST TO LOCALSTORAGE ─────────────────────────────────────────── */
+/* ================================================================
+   PROGRESS
+   ================================================================ */
+function updateProgress() {
+  var answered = 0;
+  for (var k in localAnswers) {
+    if (localAnswers.hasOwnProperty(k) && localAnswers[k]) answered++;
+  }
+  var total = totalQuestions || document.querySelectorAll('.q-card').length;
+  var pct   = total ? (answered / total * 100).toFixed(1) : 0;
+
+  var lbl  = document.getElementById('prog-label');
+  var fill = document.getElementById('prog-bar-fill');
+  var xfill= document.getElementById('exam-progress-fill');
+  var mpa  = document.getElementById('mp-answered');
+  var mpt  = document.getElementById('mp-total');
+
+  if (lbl)   lbl.textContent  = answered + ' / ' + total;
+  if (fill)  fill.style.width = pct + '%';
+  if (xfill) xfill.style.width= pct + '%';
+  if (mpa)   mpa.textContent  = answered;
+  if (mpt)   mpt.textContent  = total;
+}
+
+/* ================================================================
+   PERSIST
+   ================================================================ */
 function persistLocal() {
   try { localStorage.setItem(LS_KEY, JSON.stringify(localAnswers)); } catch(e) {}
 }
 
-/* ── SERVER SAVE  (debounced 600 ms) ─────────────────────────────────── */
+/* ================================================================
+   SERVER SAVE — debounced 700 ms
+   ================================================================ */
 function debounceSave(qid, opt) {
   clearTimeout(saveQueue[qid]);
-  saveQueue[qid] = setTimeout(() => serverSave(qid, opt), 600);
+  saveQueue[qid] = setTimeout(function(){ serverSave(qid, opt); }, 700);
 }
 
-async function serverSave(qid, opt) {
-  setSaveIndicator('saving');
-  try {
-    const response = await fetch(SAVE_URL, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
-      body:    JSON.stringify({ question_id: qid, selected_option: opt }),
-    });
-    if (!response.ok) throw new Error('Save failed');
-    setSaveIndicator('saved');
-  } catch(e) {
-    setSaveIndicator('offline');
-  }
+function serverSave(qid, opt) {
+  setSaveState('saving');
+  fetch(SAVE_URL, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+    body:    JSON.stringify({ question_id: qid, selected_option: opt }),
+  })
+  .then(function(resp) {
+    if (!resp.ok) throw new Error('save_failed');
+    setSaveState('saved');
+  })
+  .catch(function() {
+    setSaveState('offline');
+  });
 }
 
-let saveIndicatorTimer;
-function setSaveIndicator(state) {
-  const el = document.getElementById('save-indicator');
+var saveStateTimer;
+function setSaveState(state) {
+  var el   = document.getElementById('save-indicator');
+  var icon = document.getElementById('save-icon');
+  var text = document.getElementById('save-text');
   if (!el) return;
-  clearTimeout(saveIndicatorTimer);
-  if (state === 'saving')  { el.textContent = '● Saving…';  el.style.color = '#94a3b8'; }
-  if (state === 'saved')   { el.textContent = '✓ Saved';    el.style.color = '#4ade80';
-    saveIndicatorTimer = setTimeout(() => el.textContent = '', 2000); }
-  if (state === 'offline') { el.textContent = '↑ Offline | progress stored locally'; el.style.color = '#fbbf24'; }
+  clearTimeout(saveStateTimer);
+  el.className = state;
+  if (state === 'saving')  { icon.className = 'bi bi-cloud-upload';  text.textContent = 'Saving…'; }
+  if (state === 'saved')   {
+    icon.className = 'bi bi-cloud-check-fill'; text.textContent = 'Saved';
+    saveStateTimer = setTimeout(function(){
+      text.textContent = ''; icon.className = 'bi bi-cloud'; el.className = '';
+    }, 2500);
+  }
+  if (state === 'offline') { icon.className = 'bi bi-cloud-slash'; text.textContent = 'Offline — saved locally'; }
 }
 
-/* ── JUMP TO QUESTION ────────────────────────────────────────────────── */
+/* ================================================================
+   JUMP TO QUESTION
+   ================================================================ */
 function jumpToQ(qid, secId) {
-  const tabBtn = document.querySelector(`.stab[data-sec="${secId}"]`);
-  if (tabBtn && !tabBtn.classList.contains('active')) tabBtn.click();
+  // Switch section tab if needed
+  var tabBtn = document.getElementById('stab-' + secId);
+  if (tabBtn && !tabBtn.classList.contains('active')) {
+    switchSection(secId, tabBtn);
+  }
 
-  setTimeout(() => {
-    const card = document.getElementById('qc-' + qid);
+  setTimeout(function() {
+    var card = document.getElementById('qc-' + qid);
     if (card) {
       card.scrollIntoView({ behavior: 'smooth', block: 'start' });
       card.classList.add('current');
-      setTimeout(() => card.classList.remove('current'), 1500);
+      setTimeout(function(){ card.classList.remove('current'); }, 1500);
     }
-  }, 100);
+  }, 120);
 
-  document.querySelectorAll('.qn-btn').forEach(b => b.classList.remove('current'));
-  const qnBtn = document.getElementById('qn-' + qid);
+  var allQn = document.querySelectorAll('.qn-btn');
+  for (var i = 0; i < allQn.length; i++) allQn[i].classList.remove('current');
+  var qnBtn = document.getElementById('qn-' + qid);
   if (qnBtn) qnBtn.classList.add('current');
 }
 
-/* ── TIMER ───────────────────────────────────────────────────────────── */
+/* Scroll: highlight palette button of topmost visible question */
+var scrollDebTimer;
+function onPanelScroll() {
+  clearTimeout(scrollDebTimer);
+  scrollDebTimer = setTimeout(function() {
+    var cards   = document.querySelectorAll('.q-card');
+    var nearest = null;
+    for (var i = 0; i < cards.length; i++) {
+      var rect = cards[i].getBoundingClientRect();
+      if (rect.top <= 160) nearest = cards[i];
+    }
+    if (nearest) {
+      var qid = nearest.getAttribute('data-qid');
+      var allQn = document.querySelectorAll('.qn-btn');
+      for (var i = 0; i < allQn.length; i++) allQn[i].classList.remove('current');
+      var qnBtn = document.getElementById('qn-' + qid);
+      if (qnBtn) { qnBtn.classList.add('current'); qnBtn.scrollIntoView({ block: 'nearest' }); }
+    }
+  }, 80);
+}
+
+/* ================================================================
+   TIMER
+   ================================================================ */
 function startTimer(endTs) {
-  const el = document.getElementById('timer');
+  var el = document.getElementById('timer');
   if (!el) return;
 
-  // ── KEY FIX ──────────────────────────────────────────────────────────────
-  // If IS_EXPIRED is true the exam deadline has already passed, but the exam
-  // remains accessible because make_public_after=True.  Show a static
-  // "Time's up" label and return immediately | never call doSubmit().
   if (IS_EXPIRED) {
     el.textContent = "Time's up";
     el.className   = 'expired';
     return;
   }
-  // ─────────────────────────────────────────────────────────────────────────
 
   function tick() {
-    const rem = endTs - Date.now();
+    var rem = endTs - Date.now();
 
-    if (rem <= 0) {
-      el.textContent = '00:00:00';
-      if (!autoSubmitDone) { autoSubmitDone = true; doSubmit(); }
-      return;
-    }
-
-    // Auto-submit 5 s before end to ensure answers reach the server in time
     if (rem <= 5000 && !autoSubmitDone) {
       autoSubmitDone = true;
       el.textContent = 'Submitting…';
-      doSubmit();
+      if (bsTimeupModal) bsTimeupModal.show();
+      setTimeout(function(){ doSubmit(); }, 1500);
       return;
     }
 
-    const totalSec = Math.floor(rem / 1000);
-    const h = Math.floor(totalSec / 3600);
-    const m = Math.floor((totalSec % 3600) / 60);
-    const s = totalSec % 60;
-    el.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+    if (rem <= 0) { el.textContent = '00:00:00'; return; }
 
-    el.className = '';
-    if      (totalSec < 60)  el.classList.add('danger');
-    else if (totalSec < 300) el.classList.add('warn');
+    var s  = Math.floor(rem / 1000);
+    var h  = Math.floor(s / 3600);
+    var m  = Math.floor((s % 3600) / 60);
+    var ss = s % 60;
+    el.textContent = pad(h) + ':' + pad(m) + ':' + pad(ss);
+    el.className   = s < 60 ? 'danger' : s < 300 ? 'warn' : '';
 
     setTimeout(tick, 1000);
   }
   tick();
 }
 
-function pad(n) { return String(n).padStart(2, '0'); }
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
-/* ── SUBMIT ──────────────────────────────────────────────────────────── */
-function confirmSubmit() {
-  const answered  = Object.keys(localAnswers).filter(k => localAnswers[k]).length;
-  const total     = document.querySelectorAll('.q-card').length;
-  const unattempt = total - answered;
+/* ================================================================
+   SUBMIT FLOW
+   ================================================================ */
+function openSubmitModal() {
+  var answered   = 0;
+  for (var k in localAnswers) {
+    if (localAnswers.hasOwnProperty(k) && localAnswers[k]) answered++;
+  }
+  var total      = totalQuestions || document.querySelectorAll('.q-card').length;
+  var unanswered = total - answered;
 
-  const msg = unattempt > 0
-    ? `You have ${unattempt} unanswered question(s).\n\nSubmit anyway?`
-    : 'Submit your exam?';
+  document.getElementById('modal-answered').textContent   = answered;
+  document.getElementById('modal-unanswered').textContent = unanswered;
 
-  if (confirm(msg)) doSubmit();
+  var warnBox  = document.getElementById('submit-warning-box');
+  var warnText = document.getElementById('submit-warning-text');
+  if (unanswered > 0) {
+    warnText.textContent = 'You have ' + unanswered + ' unanswered question' + (unanswered > 1 ? 's' : '') + '. These will be marked as not attempted.';
+    warnBox.style.display = 'flex';
+    warnBox.style.removeProperty('display'); // override the inline display:none!important
+    warnBox.setAttribute('style', 'font-size:.82rem;display:flex!important;');
+  } else {
+    warnBox.setAttribute('style', 'font-size:.82rem;display:none!important;');
+  }
+
+  if (bsSubmitModal) bsSubmitModal.show();
 }
 
-async function doSubmit() {
-  // Remove navigation lock before redirect
+function doSubmit() {
   window.removeEventListener('beforeunload', preventNav);
 
+  if (bsSubmitModal) bsSubmitModal.hide();
   document.getElementById('submitting-overlay').classList.add('show');
-  document.getElementById('btn-submit').disabled = true;
+  var btn = document.getElementById('btn-submit-header');
+  if (btn) btn.disabled = true;
 
-  try {
-    const resp = await fetch(SUBMIT_URL, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
-      body:    JSON.stringify({ answers: localAnswers }),
-    });
-    const data = await resp.json();
-    localStorage.removeItem(LS_KEY);
+  fetch(SUBMIT_URL, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+    body:    JSON.stringify({ answers: localAnswers }),
+  })
+  .then(function(resp) { return resp.json(); })
+  .then(function(data) {
+    try { localStorage.removeItem(LS_KEY); } catch(e) {}
     window.location.href = data.redirect || RESULT_URL;
-  } catch(e) {
-    // Fallback form submit
-    const form = document.createElement('form');
+  })
+  .catch(function() {
+    // Form fallback
+    var form  = document.createElement('form');
     form.method = 'POST'; form.action = SUBMIT_URL;
-
-    const csrf = document.createElement('input');
-    csrf.type = 'hidden'; csrf.name = 'csrfmiddlewaretoken'; csrf.value = CSRF;
-    form.appendChild(csrf);
-
-    const ans = document.createElement('input');
-    ans.type = 'hidden'; ans.name = 'answers_json';
-    ans.value = JSON.stringify(localAnswers);
-    form.appendChild(ans);
-
+    var ci = document.createElement('input');
+    ci.type = 'hidden'; ci.name = 'csrfmiddlewaretoken'; ci.value = CSRF;
+    var ai = document.createElement('input');
+    ai.type = 'hidden'; ai.name = 'answers_json'; ai.value = JSON.stringify(localAnswers);
+    form.appendChild(ci); form.appendChild(ai);
     document.body.appendChild(form);
     form.submit();
-  }
-}
-
-/* ── MATHJAX  (scoped to active section for performance) ─────────────── */
-function renderMath(targetElement) {
-  if (window.MathJax && MathJax.typesetPromise) {
-    const target = targetElement || document.getElementById('question-panel');
-    if (target) MathJax.typesetPromise([target]).catch(e => console.warn('MathJax error:', e));
-  }
-}
-
-/* ── PRISM  (re-highlight on tab switch) ─────────────────────────────── */
-document.querySelectorAll('.stab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    setTimeout(() => { if (typeof Prism !== 'undefined') Prism.highlightAll(); }, 80);
   });
-});
+}
 </script>
-</body>
-</html>
+{% endblock %}

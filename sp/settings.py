@@ -4,10 +4,8 @@ from celery.schedules import crontab
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-kfdpfxhoy55ivg**iu8qpu=%f5ndri^8d)0j^#du)(xq8%$_ub'
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 IS_PRODUCTION = False
 
@@ -73,7 +71,6 @@ if not IS_PRODUCTION:
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
-            'timeout': 20,  # Set a timeout for database operations
         }
     }
 else: 
@@ -85,6 +82,8 @@ else:
             "PASSWORD": "@Himal_2060",
             "HOST": "127.0.0.1",
             "PORT": "5432",
+            "CONN_MAX_AGE":300,
+            "connect_timeout": 10,
         }
     }
 
@@ -119,7 +118,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Media files
 if IS_PRODUCTION:
     MEDIA_ROOT = "/var/www/cdn/media"
-    MEDIA_URL = "http://cdn.saralpathshala.com/media/"
+    MEDIA_URL = "https://cdn.saralpathshala.com/media/"
 else:
     MEDIA_ROOT = BASE_DIR / 'media'
     MEDIA_URL = '/media/'

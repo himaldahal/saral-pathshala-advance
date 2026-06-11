@@ -19,10 +19,10 @@ from .models import (
 # ─────────────────────────────────────────────
 # CUSTOM ADMIN BRANDING
 # ─────────────────────────────────────────────
-admin.site.site_header = "🎓 Saral Pathshala | Command Center"
-admin.site.site_title = "Saral Pathshala Command Center"
+# Site Customization 
+admin.site.site_header = " Saral Pathshala Admin Panel"
+admin.site.site_title = "Saral Pathshala Admin Portal"
 admin.site.index_title = "Platform Administration & Systems Control"
-
 
 # ─────────────────────────────────────────────
 # SHARED ADMIN STYLES
@@ -221,14 +221,14 @@ class SubjectAdmin(AdminStyleMixin, admin.ModelAdmin):
         'courses',
     )
 
-    search_fields = ('name',)
-
+    search_fields = ('name', 'courses__name')
+    
     list_editable = ('is_active',)
-
+    
     filter_horizontal = ('courses',)
-
+    
     ordering = ('order', 'id')
-
+    
     inlines = [SectionInline]
 
     fieldsets = (

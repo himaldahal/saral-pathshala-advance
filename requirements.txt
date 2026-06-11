@@ -23,6 +23,7 @@ prompt_toolkit==3.0.52
 psycopg2-binary==2.9.12
 python-crontab==3.3.0
 python-dateutil==2.9.0.post0
+pyuwsgi==2.0.30.post1
 redis==8.0.0
 requests==2.33.1
 six==1.17.0

@@ -8,7 +8,6 @@
     --bg-gray: #f8fafc;
 }
 
-#header { background: #1e293b !important; color: white !important; }
 .module h2, .module caption, .inline-group h2 { background: var(--primary) !important; }
 div.breadcrumbs { background: #ffffff !important; color: #64748b !important; border-bottom: 1px solid #e2e8f0; }
 a:link, a:visited { color: var(--primary); }
