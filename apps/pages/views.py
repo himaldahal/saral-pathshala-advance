@@ -787,6 +787,15 @@ def admin_dashboard(request):
             messages.success(request, f"Successfully reset retry counters! Queued {mail_count} failed emails and {sms_count} failed SMS back to PENDING.")
             return redirect('admin_dashboard')
 
+        # 4.5) Flush All Cache
+        elif "flush_all_cache" in request.POST:
+            try:
+                cache.clear()
+                messages.success(request, "All system cache cleared successfully!")
+            except Exception as e:
+                messages.error(request, f"Failed to clear cache: {str(e)}")
+            return redirect('admin_dashboard')
+
         # 5) Delete a specific student attempt (reset mock exams)
         elif "delete_student_attempt" in request.POST:
             attempt_id = request.POST.get('attempt_id', '').strip()

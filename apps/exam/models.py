@@ -91,6 +91,14 @@ class Exam(models.Model):
         cache.clear()
 
     # Status helpers
+    
+    @property
+    def is_live(self):
+        return self.has_started() and not self.has_ended()
+
+    @property
+    def questions_count(self):
+        return self.total_questions()
 
     def has_started(self):
         return timezone.now() >= self.start_date

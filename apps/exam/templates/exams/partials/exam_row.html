@@ -1,64 +1,40 @@
 {% with attempt=exam.user_attempt %}
-<a
-    href="{% url 'exams:exam_detail' exam.slug %}"
+ <a href="{% url 'exams:exam_detail' exam.slug %}"
     class="sp-exam-card{% if exam.has_ended %} card-ended{% elif exam.is_live %} card-live{% endif %}"
     data-title="{{ exam.title|lower }}"
-    data-course="{{ exam.course.name|lower }}"
->
-    {# ── Icon ── #}
-    <div
-        class="sp-card-icon {% if attempt and attempt.is_submitted %}ic-done {% elif exam.is_live %}ic-live {% elif exam.has_ended %}ic-ended {% else %}ic-upcoming{% endif %}"
-    >
-        <i
-            class="bi {% if attempt and attempt.is_submitted %}bi-patch-check-fill {% elif exam.is_live %}bi-broadcast {% elif exam.has_ended %}bi-archive-fill {% else %}bi-clock-history{% endif %}"
-        ></i>
+    data-course="{{ exam.course.name|lower }}" >
+    <div class="sp-card-icon {% if attempt and attempt.is_submitted %}ic-done {% elif exam.is_live %}ic-live {% elif exam.has_ended %}ic-ended {% else %}ic-upcoming{% endif %}">
+        <i class="bi {% if attempt and attempt.is_submitted %}bi-patch-check-fill {% elif exam.is_live %}bi-broadcast {% elif exam.has_ended %}bi-archive-fill {% else %}bi-clock-history{% endif %}"></i>
     </div>
 
-    {# ── Body ── #}
     <div class="sp-card-body">
         <p class="sp-card-title">{{ exam.title }}</p>
         <div class="sp-card-meta">
             <span><i class="bi bi-tag"></i>{{ exam.course.name }}</span>
             {% if exam.duration_minutes %}
-            <span
-                ><i class="bi bi-stopwatch"></i>{{ exam.duration_minutes }}
-                min</span
-            >
-            {% endif %} {% if exam.questions_count %}
-            <span
-                ><i class="bi bi-ui-checks"></i>{{ exam.questions_count }}
-                Qs</span
-            >
-            {% endif %} {% if exam.has_negative_marking %}
-            <span style="color: #dc2626"
-                ><i class="bi bi-dash-circle"></i>Negative</span
-            >
+            <span><i class="bi bi-stopwatch"></i>{{ exam.duration_minutes }} min</span>
+            {% endif %}
+            {% if exam.questions_count %}
+            <span><i class="bi bi-ui-checks"></i>{{ exam.questions_count }} Qs</span>
+            {% endif %}
+            {% if exam.has_negative_marking %}
+            <span style="color: #dc2626"><i class="bi bi-dash-circle"></i>Negative</span>
             {% endif %}
         </div>
     </div>
 
-    {# ── Right ── #}
     <div class="sp-card-right">
         <span
-            class="sp-pill {% if attempt and attempt.is_submitted %}pill-done {% elif exam.is_live %}pill-live {% elif exam.has_ended %}pill-ended {% else %}pill-upcoming{% endif %}"
-        >
-            {% if attempt and attempt.is_submitted %}Done {% elif exam.is_live %}Live {% elif exam.has_ended %}Ended {% else %}Soon{% endif %}
+            class="sp-pill {% if attempt and attempt.is_submitted %}pill-done {% elif exam.is_live %}pill-live {% elif exam.has_ended %}pill-ended {% else %}pill-upcoming{% endif %}">
+        {% if attempt and attempt.is_submitted %}Done {% elif exam.is_live %}Live {% elif exam.has_ended %}Ended {% else %}Soon{% endif %}
         </span>
 
         {% if not exam.is_live and not exam.has_ended %}
-        <span
-            class="sp-countdown"
-            data-countdown="{{ exam.start_date|date:'c' }}"
-            >—</span
-        >
+             <span class="sp-countdown" data-countdown="{{ exam.start_date|date:'c' }}">-</span>
         {% elif exam.is_live and exam.end_date %}
-        <span
-            class="sp-countdown live-text"
-            data-endcountdown="{{ exam.end_date|date:'c' }}"
-            >Live</span
-        >
+            <span class="sp-countdown live-text" data-endcountdown="{{ exam.end_date|date:'c' }}">Live</span>
         {% elif exam.is_live %}
-        <span class="sp-countdown live-text">Live</span>
+            <span class="sp-countdown live-text">Live</span>
         {% endif %}
     </div>
 </a>

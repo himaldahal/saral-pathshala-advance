@@ -30,11 +30,9 @@ def exam_list(request):
     is_auth = request.user.is_authenticated
     is_staff = is_auth and (request.user.is_staff or request.user.is_superuser)
 
-    # Staff bypass: never cache; serve live data every time.
     if is_staff:
         return _exam_list_response(request, is_auth=True, is_staff=True, cached=False)
 
-    # For authenticated students, try a per-user cache first.
     if is_auth:
         cache_key = _exam_list_key(request.user.pk)
         ctx = cache.get(cache_key)
@@ -45,7 +43,6 @@ def exam_list(request):
 
 
 def _exam_list_response(request, *, is_auth, is_staff, cached):
-    """Build exam list context, optionally cache it, and render."""
     from .utils import LIST_CACHE_TTL
 
     qs = Exam.objects.select_related("course").filter(is_active=True)
@@ -85,11 +82,10 @@ def _exam_list_response(request, *, is_auth, is_staff, cached):
     else:
         other_exams = exams
 
-    # Split into active/past for template
-    interested_active = [e for e in interested_exams if not e.has_ended]
-    interested_past   = [e for e in interested_exams if e.has_ended]
-    other_active      = [e for e in other_exams if not e.has_ended]
-    other_past        = [e for e in other_exams if e.has_ended]
+    interested_active = [e for e in interested_exams if not e.has_ended()]
+    interested_past   = [e for e in interested_exams if e.has_ended()]
+    other_active      = [e for e in other_exams if not e.has_ended()]
+    other_past        = [e for e in other_exams if e.has_ended()]
 
     ctx = {
         "interested_course": interested_course,
@@ -105,7 +101,6 @@ def _exam_list_response(request, *, is_auth, is_staff, cached):
         cache.set(_exam_list_key(request.user.pk), ctx, LIST_CACHE_TTL)
 
     return render(request, "exams/exam_list.html", ctx)
-
 
 # Exam Detail  (pre-start info page)
 def exam_detail(request, slug):
@@ -124,6 +119,15 @@ def exam_detail(request, slug):
     if request.user.is_authenticated:
         attempt = ExamAttempt.objects.filter(student=request.user, exam=exam).first()
 
+    related_qs = (
+        Exam.objects.select_related("course")
+        .filter(course=exam.course, is_active=True)
+        .exclude(pk=exam.pk)
+    )
+    related = [e for e in related_qs if e.is_accessible(
+        request.user if request.user.is_authenticated else None
+    )][:4]
+
     return render(
         request,
         "exams/exam_detail.html",
@@ -134,10 +138,10 @@ def exam_detail(request, slug):
             "questions_count": exam.questions.count(),
             "is_staff": is_staff,
             "now": timezone.now(),
+            "related_exams": related,
         },
     )
-
-
+    
 # Start / Resume
 @login_required
 def start_exam(request, slug):

@@ -502,9 +502,8 @@
         }
     }
 </style>
-{% endblock %} {% block content %}
-
-<meta name="robots" content="index, follow" />
+{% endblock %}
+ {% block content %}
 
 <section class="sp-hero">
     <div class="container text-center sp-hero-inner pb-0">
@@ -594,8 +593,7 @@
             <span class="dot dot-green"></span
             ><span>Active &amp; Upcoming</span>
         </div>
-        {% if interested_active %} {% for exam in interested_active %} {% include 'exams/partials/exam_row.html' with exam=exam %} {% endfor %} {%
-        else %}
+        {% if interested_active %} {% for exam in interested_active %} {% include 'exams/partials/exam_row.html' with exam=exam %} {% endfor %} {% else %}
         <div class="sp-empty">
             <i class="bi bi-calendar-x"></i>No active exams for your course
             right now.
@@ -605,11 +603,12 @@
         <div class="sp-section-head">
             <span class="dot dot-gray"></span><span>Past &amp; Practice</span>
         </div>
-        {% if interested_past %} {% for exam in interested_past %} {% include 'exams/partials/exam_row.html' with exam=exam %} {% endfor %} {% else %}
-        <div class="sp-empty">
-            <i class="bi bi-archive"></i>No past exams yet.
-        </div>
-        {% endif %} {% endif %}
+            {% if interested_past %} {% for exam in interested_past %} {% include 'exams/partials/exam_row.html' with exam=exam %} {% endfor %} {% else %}
+            <div class="sp-empty">
+                <i class="bi bi-archive"></i>No past exams yet.
+            </div>
+            {% endif %} 
+        {% endif %}
     </div>
 
     <div class="sp-pane" id="pane-all-courses">
@@ -617,17 +616,22 @@
             <span class="dot dot-green"></span
             ><span>Active &amp; Upcoming</span>
         </div>
-        {% if other_active %} {% for exam in other_active %} {% include 'exams/partials/exam_row.html' with exam=exam %} {% endfor %} {% else %}
-        <div class="sp-empty">
-            <i class="bi bi-calendar-x"></i>No active exams in other courses
-            right now.
-        </div>
+        {% if other_active %} 
+            {% for exam in other_active %} 
+                {% include 'exams/partials/exam_row.html' with exam=exam %} 
+                {% endfor %} 
+        {% else %}
+            <div class="sp-empty">
+                <i class="bi bi-calendar-x"></i>No active exams in other courses
+                right now.
+            </div>
         {% endif %}
 
         <div class="sp-section-head">
             <span class="dot dot-gray"></span><span>Past &amp; Practice</span>
         </div>
-        {% if other_past %} {% for exam in other_past %} {% include 'exams/partials/exam_row.html' with exam=exam %} {% endfor %} {% else %}
+        {% if other_past %} {% for exam in other_past %} {% include 'exams/partials/exam_row.html' with exam=exam %} {% endfor %} 
+        {% else %}
         <div class="sp-empty">
             <i class="bi bi-archive"></i>No past exams yet.
         </div>
